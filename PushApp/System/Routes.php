@@ -1,68 +1,147 @@
 <?php 
 
-$this->slim->get('/hello', function () {
-	$this->slim->response()->header('Content-Type', 'application/json');
-	$this->slim->log->debug("Passing by /hello route");
-	$this->slim->response()->status(HTTP_OK);
-	$result = json_encode(array(
-    	"content" => "Hello, it works!",
-    	"error" => 0
-    	));
-    $this->slim->response()->body($result);
+use \PushApp\Controller\Users;
+use \PushApp\System\PushAppException;
+
+$this->slim->post('/user', function () {
+	
+	$result = false;
+	$error = 0;
+
+	try {
+		$username = $this->slim->request->post('username');
+		$email = $this->slim->request->post('email');
+		$userId = $this->slim->request->post('userId');
+
+		if (!isset($username) && !isset($userId) && !isset($email)) {
+			throw new PushAppException(PushAppException::EMPTY_PARAMS);
+		}
+
+		$user = new Users();
+		$created = $user->createUser($username, $userId, $email);
+		if ($created) {
+			$this->slim->response()->status(HTTP_OK);
+			$result = array(
+				'id' => $created
+			);
+		} else {
+			$this->slim->response()->status(HTTP_NOT_MODIFIED);
+		}
+	} catch (PushAppException $e) {
+		$this->slim->response()->status(HTTP_BAD_REQUEST);
+		$this->slim->response()->header('X-Status-Reason', $e->getMessage());
+		$result = $e->getMessage();
+		$error = $e->getCode();
+	}
+	$this->sendResponse($result, $error);
 });
 
-$this->slim->get('/hello/:name', function ($name) {
-	$this->slim->log->debug("Passing by /hello/$name route");
-	$result = "Hello, $name";
-    $this->slim->response()->body($result);
+$this->slim->get('/user/:id', function ($id) {
+	
+	$result = false;
+	$error = 0;
+
+	try {
+		if (!isset($id)) {
+			throw new PushAppException(PushAppException::EMPTY_PARAMS);
+		}
+
+		$user = new Users();
+		$result = $user->getUserById($id);
+		if ($result) {
+			$this->slim->response()->status(HTTP_OK);
+		} else {
+			$this->slim->response()->status(HTTP_NOT_FOUND);
+		}
+	} catch (PushAppException $e) {
+		$this->slim->response()->status(HTTP_BAD_REQUEST);
+		$this->slim->response()->header('X-Status-Reason', $e->getMessage());
+		$result = $e->getMessage();
+		$error = $e->getCode();
+	}
+	$this->sendResponse($result, $error);
 });
 
-$this->slim->get('/404', function () {
-	$this->slim->log->debug("Passing by /404 route");
-	$this->slim->response()->status(HTTP_NOT_FOUND);
+$this->slim->put('/user/:id', function ($id) {
+	
+	$result = false;
+	$error = 0;
+
+	try {
+		$data = array();
+
+		if (!isset($id)) {
+			throw new PushAppException(PushAppException::EMPTY_PARAMS);
+		}
+
+		$data['username'] = $this->slim->request->put('username');
+		$data['userId'] = $this->slim->request->put('userId');
+		$data['email'] = $this->slim->request->put('email');
+
+		if (!isset($data['username']) && !isset($data['userId']) && !isset($data['email'])) {
+			throw new PushAppException(PushAppException::EMPTY_PARAMS);
+		}
+
+		$user = new Users();
+		$result = $user->updateUser($id, $data);
+		if ($result) {
+			$this->slim->response()->status(HTTP_OK);
+		} else {
+			$this->slim->response()->status(HTTP_NOT_FOUND);
+		}
+	} catch (PushAppException $e) {
+		$this->slim->response()->status(HTTP_BAD_REQUEST);
+		$this->slim->response()->header('X-Status-Reason', $e->getMessage());
+		$result = $e->getMessage();
+		$error = $e->getCode();
+	}
+	$this->sendResponse($result, $error);
 });
 
-$this->slim->get('/400', function () {
-	$this->slim->log->debug("Passing by /400/$reason route");
-	$this->slim->response()->status(HTTP_BAD_REQUEST);
-	$this->slim->response()->header('X-Status-Reason', "This is an invalid route");
+$this->slim->delete('/user/:id', function ($id) {
+	
+	$result = false;
+	$error = 0;
+
+	try {
+		if (!isset($id)) {
+			throw new PushAppException(PushAppException::EMPTY_PARAMS);
+		}
+
+		$user = new Users();
+		$result = $user->deleteUser($id);
+		if ($result) {
+			$this->slim->response()->status(HTTP_OK);
+		} else {
+			$this->slim->response()->status(HTTP_NOT_FOUND);
+		}
+	} catch (PushAppException $e) {
+		$this->slim->response()->status(HTTP_BAD_REQUEST);
+		$this->slim->response()->header('X-Status-Reason', $e->getMessage());
+		$result = $e->getMessage();
+		$error = $e->getCode();
+	}
+	$this->sendResponse($result, $error);
 });
 
 $this->slim->get('/users', function () {
+	
+	$result = false;
+	$error = 0;
 
+	try {
+		$user = new Users();
+		$result = $user->getUsers();
+		if ($result) {
+			$this->slim->response()->status(HTTP_OK);
+		} else {
+			$this->slim->response()->status(HTTP_NOT_FOUND);
+		}
+	} catch (PushAppException $e) {
+		$this->slim->response()->status(HTTP_BAD_REQUEST);
+		$this->slim->response()->header('X-Status-Reason', $e->getMessage());
+		$result = $e->getMessage();
+		$error = $e->getCode();
+	}
+	$this->sendResponse($result, $error);
 });
-
-$this->slim->get('/users/:id', function ($id) {
-
-});
-
-$this->slim->post('/users/:id', function ($id) {
-
-});
-
-$this->slim->put('/users/:id', function ($id) {
-
-});
-
-$this->slim->delete('/users/:id', function ($id) {
-
-});
-
-
-
-// try {
-//     if (true) {
-//       // if found, return JSON response
-//       $this->slim->response()->header('Content-Type', 'application/json');
-//       echo json_encode($result);
-//     } else {
-//       // else throw exception
-//       throw new ResourceNotFoundException();
-//     }
-// } catch (ResourceNotFoundException $e) {
-// 	// return 404 server error
-// 	$this->slim->response()->status(404);
-// } catch (Exception $e) {
-// 	$this->slim->response()->status(400);
-// 	$this->slim->response()->header('X-Status-Reason', $e->getMessage());
-// }
