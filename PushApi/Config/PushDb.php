@@ -1,6 +1,6 @@
 <?php
 
-namespace PushApp\Config;
+namespace PushApi\Config;
 
 $db = array();
 $db['name'] = 'CREATE DATABASE push_db;';

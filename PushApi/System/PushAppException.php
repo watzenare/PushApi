@@ -1,13 +1,13 @@
 <?php
 
-namespace PushApp\System;
+namespace PushApi\System;
 
 use \Exception;
 
 /**
- * Customized PushApp Exceptions
+ * Customized PushApi Exceptions
  */
-class PushAppException extends Exception
+class PushApiException extends Exception
 {
     
     const DEFAULT_NO_ERRORS = 0;

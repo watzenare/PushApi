@@ -1,8 +1,8 @@
 <?php
 
-namespace PushApp\System;
+namespace PushApi\System;
 
-use \PushApp\Config\Config;
+use \PushApi\Config\Config;
 use \PDO;
 use \PDOException;
 

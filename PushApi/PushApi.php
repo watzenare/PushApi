@@ -1,12 +1,12 @@
 <?php
 
-namespace PushApp;
+namespace PushApi;
 
 use \Slim\Slim;
-use \PushApp\System\Util;
-use \PushApp\System\LogWriter;
+use \PushApi\System\Util;
+use \PushApi\System\LogWriter;
 
-class PushApp
+class PushApi
 {
 	private $appName;
     private $slim;

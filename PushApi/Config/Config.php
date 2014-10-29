@@ -1,8 +1,8 @@
 <?php
 
-namespace PushApp\Config;
+namespace PushApi\Config;
 
-use PushApp\System\LogWriter;
+use PushApi\System\LogWriter;
 
 /**
  * Database configuration

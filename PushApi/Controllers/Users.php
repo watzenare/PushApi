@@ -1,9 +1,9 @@
 <?php
 
-namespace PushApp\Controller;
+namespace PushApi\Controllers;
 
-use \PushApp\Controller\Controller;
-use \PushApp\System\PushAppException;
+use \PushApi\System\Controller;
+use \PushApi\System\PushApiException;
 
 
 class Users extends Controller
@@ -48,7 +48,7 @@ class Users extends Controller
 
 	public function getUserById($id = null) {
 		if ($id == null) {
-			throw new PushAppException(PushAppException::NO_DATA);
+			throw new PushApiException(PushApiException::NO_DATA);
 		}
 
 		$this->query = array( 
@@ -58,7 +58,7 @@ class Users extends Controller
 		$result = $this->dbLink->select(self::TABLE_NAME, self::COLUMN_ALL, $this->query);
 
 		if (empty($result)) {
-			throw new PushAppException(PushAppException::NOT_FOUND);
+			throw new PushApiException(PushApiException::NOT_FOUND);
 		} else {
 			return $result;
 		}
@@ -66,7 +66,7 @@ class Users extends Controller
 
 	public function getUserByUserId($userId = null) {
 		if ($userId == null) {
-			throw new PushAppException(PushAppException::NO_DATA);
+			throw new PushApiException(PushApiException::NO_DATA);
 		}
 
 		$this->query = array(
@@ -82,7 +82,7 @@ class Users extends Controller
 		if ($result) {
 			return $result;
 		} else {
-			throw new PushAppException(PushAppException::NOT_FOUND);
+			throw new PushApiException(PushApiException::NOT_FOUND);
 		}
 	}
 

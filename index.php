@@ -12,4 +12,4 @@ function autoloader($class) {
 spl_autoload_register('autoloader');
 
 // Starts the Push App
-$pushApp = new \PushApp\PushApp('Test');
+$pushApi = new \PushApi\PushApi('Test');

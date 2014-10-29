@@ -1,8 +1,8 @@
 <?php
 
-namespace PushApp\Controller;
+namespace PushApi\System;
 
-use \PushApp\System\Medoo;
+use \PushApi\System\Medoo;
 
 
 class Controller
