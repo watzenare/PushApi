@@ -1,8 +1,8 @@
 <?php
 
-namespace PushApp\Config;
+namespace PushApi\Config;
 
-use PushApp\System\LogWriter;
+use PushApi\System\LogWriter;
 
 /**
  * Database configuration
@@ -20,11 +20,13 @@ define('DB_NAME', 'push_db');
 define('HTTP_OK', 200);
 define('HTTP_CREATED', 201);
 define('HTTP_NO_CONTENT', 204);
+define('HTTP_NOT_MODIFIED', 304);
 define('HTTP_BAD_REQUEST', 400);
 define('HTTP_UNAUTHORIZED', 401);
 define('HTTP_FORBIDDEN', 403);
 define('HTTP_NOT_FOUND', 404);
 define('HTTP_METHOD_NOT_ALLOWED', 405);
+define('HTTP_METHOD_NOT_ACCEPTABLE', 406);
 define('HTTP_CONFLICT', 409);
 define('HTTP_INTERNAL_SERVER_ERROR', 500);
 

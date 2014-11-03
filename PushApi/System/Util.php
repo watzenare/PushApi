@@ -1,6 +1,6 @@
 <?php
 
-namespace PushApp\System;
+namespace PushApi\System;
 
 class Util
 {

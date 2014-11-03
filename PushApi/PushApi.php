@@ -1,17 +1,15 @@
 <?php
 
-namespace PushApp;
+namespace PushApi;
 
 use \Slim\Slim;
-use \PushApp\System\Db;
-use \PushApp\System\Util;
-use \PushApp\System\LogWriter;
+use \PushApi\System\Util;
+use \PushApi\System\LogWriter;
 
-class PushApp
+class PushApi
 {
 	private $appName;
     private $slim;
-	private $db;
 
 	public function __construct($name) {
 
@@ -19,9 +17,7 @@ class PushApp
 
 		require "Config/Config.php";
 
-        $this->setSlim(new Slim($config['test']));
-
-        $this->db = new Db($this->slim);
+        $this->setSlim(new Slim($config['dev']));
 
         require "System/Routes.php";
 
@@ -42,5 +38,16 @@ class PushApp
 
     public function getSlim() {
     	return $this->slim;
+    }
+
+    public function sendResponse($result, $error) {
+
+        $this->slim->response()->header('Content-Type', 'application/json');
+
+        $response = json_encode(array(
+            "result" => $result,
+            "error" => $error
+        ));
+        $this->slim->response()->body($response);
     }
 }
