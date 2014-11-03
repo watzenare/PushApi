@@ -1,6 +1,4 @@
-# PushApi
-
-## Degree project
+# PushApi (Degree project)
 
 > This is a hudge project that it is growing during a final degree project. Once finished, it will be able to accept external contributions.
 
@@ -21,6 +19,11 @@ Sending multiple notifications through Android it's not difficult because GCM le
 
 This is a possible scheme of what the project wants to be:
 ![PusherApp](img/option3.png)
+
+# Prerequisites
+- PHP 5.4+ with PDO support
+- Medoo (requires PDO driver enabled)
+- Redis
 
 # Contact
 If you want to contribute with information or resources, you can send information to eloi@tviso.com
