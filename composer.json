@@ -1,5 +1,6 @@
 {
 	"require": {
-		"slim/slim": "2.*"
+		"slim/slim": "2.*",
+		"catfan/medoo": "0.9.6.2"
 	}
 }

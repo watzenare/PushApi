@@ -8,46 +8,45 @@ use \PushApi\System\LogWriter;
 
 class PushApi
 {
-	private $appName;
     private $slim;
 
-	public function __construct($name) {
+    public function __construct($config) {
 
-		$this->setName($name);
+        $this->setSlim($config);
 
-		require "Config/Config.php";
-
-        $this->setSlim(new Slim($config['dev']));
-
+        // Charging the API routes
         require "System/Routes.php";
 
-		$this->slim->run();
+        $this->run();
     }
 
-    public function setName($name) {
-    	$this->appName = $name;
-    }
-
-    public function getName() {
-    	return $this->appName;
-    }
-
-    public function setSlim($slim) {
-    	$this->slim = $slim;
+    public function setSlim($config) {
+        $this->slim = new Slim($config);
     }
 
     public function getSlim() {
-    	return $this->slim;
+        return $this->slim;
+    }
+
+    public function run() {
+        $this->slim->run();
+    }
+
+    private function jsonize($result, $error) {
+        $this->slim->response()->header('Content-Type', JSON);
+
+        $json = json_encode(array(
+            "result" => $result,
+            "error" => $error
+        ));
+
+        return $json;
     }
 
     public function sendResponse($result, $error) {
 
-        $this->slim->response()->header('Content-Type', 'application/json');
+        $data = $this->jsonize($result, $error);
 
-        $response = json_encode(array(
-            "result" => $result,
-            "error" => $error
-        ));
-        $this->slim->response()->body($response);
+        $this->slim->response()->body($data);
     }
 }

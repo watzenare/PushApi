@@ -7,12 +7,10 @@ use PushApi\System\LogWriter;
 /**
  * Database configuration
  */
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '1234567');
-// luserfakerrr md5 password
-// DB_PASSWORD = '0c8dc765c6373f98b4a6f8e14db60f51';
+define('DB_USERNAME', 'pushapi');
+define('DB_PASSWORD', 'f69fda8c6dbbe18b');
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'push_db');
+define('DB_NAME', 'pushdb');
 
 /**
  * HTTP responses
@@ -37,6 +35,7 @@ define('NO_ERRORS', 0);
 define('USER_CREATE_FAILED', 1);
 define('USER_ALREADY_EXISTS', 2);
 define('UNKNOWN_DATABASE', 1049);
+define('JSON', 'application/json');
 
 define('GOOGLE_API_KEY', "AIzaSyCHeOCzPlTlwgiqhdG3EZ_sE07FVR2OBSA");
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace PushApi\System;
+namespace PushApi;
 
 use \Exception;
 
@@ -14,6 +14,8 @@ class PushApiException extends Exception
     const NO_DATA = 10;
     const NOT_FOUND = 11;
     const EMPTY_PARAMS = 12;
+    const DB_NOT_UPDATED = 13;
+    const INVALID_PARAMS = 14;
     
     public function __construct($code, $message = null) {
         
@@ -37,6 +39,14 @@ class PushApiException extends Exception
 
             case self::EMPTY_PARAMS:
                 return 'No params where given';
+                break;
+
+            case self::DB_NOT_UPDATED:
+                return 'Something goes wrong and the database has not been updated';
+                break;
+
+            case self::INVALID_PARAMS:
+                return 'An invalid param was given';
                 break;
             
             default:
