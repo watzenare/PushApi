@@ -11,11 +11,14 @@ class PushApiException extends Exception
 {
     
     const DEFAULT_NO_ERRORS = 0;
+    const INVALID_ACTION = 1;
+    const INVALID_CALL = 2;
     const NO_DATA = 10;
     const NOT_FOUND = 11;
     const EMPTY_PARAMS = 12;
     const DB_NOT_UPDATED = 13;
     const INVALID_PARAMS = 14;
+    const DUPLICATED_VALUE = 15;
     
     public function __construct($code, $message = null) {
         
@@ -29,6 +32,14 @@ class PushApiException extends Exception
 
     private function getExceptionMessage($code) {
         switch ($code) {
+            case self::INVALID_ACTION:
+                return 'This action is invalid';
+                break;
+
+            case self::INVALID_ACTION:
+                return 'This call is undefined';
+                break;
+
             case self::NO_DATA:
                 return 'No data given by parameters';
                 break;
@@ -47,6 +58,10 @@ class PushApiException extends Exception
 
             case self::INVALID_PARAMS:
                 return 'An invalid param was given';
+                break;
+
+            case self::DUPLICATED_VALUE:
+                return 'This content is already added';
                 break;
             
             default:

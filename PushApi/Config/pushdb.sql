@@ -4,13 +4,9 @@ USE pushdb;
 
 CREATE TABLE IF NOT EXISTS `users` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
-    `username` varchar(50) NOT NULL,
-    `userId` int(11) NOT NULL,
     `email` varchar(80) NOT NULL,
     `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `userId` (`userId`),
   UNIQUE KEY `email` (`email`)
 );
 
@@ -40,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `subscribed` (
     PRIMARY KEY (`id`)
 );
 
-CREATE TABLE IF NOT EXISTS `auth` (
+CREATE TABLE IF NOT EXISTS `auths` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `secret` varchar(100) NOT NULL,
     `auth` varchar(100) NOT NULL,

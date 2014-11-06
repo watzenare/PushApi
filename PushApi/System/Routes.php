@@ -1,6 +1,6 @@
 <?php 
 
-use \PushApi\Controllers\User;
+use \PushApi\Controllers\UserController;
 use \PushApi\PushApiException;
 
 // Use always authApp because only can be called by an enabled app
@@ -68,140 +68,24 @@ use \PushApi\PushApiException;
 ///////////////////////////////////
 //         USER ROUTES           //
 ///////////////////////////////////
-$this->slim->post('/user', function () {
-    $result = false;
-    $error = 0;
-    try {
-        $data = array();
-        $data['username'] = $this->slim->request->post('username');
-        $data['userId'] = $this->slim->request->post('userId');
-        $data['email'] = $this->slim->request->post('email');
+$this->slim->group('/user', function() {
+    $this->slim->post('', function () {
+        (new UserController($this->slim))->setUser();
+    });
 
-        if (!isset($data['username']) || !isset($data['userId']) || !isset($data['email'])) {
-            throw new PushApiException(PushApiException::EMPTY_PARAMS);
-        }
+    $this->slim->get('/:id', function ($id) {
+        (new UserController($this->slim))->getUser($id);
+    });
 
-        $user = new User;
-        $created = $user->createUser($data);
-        if ($created) {
-            $this->slim->response()->status(HTTP_OK);
-            $result = array(
-                'id' => $created
-            );
-        } else {
-            $this->slim->response()->status(HTTP_NOT_MODIFIED);
-        }
-    } catch (PushApiException $e) {
-        $this->slim->response()->status(HTTP_BAD_REQUEST);
-        $this->slim->response()->header('X-Status-Reason', $e->getMessage());
-        $result = $e->getMessage();
-        $error = $e->getCode();
-    }
-    $this->sendResponse($result, $error);
-});
+    $this->slim->put('/:id', function ($id) {
+        (new UserController($this->slim))->updateUser($id);
+    });
 
-$this->slim->get('/user/:id', function ($id) {
-    $result = false;
-    $error = 0;
-
-    try {
-        if (!isset($id)) {
-            throw new PushApiException(PushApiException::EMPTY_PARAMS);
-        }
-
-        $user = new User;
-        $result = $user->get($id);
-        if ($result) {
-            $this->slim->response()->status(HTTP_OK);
-        } else {
-            $this->slim->response()->status(HTTP_NOT_FOUND);
-        }
-    } catch (PushApiException $e) {
-        $this->slim->response()->status(HTTP_BAD_REQUEST);
-        $this->slim->response()->header('X-Status-Reason', $e->getMessage());
-        $result = $e->getMessage();
-        $error = $e->getCode();
-    }
-    $this->sendResponse($result, $error);
-});
-
-$this->slim->put('/user/:id', function ($id) {
-    $result = false;
-    $error = 0;
-
-    try {
-        $data = array();
-
-        if (!isset($id)) {
-            throw new PushApiException(PushApiException::EMPTY_PARAMS);
-        }
-
-        $data['username'] = $this->slim->request->put('username');
-        $data['userId'] = $this->slim->request->put('userId');
-        $data['email'] = $this->slim->request->put('email');
-
-        if (!isset($data['username']) && !isset($data['userId']) && !isset($data['email'])) {
-            throw new PushApiException(PushApiException::EMPTY_PARAMS);
-        }
-
-        $user = new User;
-        $result = $user->update($id, $data);
-        if ($result) {
-            $this->slim->response()->status(HTTP_OK);
-        } else {
-            $this->slim->response()->status(HTTP_NOT_FOUND);
-        }
-    } catch (PushApiException $e) {
-        $this->slim->response()->status(HTTP_BAD_REQUEST);
-        $this->slim->response()->header('X-Status-Reason', $e->getMessage());
-        $result = $e->getMessage();
-        $error = $e->getCode();
-    }
-    $this->sendResponse($result, $error);
-});
-
-$this->slim->delete('/user/:id', function ($id) {
-    $result = false;
-    $error = 0;
-
-    try {
-        if (!isset($id)) {
-            throw new PushApiException(PushApiException::EMPTY_PARAMS);
-        }
-
-        $user = new User;
-        $result = $user->delete($id);
-        if ($result) {
-            $this->slim->response()->status(HTTP_OK);
-        } else {
-            $this->slim->response()->status(HTTP_NOT_FOUND);
-        }
-    } catch (PushApiException $e) {
-        $this->slim->response()->status(HTTP_BAD_REQUEST);
-        $this->slim->response()->header('X-Status-Reason', $e->getMessage());
-        $result = $e->getMessage();
-        $error = $e->getCode();
-    }
-    $this->sendResponse($result, $error);
+    $this->slim->delete('/:id', function ($id) {
+        (new UserController($this->slim))->deleteUser($id);
+    });
 });
 
 $this->slim->get('/users', function () {
-    $result = false;
-    $error = 0;
-
-    try {
-        $user = new User;
-        $result = $user->getUsers();
-        if ($result) {
-            $this->slim->response()->status(HTTP_OK);
-        } else {
-            $this->slim->response()->status(HTTP_NOT_FOUND);
-        }
-    } catch (PushApiException $e) {
-        $this->slim->response()->status(HTTP_BAD_REQUEST);
-        $this->slim->response()->header('X-Status-Reason', $e->getMessage());
-        $result = $e->getMessage();
-        $error = $e->getCode();
-    }
-    $this->sendResponse($result, $error);
+    (new UserController($this->slim))->getAllUsers();
 });

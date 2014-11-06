@@ -3,6 +3,7 @@
 namespace PushApi;
 
 use \Slim\Slim;
+use \PushApi\PushApiException;
 use \PushApi\System\Util;
 use \PushApi\System\LogWriter;
 
@@ -16,6 +17,8 @@ class PushApi
 
         // Charging the API routes
         require "System/Routes.php";
+
+        $this->startErrorHandling();
 
         $this->run();
     }
@@ -48,5 +51,41 @@ class PushApi
         $data = $this->jsonize($result, $error);
 
         $this->slim->response()->body($data);
+    }
+
+    private function startErrorHandling() {
+        // Custom error handler
+        $this->slim->error(function (PushApiException $e) {
+            switch ($e->getCode()) {
+                case PushApiException::NOT_FOUND:
+                    $this->slim->response()->status(HTTP_NOT_FOUND);
+                    $this->slim->response()->header('X-Status-Reason', $e->getMessage());
+                    break;
+
+                case PushApiException::DUPLICATED_VALUE:
+                    $this->slim->response()->status(HTTP_CONFLICT);
+                    $this->slim->response()->header('X-Status-Reason', $e->getMessage());
+                    break;
+
+                case PushApiException::INVALID_CALL:
+                    $this->slim->response()->status(HTTP_METHOD_NOT_ALLOWED);
+                    $this->slim->response()->header('X-Status-Reason', $e->getMessage());
+                    break;
+
+                default:
+                    $this->slim->response()->status(HTTP_INTERNAL_SERVER_ERROR);
+                    $this->slim->response()->header('X-Status-Reason', $e->getMessage());
+                    break;
+            }
+            // Print custom errors and HTTP errors or only HTTP
+            // $this->slim->body(json_encode(
+            //     'message' => $e->getMessage(),
+            //     'error' => $e->getCode()
+            // ));
+        });
+        // Custom not found calls handler
+        $this->slim->notFound(function () {
+            throw new PushApiException(PushApiException::INVALID_CALL);
+        });
     }
 }
