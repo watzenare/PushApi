@@ -13,6 +13,7 @@ class PushApiException extends Exception
     const DEFAULT_NO_ERRORS = 0;
     const INVALID_ACTION = 1;
     const INVALID_CALL = 2;
+    const INVALID_RANGE = 3;
     const NO_DATA = 10;
     const NOT_FOUND = 11;
     const EMPTY_PARAMS = 12;
@@ -21,9 +22,10 @@ class PushApiException extends Exception
     const DUPLICATED_VALUE = 15;
     
     public function __construct($code, $message = null) {
-        
         if (!isset($message)) {
             $message = $this->getExceptionMessage($code);
+        } else {
+            $message = $this->getExceptionMessage($code) . ': ' . $message;
         }
     
         // Generate the exception
@@ -36,8 +38,12 @@ class PushApiException extends Exception
                 return 'This action is invalid';
                 break;
 
-            case self::INVALID_ACTION:
+            case self::INVALID_CALL:
                 return 'This call is undefined';
+                break;
+
+            case self::INVALID_RANGE:
+                return 'A value contains an invalid range';
                 break;
 
             case self::NO_DATA:

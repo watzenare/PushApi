@@ -16,4 +16,4 @@ function autoloader($class) {
 spl_autoload_register('autoloader');
 
 // Starts PushApi
-$pushApi = new \PushApi\PushApi($config['dev']);
+$pushApi = new \PushApi\PushApi($config['test']);

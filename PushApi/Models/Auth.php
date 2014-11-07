@@ -2,13 +2,11 @@
 
 namespace PushApi\Models;
 
-use \PushApi\Controllers\Dao;
-use \PushApi\PushApiException;
+use \Illuminate\Database\Eloquent\Model as Eloquent;
 
-
-class Auth extends Dao
+class Auth extends Eloquent
 {
-    protected $table = 'my_users';
+    protected $table = 'auth';
     public $timestamps = false;
 
     // Only can be created MAX num of apps

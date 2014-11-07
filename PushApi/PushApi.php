@@ -62,6 +62,7 @@ class PushApi
                     $this->slim->response()->header('X-Status-Reason', $e->getMessage());
                     break;
 
+                case PushApiException::INVALID_RANGE:
                 case PushApiException::DUPLICATED_VALUE:
                     $this->slim->response()->status(HTTP_CONFLICT);
                     $this->slim->response()->header('X-Status-Reason', $e->getMessage());
@@ -77,7 +78,7 @@ class PushApi
                     $this->slim->response()->header('X-Status-Reason', $e->getMessage());
                     break;
             }
-            // Print custom errors and HTTP errors or only HTTP
+            // // Print custom errors and HTTP errors or only HTTP
             // $this->slim->body(json_encode(
             //     'message' => $e->getMessage(),
             //     'error' => $e->getCode()
@@ -85,7 +86,7 @@ class PushApi
         });
         // Custom not found calls handler
         $this->slim->notFound(function () {
-            throw new PushApiException(PushApiException::INVALID_CALL);
+            $this->slim->response()->header('X-Status-Reason', 'Not found');
         });
     }
 }

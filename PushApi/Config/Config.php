@@ -52,12 +52,6 @@ $config['dev'] = array(
     'log.enabled' => false,
 );
 
-$config['debug'] = array(
-    'mode' => 'development',
-    'debug' => true,
-    'log.enabled' => false,
-);
-
 $config['prod'] = array(
     'mode' => 'production',
     'debug' => false,
