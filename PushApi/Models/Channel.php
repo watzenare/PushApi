@@ -9,8 +9,8 @@ class Channel extends Eloquent
 	public $timestamps = false;
     protected $hidden = array('created');
 
-    public function users()
+    public function subscriptions()
     {
-        return $this->belongsToMany('User', 'Subscribed');
+        return $this->hasMany('\PushApi\Models\Subscribed');
     }
 }

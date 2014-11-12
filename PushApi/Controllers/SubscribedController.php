@@ -3,6 +3,7 @@
 namespace PushApi\Controllers;
 
 use \PushApi\PushApiException;
+use \PushApi\Models\User;
 use \PushApi\Models\Subscribed;
 use \PushApi\Controllers\Controller;
 use \Illuminate\Database\QueryException;
@@ -13,8 +14,7 @@ class SubscribedController extends Controller
     public function setSubscribed($iduser, $idchannel)
     {
         try {
-            $user = User::findOrFail($iduser)->first()->findOrFail($idchannel)->first();
-var_dump($user);die();
+            $user = User::find($iduser)->subscriptions;
             if (isset($user->idchannel)) {
                 $this->send($user->toArray());
             } else {
@@ -26,6 +26,7 @@ var_dump($user);die();
         } catch (QueryException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         } catch (\Exception $e) {
+            var_dump($e);
             throw new PushApiException(PushApiException::INVALID_ACTION);
         }
         $this->send($user->toArray());

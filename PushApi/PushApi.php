@@ -35,24 +35,6 @@ class PushApi
         $this->slim->run();
     }
 
-    private function jsonize($result, $error) {
-        $this->slim->response()->header('Content-Type', JSON);
-
-        $json = json_encode(array(
-            "result" => $result,
-            "error" => $error
-        ));
-
-        return $json;
-    }
-
-    public function sendResponse($result, $error) {
-
-        $data = $this->jsonize($result, $error);
-
-        $this->slim->response()->body($data);
-    }
-
     private function startErrorHandling() {
         // Custom error handler
         $this->slim->error(function (PushApiException $e) {

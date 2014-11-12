@@ -3,6 +3,7 @@
 namespace PushApi\Models;
 
 use \Illuminate\Database\Eloquent\Model as Eloquent;
+use \PushApi\Models\Subscribed;
 
 class User extends Eloquent
 {
@@ -11,8 +12,8 @@ class User extends Eloquent
     protected $guarded = array('id','created');
     protected $hidden = array('created');
 
-    public function channels()
+    public function subscriptions()
     {
-        return $this->belongsToMany('Channel', 'Subscribed');
+        return $this->hasMany('\PushApi\Models\Subscribed');
     }
 }

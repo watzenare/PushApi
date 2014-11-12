@@ -46,5 +46,5 @@ CREATE TABLE IF NOT EXISTS `queue` (
     UNIQUE KEY `name` (`name`)
 );
 
-ALTER TABLE `subscribed` ADD FOREIGN KEY (`idUser`) REFERENCES `pushdb`.`users` (`id`);
-ALTER TABLE `subscribed` ADD FOREIGN KEY (`idChannel`) REFERENCES `pushdb`.`channels` (`id`);
+ALTER TABLE `subscribed` ADD FOREIGN KEY (`user_id`) REFERENCES `pushdb`.`users` (`id`);
+ALTER TABLE `subscribed` ADD FOREIGN KEY (`channel_id`) REFERENCES `pushdb`.`channels` (`id`);

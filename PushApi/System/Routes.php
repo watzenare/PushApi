@@ -92,7 +92,7 @@ $this->slim->group('/user', function() {
         //         SUBSCRIBE ROUTES           //
         ////////////////////////////////////////
         // Subscribes a user to a channel
-        $this->slim->post('/subscribe/:idchannel', function($idchannel) {
+        $this->slim->post('/subscribe/:idchannel', function($id, $idchannel) {
             (new SubscribedController($this->slim))->setSubscribed($id, $idchannel);
         });
         $this->slim->group('/subscribed', function() {
