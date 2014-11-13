@@ -16,4 +16,10 @@ function autoloader($class) {
 spl_autoload_register('autoloader');
 
 // Starts PushApi
-$pushApi = new \PushApi\PushApi($config['test']);
+$slim = new \Slim\Slim($config['test']);
+$pushApi = new \PushApi\PushApi($slim);
+
+// Charging the API routes
+require "PushApi/System/Routes.php";
+
+$slim->run();

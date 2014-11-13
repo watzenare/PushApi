@@ -2,15 +2,28 @@
 
 namespace PushApi\Controllers;
 
-
+/**
+ * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ *
+ * Contains the global actions that all controllers can do.
+ */
 class Controller
 {
     protected $slim;
 
-    public function __construct($slim) {
-        $this->slim = $slim;
+    /**
+     * Main constructor that catches an instance of the framework
+     * @param [Slim] $slim [description]
+     */
+    public function __construct() {
+        $this->slim = \Slim\Slim::getInstance();
     }
 
+    /**
+     * Prepares an HTML response, it modifies some response headers and prepares the
+     * resulting data encoding it into json and sends it to the client 
+     * @param  [array] $result Array with resulting values
+     */
     protected function send($result)
     {
         $response = $this->slim->response();
@@ -35,9 +48,9 @@ class Controller
     }
 
     /**
-     * [boolinize description]
-     * @param  [type] $data [description]
-     * @return [type]       [description]
+     * Changes the value of an integer changing it into a boolean value
+     * @param  [int] $data Integer
+     * @return [bool]       Boolean value
      */
     protected function boolinize($data) {
         return ((int)$data != 0);

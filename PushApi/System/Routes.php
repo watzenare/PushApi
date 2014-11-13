@@ -8,29 +8,29 @@ use \PushApi\Controllers\SubscribedController;
 // Use always authApp because only can be called by an enabled app
 // Use sometimes authAdmin when you use critical calls (most of all delete)
 // Admin == system && App == enabled apps
-// $this->slim->post('/app', 'authApp', 'authAdmin', function () {}
+// $this->slim->post('/app', 'authApp', 'authAdmin', function() {}
 
 
 ////////////////////////////////////
 //          AUTH ROUTES           //
 ////////////////////////////////////
-// $this->slim->post('/app', function () {
+// $this->slim->post('/app', function() {
 
 // }
 
-// $this->slim->get('/app/:id', function ($id) {
+// $this->slim->get('/app/:id', function($id) {
 
 // }
 
-// $this->slim->put('/app/:id', function ($id) {
+// $this->slim->put('/app/:id', function($id) {
 
 // }
 
-// $this->slim->delete('/app/:id', function ($id) {
+// $this->slim->delete('/app/:id', function($id) {
 
 // }
 
-// $this->slim->get('/apps', function () {
+// $this->slim->get('/apps', function() {
 
 // }
 // function authenticate(\Slim\Route $route) {
@@ -70,79 +70,83 @@ use \PushApi\Controllers\SubscribedController;
 ///////////////////////////////////
 //         USER ROUTES           //
 ///////////////////////////////////
-$this->slim->group('/user', function() {
+$slim->group('/user', function() use ($slim) {
     // Creates user $id or retrives user if it was created before
-    $this->slim->post('', function() {
-        // (new UserController($this->slim))->setUser();
+    $slim->post('', function() {
+        (new UserController())->setUser();
     });
-    $this->slim->group('/:id', function() {
+    $slim->group('/:id', function() use ($slim) {
         // Gets user $id
-        $this->slim->get('', function($id) {
-            (new UserController($this->slim))->getUser($id);
+        $slim->get('', function($id) {
+            (new UserController())->getUser($id);
         });
         // Updates user $id given put params
-        $this->slim->put('', function($id) {
-            (new UserController($this->slim))->updateUser($id);
+        $slim->put('', function($id) {
+            (new UserController())->updateUser($id);
         });
         // Deletes user $id
-        $this->slim->delete('', function($id) {
-            (new UserController($this->slim))->deleteUser($id);
+        $slim->delete('', function($id) {
+            (new UserController())->deleteUser($id);
         });
         ////////////////////////////////////////
         //         SUBSCRIBE ROUTES           //
         ////////////////////////////////////////
         // Subscribes a user to a channel
-        $this->slim->post('/subscribe/:idchannel', function($id, $idchannel) {
-            (new SubscribedController($this->slim))->setSubscribed($id, $idchannel);
+        $slim->post('/subscribe/:idchannel', function($id, $idchannel) {
+            (new UserController())->setSubscribed($id, $idchannel);
         });
-        $this->slim->group('/subscribed', function() {
-            // Gets user $id subscriptions
-            $this->slim->get('/:idchannel', function($id, $idchannel) {
-                (new SubscribedController($this->slim))->getSubscribed($id, $idchannel);
+        $slim->group('/subscribed', function() use ($slim) {
+            // Gets user subscriptions
+            $slim->get('', function($id) {
+                (new UserController())->getSubscribed($id);
+            });
+            // Gets user $id subscription $idchannel
+            $slim->get('/:idchannel', function($id, $idchannel) {
+                (new UserController())->getSubscribed($id, $idchannel);
             });
             // Deletes user $id subscriptions
-            $this->slim->delete('/:idchannel', function($id, $idchannel) {
-                (new SubscribedController($this->slim))->deleteSubscribed($id, $idchannel);
+            $slim->delete('/:idchannel', function($id, $idchannel) {
+                (new UserController())->deleteSubscribed($id, $idchannel);
             });
         });
     });
 });
 
-$this->slim->group('/users', function() {
+$slim->group('/users', function() use ($slim) {
     // Geting all users
-    $this->slim->get('', function () {
-        (new UserController($this->slim))->getAllUsers();
+    $slim->get('', function() {
+        (new UserController())->getAllUsers();
     });
 });
 
 //////////////////////////////////////
 //         CHANNEL ROUTES           //
 //////////////////////////////////////
-$this->slim->group('/channel', function() {
+$slim->group('/channel', function() use ($slim) {
     // Creates channel $id or retrives channel if it was created before
-    $this->slim->post('', function () {
-        (new ChannelController($this->slim))->setChannel();
+    $slim->post('', function() {
+        (new ChannelController())->setChannel();
     });
     // Gets user $id
-    $this->slim->get('/:id', function ($id) {
-        (new ChannelController($this->slim))->getChannel($id);
+    $slim->get('/:id', function($id) {
+        (new ChannelController())->getChannel($id);
     });
     // Updates channel $id given put params
-    $this->slim->put('/:id', function ($id) {
-        (new ChannelController($this->slim))->updateChannel($id);
+    $slim->put('/:id', function($id) {
+        (new ChannelController())->updateChannel($id);
     });
     // Deletes channel $id
-    $this->slim->delete('/:id', function ($id) {
-        (new ChannelController($this->slim))->deleteChannel($id);
+    $slim->delete('/:id', function($id) {
+        (new ChannelController())->deleteChannel($id);
     });
 });
-$this->slim->group('/channels', function() {
+$slim->group('/channels', function() use ($slim) {
     // Geting all channels
-    $this->slim->get('', function () {
-        (new ChannelController($this->slim))->getAllChannels();
+    $slim->get('', function() {
+        (new ChannelController())->getAllChannels();
     });
     // Geting all channels with $level
-    $this->slim->get('/level/:level', function ($level) {
-        (new ChannelController($this->slim))->getLevel($level);
+    $slim->get('/level/:level', function($level) {
+        (new ChannelController())->getLevel($level);
     });
 });

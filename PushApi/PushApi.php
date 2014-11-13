@@ -9,66 +9,48 @@ use \PushApi\System\LogWriter;
 
 class PushApi
 {
-    private $slim;
+    private $app;
 
-    public function __construct($config) {
-
-        $this->setSlim($config);
-
-        // Charging the API routes
-        require "System/Routes.php";
+    public function __construct(\Slim\Slim $app) {
+        $this->app = $app;
 
         $this->startErrorHandling();
-
-        $this->run();
-    }
-
-    public function setSlim($config) {
-        $this->slim = new Slim($config);
-    }
-
-    public function getSlim() {
-        return $this->slim;
-    }
-
-    public function run() {
-        $this->slim->run();
     }
 
     private function startErrorHandling() {
         // Custom error handler
-        $this->slim->error(function (PushApiException $e) {
+        $this->app->error(function (PushApiException $e) {
             switch ($e->getCode()) {
                 case PushApiException::NOT_FOUND:
-                    $this->slim->response()->status(HTTP_NOT_FOUND);
-                    $this->slim->response()->header('X-Status-Reason', $e->getMessage());
+                    $this->app->response()->status(HTTP_NOT_FOUND);
+                    $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
 
                 case PushApiException::INVALID_RANGE:
                 case PushApiException::DUPLICATED_VALUE:
-                    $this->slim->response()->status(HTTP_CONFLICT);
-                    $this->slim->response()->header('X-Status-Reason', $e->getMessage());
+                    $this->app->response()->status(HTTP_CONFLICT);
+                    $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
 
                 case PushApiException::INVALID_CALL:
-                    $this->slim->response()->status(HTTP_METHOD_NOT_ALLOWED);
-                    $this->slim->response()->header('X-Status-Reason', $e->getMessage());
+                    $this->app->response()->status(HTTP_METHOD_NOT_ALLOWED);
+                    $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
 
                 default:
-                    $this->slim->response()->status(HTTP_INTERNAL_SERVER_ERROR);
-                    $this->slim->response()->header('X-Status-Reason', $e->getMessage());
+                    $this->app->response()->status(HTTP_INTERNAL_SERVER_ERROR);
+                    $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
             }
             // // Print custom errors and HTTP errors or only HTTP
-            // $this->slim->body(json_encode(
+            // $this->app->body(json_encode(
             //     'message' => $e->getMessage(),
             //     'error' => $e->getCode()
             // ));
         });
         // Custom not found calls handler
-        $this->slim->notFound(function () {
-            $this->slim->response()->header('X-Status-Reason', 'Not found');
+        $this->app->notFound(function () {
+            $this->app->response()->header('X-Status-Reason', 'Not found');
         });
     }
 }
