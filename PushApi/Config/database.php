@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Events\Dispatcher as Dispatcher;
 
 // Instanciate an Eloquen helper
 $capsule = new Capsule;
@@ -14,5 +15,7 @@ $capsule->addConnection(array(
 	'collation' => 'utf8_general_ci',
 	'charset' => 'utf8',
 ));
+
+$capsule->setEventDispatcher(new Dispatcher);
 
 $capsule->bootEloquent();

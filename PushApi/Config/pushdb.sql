@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `subscribed` (
     PRIMARY KEY (`id`)
 );
 
-CREATE TABLE IF NOT EXISTS `auths` (
+CREATE TABLE IF NOT EXISTS `apps` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `secret` varchar(100) NOT NULL,
     `auth` varchar(100) NOT NULL,
