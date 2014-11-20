@@ -3,7 +3,6 @@
 namespace PushApi\Models;
 
 use \Illuminate\Database\Eloquent\Model as Eloquent;
-use \PushApi\Models\Subscribed;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -14,7 +13,7 @@ use \PushApi\Models\Subscribed;
 class User extends Eloquent
 {
     public $timestamps = false;
-    protected $fillable = array('email');
+    protected $fillable = array('email', 'android_id', 'ios_id', 'unicast', 'broadcast');
     protected $guarded = array('id','created');
     protected $hidden = array('created');
 
@@ -24,6 +23,6 @@ class User extends Eloquent
      */
     public function subscriptions()
     {
-        return $this->hasMany('\PushApi\Models\Subscribed');
+        return $this->hasMany('\PushApi\Models\Subscription');
     }
 }

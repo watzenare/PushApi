@@ -18,7 +18,7 @@ class ChannelController extends Controller
     /**
      * Creates a new channel into the registration with given params and
      * displays the information of the created channel. If the channel tries
-     * to registrate twice (checked by mail), the information of the 
+     * to registrate twice (checked by name), the information of the 
      * registrated channel is displayed without adding him again into the 
      * registration
      */
@@ -26,14 +26,9 @@ class ChannelController extends Controller
     {
         try {
             $name = $this->slim->request->post('name');
-            $level = $this->slim->request->post('level');
 
-            if (!isset($name) && !isset($level)) {
+            if (!isset($name)) {
                 throw new PushApiException(PushApiException::NO_DATA);
-            }
-
-            if ($level > 2 || $level < 0) {
-                throw new PushApiException(PushApiException::INVALID_RANGE, 'Level range 0 - 2');
             }
 
             // Checking if user already exists
@@ -44,7 +39,6 @@ class ChannelController extends Controller
             } else {
                 $channel = new Channel;
                 $channel->name = $name;
-                $channel->level = $level;
                 $channel->save();
             }
         } catch (QueryException $e) {
@@ -75,16 +69,11 @@ class ChannelController extends Controller
         try {
             $update = array();
             $update['name'] = $this->slim->request->put('name');
-            $update['level'] = $this->slim->request->put('level');
 
             $update = $this->cleanParams($update);
 
             if (empty($update)) {
                 throw new PushApiException(PushApiException::NO_DATA);
-            }
-
-            if (isset($update['level']) && ($update['level'] > 2 || $update['level'] < 0)) {
-                throw new PushApiException(PushApiException::INVALID_RANGE, 'Level range 0 - 2');
             }
 
             $channel = Channel::where('id', $id)->update($update);
@@ -121,19 +110,5 @@ class ChannelController extends Controller
         }
 
         $this->send($channel->toArray());
-    }
-
-    public function getLevel($level)
-    {
-        try {
-            if ($level < 0 || $level > 2) {
-                throw new PushApiException(PushApiException::INVALID_RANGE, 'Level range 0 - 2');
-            }
-            $channels = Channel::where('level', $level)->orderBy('id', 'asc')->get();
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
-        }
-
-        $this->send($channels->toArray());
     }
 }

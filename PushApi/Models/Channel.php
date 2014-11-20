@@ -13,7 +13,7 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
 class Channel extends Eloquent
 {
     public $timestamps = false;
-	public $fillable = array('name', 'level', 'description');
+	public $fillable = array('name', 'description');
     protected $hidden = array('created');
 
     /**
@@ -22,6 +22,6 @@ class Channel extends Eloquent
      */
     public function subscriptions()
     {
-        return $this->hasMany('\PushApi\Models\Subscribed');
+        return $this->hasMany('\PushApi\Models\Subscription');
     }
 }

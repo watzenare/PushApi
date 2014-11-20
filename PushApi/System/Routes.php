@@ -7,6 +7,12 @@ use \PushApi\Controllers\ChannelController;
 use \PushApi\Controllers\SubscribedController;
 use \PushApi\Controllers\SendController;
 
+\Slim\Route::setDefaultConditions(
+    array(
+        'id' => '\d+',
+    )
+);
+
 /**
  * Middleware that gets the headers and checks if application has autorization
  * @param  SlimRoute $route Routing params
@@ -91,6 +97,11 @@ $slim->group('/user', 'authChecker', function() use ($slim) {
 });
 // Geting all users
 $slim->group('/users', 'authChecker', function() use ($slim) {
+    // Creates all users passed separated by coma and adds only the valid users
+    // (non repeated and valid email)
+    $slim->post('', function() {
+        (new UserController())->setUsers();
+    });
     // Geting all users
     $slim->get('', function() {
         (new UserController())->getAllUsers();
@@ -123,10 +134,6 @@ $slim->group('/channels', 'authChecker', function() use ($slim) {
     // Geting all channels
     $slim->get('', function() {
         (new ChannelController())->getAllChannels();
-    });
-    // Geting all channels with $level
-    $slim->get('/level/:level', function($level) {
-        (new ChannelController())->getLevel($level);
     });
 });
 $slim->post('/send', function() use ($slim) {
