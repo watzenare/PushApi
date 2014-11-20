@@ -10,6 +10,7 @@ use \Exception;
 class PushApiException extends Exception
 {
     
+    const NOT_AUTORIZED = -1;
     const DEFAULT_NO_ERRORS = 0;
     const INVALID_ACTION = 1;
     const INVALID_CALL = 2;
@@ -44,6 +45,10 @@ class PushApiException extends Exception
      */
     private function getExceptionMessage($code) {
         switch ($code) {
+            case self::NOT_AUTORIZED:
+                return 'No permisions to use this call';
+                break;
+
             case self::INVALID_ACTION:
                 return 'This action is invalid';
                 break;

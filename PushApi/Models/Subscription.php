@@ -10,11 +10,14 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
  * Model of the subscribed table, manages all the relationships and dependencies
  * that can be done on these table
  */
-class Subscribed extends Eloquent
+class Subscription extends Eloquent
 {
-	protected $table = 'subscribed';
+    // Preferences values
+    CONST EMAIL = 1;
+    CONST SMARTPHONE = 2;
+
     public $timestamps = false;
-    protected $fillable = array('user_id', 'channel_id');
+    protected $fillable = array('user_id', 'channel_id', 'preferences');
     protected $hidden = array('created');
 
     /**

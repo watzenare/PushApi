@@ -3,7 +3,8 @@
 require 'vendor/autoload.php';
 
 // Include configurations and global PushApi constants
-require "PushApi/Config/Config.php";
+require "PushApi/Config/config.php";
+require "PushApi/Config/headers.php";
 
 // Include the database configuration
 require "PushApi/Config/database.php";

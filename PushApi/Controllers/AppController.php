@@ -16,7 +16,10 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
 class AppController extends Controller
 {
 	/**
-	 * [setApp description]
+	 * Creates a new app into with given params and displays the 
+     * information of the created app. If it is tried to register app
+     * twice (checked by mail), the information of the registrated app
+     * is displayed without adding it again into the registration
 	 */
 	public function setApp()
 	{
@@ -26,6 +29,13 @@ class AppController extends Controller
             if (!isset($name)) {
                 throw new PushApiException(PushApiException::NO_DATA);
             }
+
+            // There's a limit of created apps
+            $app = App::get();
+            if (sizeof($app->toArray()) >= App::MAX_APPS_ENABLED) {
+                throw new PushApiException(PushApiException::INVALID_ACTION);
+            }
+
             $app = App::where('name', $name)->first();
 
             if (!isset($app->name)) {
@@ -105,5 +115,21 @@ class AppController extends Controller
         }
 
         $this->send($app->toArray());
+    }
+
+    public function checkAuth($headers)
+    {
+        try {
+            if (isset($headers['APPID']) && isset($headers['AUTH'])) {
+                $app = App::findOrFail($headers['APPID']);
+                if ($app->auth != $headers['AUTH']) {
+                    throw new PushApiException(PushApiException::NOT_AUTORIZED);
+                }
+            } else {
+                throw new PushApiException(PushApiException::NOT_AUTORIZED);
+            }
+        } catch (\Exception $e) {
+            throw new PushApiException(PushApiException::INVALID_ACTION);
+        }
     }
 }

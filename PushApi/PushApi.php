@@ -37,6 +37,11 @@ class PushApi
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
 
+                case PushApiException::NOT_AUTORIZED:
+                    $this->app->response()->status(HTTP_UNAUTHORIZED);
+                    $this->app->response()->header('X-Status-Reason', $e->getMessage());
+                    break;
+
                 default:
                     $this->app->response()->status(HTTP_INTERNAL_SERVER_ERROR);
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());

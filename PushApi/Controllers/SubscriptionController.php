@@ -12,7 +12,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  *
  * Contains the basic and general actions for managing subscriptions.
  */
-class SubscribedController extends Controller
+class SubscriptionController extends Controller
 {
     
 }

@@ -12,7 +12,8 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
  */
 class Channel extends Eloquent
 {
-	public $timestamps = false;
+    public $timestamps = false;
+	public $fillable = array('name', 'level', 'description');
     protected $hidden = array('created');
 
     /**

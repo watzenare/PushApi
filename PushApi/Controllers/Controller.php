@@ -10,13 +10,15 @@ namespace PushApi\Controllers;
 class Controller
 {
     protected $slim;
+    protected $redis;
 
     /**
      * Main constructor that catches an instance of the framework
-     * @param [Slim] $slim [description]
      */
     public function __construct() {
         $this->slim = \Slim\Slim::getInstance();
+        $this->redis = new \Credis_Client('localhost');
+
     }
 
     /**

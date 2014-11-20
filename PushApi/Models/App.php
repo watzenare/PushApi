@@ -12,12 +12,17 @@ class App extends Eloquent
 
     // Only can be created MAX num of apps
     const MAX_APPS_ENABLED = 1;
+
     public static function boot()
     {
         parent::boot();
 
         static::creating(function($app) {
-        	$app->secret = "asdfasdfff";
+        	$app->secret = generateSecret();
         });
+    }
+
+    private static function generateSecret() {
+        return substr(md5("fakers__" . rand()), 0, 16);
     }
 }

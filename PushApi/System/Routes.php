@@ -5,22 +5,26 @@ use \PushApi\Controllers\AppController;
 use \PushApi\Controllers\UserController;
 use \PushApi\Controllers\ChannelController;
 use \PushApi\Controllers\SubscribedController;
+use \PushApi\Controllers\SendController;
 
-// Use always authApp because only can be called by an enabled app
-// Use sometimes authAdmin when you use critical calls (most of all delete)
-// Admin == system && App == enabled apps
-// $this->slim->post('/app', 'authApp', 'authAdmin', function() {});
-
+/**
+ * Middleware that gets the headers and checks if application has autorization
+ * @param  SlimRoute $route Routing params
+ */
+function authChecker(\Slim\Route $route) {
+    // Getting request headers
+    $headers = apache_request_headers();
+    (new AppController())->checkAuth($headers);
+}
 
 ////////////////////////////////////
 //          AUTH ROUTES           //
 ////////////////////////////////////
-$slim->group('/app', function() use ($slim) {
+$slim->group('/app', 'authChecker', function() use ($slim) {
     // Creates a new app or retrives the app if it was created before
     $slim->post('', function() {
         (new AppController())->setApp();
     });
-
     $slim->group('/:id', function() use ($slim) {
         // Gets the app $id
         $slim->get('', function($id) {
@@ -37,26 +41,14 @@ $slim->group('/app', function() use ($slim) {
     });
 });
 // Geting all apps
-$slim->get('/apps', function() {
+$slim->get('/apps', 'authChecker', function() {
     (new AppController())->getApps();
 });
-
-// function authenticate(\Slim\Route $route) {
-//     // Getting request headers
-//     $headers = apache_request_headers();
-
-//     // Verifying Authorization Header
-//     if (isset($headers['Authorization'])) {
-//     } else {
-//          $slim->stop();
-//     }
-// }
-
 
 ///////////////////////////////////
 //         USER ROUTES           //
 ///////////////////////////////////
-$slim->group('/user', function() use ($slim) {
+$slim->group('/user', 'authChecker', function() use ($slim) {
     // Creates user $id or retrives user if it was created before
     $slim->post('', function() {
         (new UserController())->setUser();
@@ -97,7 +89,8 @@ $slim->group('/user', function() use ($slim) {
         });
     });
 });
-$slim->group('/users', function() use ($slim) {
+// Geting all users
+$slim->group('/users', 'authChecker', function() use ($slim) {
     // Geting all users
     $slim->get('', function() {
         (new UserController())->getAllUsers();
@@ -107,7 +100,7 @@ $slim->group('/users', function() use ($slim) {
 //////////////////////////////////////
 //         CHANNEL ROUTES           //
 //////////////////////////////////////
-$slim->group('/channel', function() use ($slim) {
+$slim->group('/channel', 'authChecker', function() use ($slim) {
     // Creates channel $id or retrives channel if it was created before
     $slim->post('', function() {
         (new ChannelController())->setChannel();
@@ -125,7 +118,8 @@ $slim->group('/channel', function() use ($slim) {
         (new ChannelController())->deleteChannel($id);
     });
 });
-$slim->group('/channels', function() use ($slim) {
+
+$slim->group('/channels', 'authChecker', function() use ($slim) {
     // Geting all channels
     $slim->get('', function() {
         (new ChannelController())->getAllChannels();
@@ -134,4 +128,7 @@ $slim->group('/channels', function() use ($slim) {
     $slim->get('/level/:level', function($level) {
         (new ChannelController())->getLevel($level);
     });
+});
+$slim->post('/send', function() use ($slim) {
+    (new SendController())->sendMessage();
 });
