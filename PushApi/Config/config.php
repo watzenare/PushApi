@@ -1,7 +1,5 @@
 <?php
 
-namespace PushApi\Config;
-
 use PushApi\System\LogWriter;
 
 /**
@@ -50,7 +48,7 @@ $config['test'] = array(
 
 $config['dev'] = array(
     'mode' => 'development',
-    'debug' => true,
+    'debug' => false,
     'log.enabled' => false,
 );
 

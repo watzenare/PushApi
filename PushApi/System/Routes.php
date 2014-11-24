@@ -1,207 +1,190 @@
 <?php 
 
-use \PushApi\Controllers\User;
+use \Slim\Route;
 use \PushApi\PushApiException;
+use \PushApi\Controllers\AppController;
+use \PushApi\Controllers\UserController;
+use \PushApi\Controllers\ChannelController;
+use \PushApi\Controllers\SubscribedController;
+use \PushApi\Controllers\TypeController;
+use \PushApi\Controllers\SendController;
 
-// Use always authApp because only can be called by an enabled app
-// Use sometimes authAdmin when you use critical calls (most of all delete)
-// Admin == system && App == enabled apps
-// $this->slim->post('/app', 'authApp', 'authAdmin', function () {}
+Route::setDefaultConditions(
+    array(
+        'id' => '\d+',
+    )
+);
 
+/**
+ * Middleware that gets the headers and checks if application has autorization
+ * @param  SlimRoute $route Routing params
+ */
+function authChecker(Route $route) {
+    // Getting request headers
+    $headers = apache_request_headers();
+    (new AppController())->checkAuth($headers);
+}
 
 ////////////////////////////////////
 //          AUTH ROUTES           //
 ////////////////////////////////////
-// $this->slim->post('/app', function () {
-
-// }
-
-// $this->slim->get('/app/:id', function ($id) {
-
-// }
-
-// $this->slim->put('/app/:id', function ($id) {
-
-// }
-
-// $this->slim->delete('/app/:id', function ($id) {
-
-// }
-
-// $this->slim->get('/apps', function () {
-
-// }
-// function authenticate(\Slim\Route $route) {
-//     // Getting request headers
-//     $headers = apache_request_headers();
-//     $response = array();
-//     $app = \Slim\Slim::getInstance();
-
-//     // Verifying Authorization Header
-//     if (isset($headers['Authorization'])) {
-//         $db = new DbHandler();
-
-//         // get the api key
-//         $api_key = $headers['Authorization'];
-//         // validating api key
-//         if (!$db->isValidApiKey($api_key)) {
-//             // api key is not present in users table
-//             $response["error"] = true;
-//             $response["message"] = "Access Denied. Invalid Api key";
-//             echoRespnse(401, $response);
-//             $app->stop();
-//         } else {
-//             global $user_id;
-//             // get user primary key id
-//             $user_id = $db->getUserId($api_key);
-//         }
-//     } else {
-//         // api key is missing in header
-//         $response["error"] = true;
-//         $response["message"] = "Api key is misssing";
-//         echoRespnse(400, $response);
-//         $app->stop();
-//     }
-// }
-
+$slim->group('/app', 'authChecker', function() use ($slim) {
+    // Creates a new app or retrives the app if it was created before
+    $slim->post('', function() {
+        (new AppController())->setApp();
+    });
+    $slim->group('/:id', function() use ($slim) {
+        // Gets the app $id
+        $slim->get('', function($id) {
+            (new AppController())->getApp($id);
+        });
+        // Updates app $id given put params or retrives a new app secret
+        $slim->put('', function($id) {
+            (new AppController())->updateApp($id);
+        });
+        // Deletes app $id
+        $slim->delete('', function($id) {
+            (new AppController())->deleteApp($id);
+        });
+    });
+});
+// Geting all apps
+$slim->get('/apps', 'authChecker', function() {
+    (new AppController())->getApps();
+});
 
 ///////////////////////////////////
 //         USER ROUTES           //
 ///////////////////////////////////
-$this->slim->post('/user', function () {
-    $result = false;
-    $error = 0;
-    try {
-        $data = array();
-        $data['username'] = $this->slim->request->post('username');
-        $data['userId'] = $this->slim->request->post('userId');
-        $data['email'] = $this->slim->request->post('email');
-
-        if (!isset($data['username']) || !isset($data['userId']) || !isset($data['email'])) {
-            throw new PushApiException(PushApiException::EMPTY_PARAMS);
-        }
-
-        $user = new User;
-        $created = $user->createUser($data);
-        if ($created) {
-            $this->slim->response()->status(HTTP_OK);
-            $result = array(
-                'id' => $created
-            );
-        } else {
-            $this->slim->response()->status(HTTP_NOT_MODIFIED);
-        }
-    } catch (PushApiException $e) {
-        $this->slim->response()->status(HTTP_BAD_REQUEST);
-        $this->slim->response()->header('X-Status-Reason', $e->getMessage());
-        $result = $e->getMessage();
-        $error = $e->getCode();
-    }
-    $this->sendResponse($result, $error);
+$slim->group('/user', 'authChecker', function() use ($slim) {
+    // Creates user $id or retrives user if it was created before
+    $slim->post('', function() {
+        (new UserController())->setUser();
+    });
+    $slim->group('/:id', function() use ($slim) {
+        // Gets user $id
+        $slim->get('', function($id) {
+            (new UserController())->getUser($id);
+        });
+        // Updates user $id given put params
+        $slim->put('', function($id) {
+            (new UserController())->updateUser($id);
+        });
+        // Deletes user $id
+        $slim->delete('', function($id) {
+            (new UserController())->deleteUser($id);
+        });
+        ////////////////////////////////////////
+        //         SUBSCRIBE ROUTES           //
+        ////////////////////////////////////////
+        // Subscribes a user to a channel
+        $slim->post('/subscribe/:idchannel', function($id, $idchannel) {
+            (new UserController())->setSubscribed($id, $idchannel);
+        });
+        $slim->group('/subscribed', function() use ($slim) {
+            // Gets user subscriptions
+            $slim->get('', function($id) {
+                (new UserController())->getSubscribed($id);
+            });
+            // Gets user $id subscription $idchannel
+            $slim->get('/:idchannel', function($id, $idchannel) {
+                (new UserController())->getSubscribed($id, $idchannel);
+            });
+            // Deletes user $id subscriptions
+            $slim->delete('/:idchannel', function($id, $idchannel) {
+                (new UserController())->deleteSubscribed($id, $idchannel);
+            });
+        });
+        //////////////////////////////////////////
+        //         PREFERENCES ROUTES           //
+        //////////////////////////////////////////
+        $slim->group('/settings', function() use ($slim) {
+            // Gets user settings
+            $slim->get('', function($id) {
+                (new UserController())->getSubscribed($id);
+            });
+            // Gets user $id setting $idchannel
+            $slim->get('/:idsetting', function($id, $idchannel) {
+                (new UserController())->getSubscribed($id, $idchannel);
+            });
+            // Deletes user $id subscriptions
+            $slim->delete('/:idsetting', function($id, $idchannel) {
+                (new UserController())->deleteSubscribed($id, $idchannel);
+            });
+        });
+    });
+});
+// Geting all users
+$slim->group('/users', 'authChecker', function() use ($slim) {
+    // Creates users passed, separated by coma, and adds only the valid users
+    // (non repeated and valid email)
+    $slim->post('', function() {
+        (new UserController())->setUsers();
+    });
+    // Geting all users
+    $slim->get('', function() {
+        (new UserController())->getAllUsers();
+    });
 });
 
-$this->slim->get('/user/:id', function ($id) {
-    $result = false;
-    $error = 0;
-
-    try {
-        if (!isset($id)) {
-            throw new PushApiException(PushApiException::EMPTY_PARAMS);
-        }
-
-        $user = new User;
-        $result = $user->get($id);
-        if ($result) {
-            $this->slim->response()->status(HTTP_OK);
-        } else {
-            $this->slim->response()->status(HTTP_NOT_FOUND);
-        }
-    } catch (PushApiException $e) {
-        $this->slim->response()->status(HTTP_BAD_REQUEST);
-        $this->slim->response()->header('X-Status-Reason', $e->getMessage());
-        $result = $e->getMessage();
-        $error = $e->getCode();
-    }
-    $this->sendResponse($result, $error);
+//////////////////////////////////////
+//         CHANNEL ROUTES           //
+//////////////////////////////////////
+$slim->group('/channel', 'authChecker', function() use ($slim) {
+    // Creates channel $id or retrives channel if it was created before
+    $slim->post('', function() {
+        (new ChannelController())->setChannel();
+    });
+    // Gets user $id
+    $slim->get('/:id', function($id) {
+        (new ChannelController())->getChannel($id);
+    });
+    // Updates channel $id given put params
+    $slim->put('/:id', function($id) {
+        (new ChannelController())->updateChannel($id);
+    });
+    // Deletes channel $id
+    $slim->delete('/:id', function($id) {
+        (new ChannelController())->deleteChannel($id);
+    });
 });
 
-$this->slim->put('/user/:id', function ($id) {
-    $result = false;
-    $error = 0;
-
-    try {
-        $data = array();
-
-        if (!isset($id)) {
-            throw new PushApiException(PushApiException::EMPTY_PARAMS);
-        }
-
-        $data['username'] = $this->slim->request->put('username');
-        $data['userId'] = $this->slim->request->put('userId');
-        $data['email'] = $this->slim->request->put('email');
-
-        if (!isset($data['username']) && !isset($data['userId']) && !isset($data['email'])) {
-            throw new PushApiException(PushApiException::EMPTY_PARAMS);
-        }
-
-        $user = new User;
-        $result = $user->update($id, $data);
-        if ($result) {
-            $this->slim->response()->status(HTTP_OK);
-        } else {
-            $this->slim->response()->status(HTTP_NOT_FOUND);
-        }
-    } catch (PushApiException $e) {
-        $this->slim->response()->status(HTTP_BAD_REQUEST);
-        $this->slim->response()->header('X-Status-Reason', $e->getMessage());
-        $result = $e->getMessage();
-        $error = $e->getCode();
-    }
-    $this->sendResponse($result, $error);
+$slim->group('/channels', 'authChecker', function() use ($slim) {
+    // Geting all channels
+    $slim->get('', function() {
+        (new ChannelController())->getAllChannels();
+    });
 });
 
-$this->slim->delete('/user/:id', function ($id) {
-    $result = false;
-    $error = 0;
-
-    try {
-        if (!isset($id)) {
-            throw new PushApiException(PushApiException::EMPTY_PARAMS);
-        }
-
-        $user = new User;
-        $result = $user->delete($id);
-        if ($result) {
-            $this->slim->response()->status(HTTP_OK);
-        } else {
-            $this->slim->response()->status(HTTP_NOT_FOUND);
-        }
-    } catch (PushApiException $e) {
-        $this->slim->response()->status(HTTP_BAD_REQUEST);
-        $this->slim->response()->header('X-Status-Reason', $e->getMessage());
-        $result = $e->getMessage();
-        $error = $e->getCode();
-    }
-    $this->sendResponse($result, $error);
+///////////////////////////////////
+//         TYPE ROUTES           //
+///////////////////////////////////
+$slim->group('/type', 'authChecker', function() use ($slim) {
+    // Creates type $id or retrives type if it was created before
+    $slim->post('', function() {
+        (new TypeController())->setType();
+    });
+    // Gets user $id
+    $slim->get('/:id', function($id) {
+        (new TypeController())->getType($id);
+    });
+    // Updates type $id given put params
+    $slim->put('/:id', function($id) {
+        (new TypeController())->updateType($id);
+    });
+    // Deletes type $id
+    $slim->delete('/:id', function($id) {
+        (new TypeController())->deleteType($id);
+    });
 });
 
-$this->slim->get('/users', function () {
-    $result = false;
-    $error = 0;
+$slim->group('/types', 'authChecker', function() use ($slim) {
+    // Geting all types
+    $slim->get('', function() {
+        (new TypeController())->getAllTypes();
+    });
+});
 
-    try {
-        $user = new User;
-        $result = $user->getUsers();
-        if ($result) {
-            $this->slim->response()->status(HTTP_OK);
-        } else {
-            $this->slim->response()->status(HTTP_NOT_FOUND);
-        }
-    } catch (PushApiException $e) {
-        $this->slim->response()->status(HTTP_BAD_REQUEST);
-        $this->slim->response()->header('X-Status-Reason', $e->getMessage());
-        $result = $e->getMessage();
-        $error = $e->getCode();
-    }
-    $this->sendResponse($result, $error);
+$slim->post('/send', 'authChecker', function() use ($slim) {
+    (new SendController())->sendMessage();
 });

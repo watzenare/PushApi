@@ -3,7 +3,11 @@
 require 'vendor/autoload.php';
 
 // Include configurations and global PushApi constants
-require "PushApi/Config/Config.php";
+require "PushApi/Config/config.php";
+require "PushApi/Config/headers.php";
+
+// Include the database configuration
+require "PushApi/Config/database.php";
 
 // Includes all files of the PushApi project given it's namespaces and transforms it into directories and files
 function autoloader($class) {
@@ -13,4 +17,10 @@ function autoloader($class) {
 spl_autoload_register('autoloader');
 
 // Starts PushApi
-$pushApi = new \PushApi\PushApi($config['dev']);
+$slim = new \Slim\Slim($config['test']);
+$pushApi = new \PushApi\PushApi($slim);
+
+// Charging the API routes
+require "PushApi/System/Routes.php";
+
+$slim->run();

@@ -1,6 +1,8 @@
 {
 	"require": {
 		"slim/slim": "2.*",
-		"catfan/medoo": "0.9.6.2"
+		"illuminate/database": "4.2.9",
+		"swiftmailer/swiftmailer": "5.3.0",
+		"colinmollenhour/credis": "1.5"
 	}
 }
