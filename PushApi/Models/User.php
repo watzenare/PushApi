@@ -25,4 +25,13 @@ class User extends Eloquent
     {
         return $this->hasMany('\PushApi\Models\Subscription');
     }
+
+    /**
+     * Relationship n-1 to get an instance of the preferences table
+     * @return [Preferences] Instance of User model
+     */
+    public function preferences()
+    {
+        return $this->hasMany('\PushApi\Models\Preferences');
+    }
 }

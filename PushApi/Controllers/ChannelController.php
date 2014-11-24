@@ -31,7 +31,7 @@ class ChannelController extends Controller
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
-            // Checking if user already exists
+            // Checking if channel already exists
             $channel = Channel::where('name', $name)->first();
 
             if (isset($channel->name)) {

@@ -1,13 +1,15 @@
 <?php 
 
+use \Slim\Route;
 use \PushApi\PushApiException;
 use \PushApi\Controllers\AppController;
 use \PushApi\Controllers\UserController;
 use \PushApi\Controllers\ChannelController;
 use \PushApi\Controllers\SubscribedController;
+use \PushApi\Controllers\TypeController;
 use \PushApi\Controllers\SendController;
 
-\Slim\Route::setDefaultConditions(
+Route::setDefaultConditions(
     array(
         'id' => '\d+',
     )
@@ -17,7 +19,7 @@ use \PushApi\Controllers\SendController;
  * Middleware that gets the headers and checks if application has autorization
  * @param  SlimRoute $route Routing params
  */
-function authChecker(\Slim\Route $route) {
+function authChecker(Route $route) {
     // Getting request headers
     $headers = apache_request_headers();
     (new AppController())->checkAuth($headers);
@@ -93,11 +95,28 @@ $slim->group('/user', 'authChecker', function() use ($slim) {
                 (new UserController())->deleteSubscribed($id, $idchannel);
             });
         });
+        //////////////////////////////////////////
+        //         PREFERENCES ROUTES           //
+        //////////////////////////////////////////
+        $slim->group('/settings', function() use ($slim) {
+            // Gets user settings
+            $slim->get('', function($id) {
+                (new UserController())->getSubscribed($id);
+            });
+            // Gets user $id setting $idchannel
+            $slim->get('/:idsetting', function($id, $idchannel) {
+                (new UserController())->getSubscribed($id, $idchannel);
+            });
+            // Deletes user $id subscriptions
+            $slim->delete('/:idsetting', function($id, $idchannel) {
+                (new UserController())->deleteSubscribed($id, $idchannel);
+            });
+        });
     });
 });
 // Geting all users
 $slim->group('/users', 'authChecker', function() use ($slim) {
-    // Creates all users passed separated by coma and adds only the valid users
+    // Creates users passed, separated by coma, and adds only the valid users
     // (non repeated and valid email)
     $slim->post('', function() {
         (new UserController())->setUsers();
@@ -136,6 +155,36 @@ $slim->group('/channels', 'authChecker', function() use ($slim) {
         (new ChannelController())->getAllChannels();
     });
 });
-$slim->post('/send', function() use ($slim) {
+
+///////////////////////////////////
+//         TYPE ROUTES           //
+///////////////////////////////////
+$slim->group('/type', 'authChecker', function() use ($slim) {
+    // Creates type $id or retrives type if it was created before
+    $slim->post('', function() {
+        (new TypeController())->setType();
+    });
+    // Gets user $id
+    $slim->get('/:id', function($id) {
+        (new TypeController())->getType($id);
+    });
+    // Updates type $id given put params
+    $slim->put('/:id', function($id) {
+        (new TypeController())->updateType($id);
+    });
+    // Deletes type $id
+    $slim->delete('/:id', function($id) {
+        (new TypeController())->deleteType($id);
+    });
+});
+
+$slim->group('/types', 'authChecker', function() use ($slim) {
+    // Geting all types
+    $slim->get('', function() {
+        (new TypeController())->getAllTypes();
+    });
+});
+
+$slim->post('/send', 'authChecker', function() use ($slim) {
     (new SendController())->sendMessage();
 });

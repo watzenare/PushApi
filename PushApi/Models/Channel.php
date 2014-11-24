@@ -13,12 +13,12 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
 class Channel extends Eloquent
 {
     public $timestamps = false;
-	public $fillable = array('name', 'description');
+	public $fillable = array('name');
     protected $hidden = array('created');
 
     /**
      * Relationship n-1 to get an instance of the subscribed table
-     * @return [Subscribed] Instance of User model
+     * @return [Subscribed] Instance of Subscription model
      */
     public function subscriptions()
     {

@@ -7,11 +7,16 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  *
- * Model of the subscribed table, manages all the relationships and dependencies
+ * Model of the preferences table, manages all the relationships and dependencies
  * that can be done on these table
  */
-class Subscription extends Eloquent
+class Preference extends Eloquent
 {
+    // Option values
+    CONST EMAIL = 1;
+    CONST ANDROID = 2;
+    CONST IOS = 3;
+
     public $timestamps = false;
     protected $fillable = array('user_id', 'channel_id', 'preferences');
     protected $hidden = array('created');
@@ -26,11 +31,11 @@ class Subscription extends Eloquent
     }
 
     /**
-     * Relationship 1-n to get an instance of the channels table
-     * @return [Channel] Instance of Channel model
+     * Relationship 1-n to get an instance of the type table
+     * @return [Type] Instance of Type model
      */
-    public function channel()
+    public function type()
     {
-        return $this->belongsTo('\PushApi\Models\Channel');
+        return $this->belongsTo('\PushApi\Models\Type');
     }
 }
