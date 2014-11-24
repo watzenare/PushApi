@@ -13,9 +13,27 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
 class Type extends Eloquent
 {
     // Range values
-    const UNICAST = 0;
-    const MULTICAST = 1;
-    const BROADCAST = 2;
+    const UNICAST = 'unicast';
+    const MULTICAST = 'multicast';
+    const BROADCAST = 'broadcast';
+
+    private static $validValues = array(
+        self::UNICAST,
+        self::MULTICAST,
+        self::BROADCAST
+    );
+
+    private static $intToString = array(
+        0 => self::UNICAST,
+        1 => self::MULTICAST,
+        2 => self::BROADCAST
+    );
+
+    private static $stringToInt = array(
+        self::UNICAST => 0,
+        self::MULTICAST => 1,
+        self::BROADCAST => 2
+    );
 
     public $timestamps = false;
 	public $fillable = array('name', 'range');
@@ -27,6 +45,34 @@ class Type extends Eloquent
      */
     public function preferences()
     {
-        return $this->hasMany('\PushApi\Models\Preferences');
+        return $this->hasMany('\PushApi\Models\Preference');
+    }
+
+    /**
+     * [getRangeAttribute description]
+     * @param  [type] $value [description]
+     * @return [type]        [description]
+     */
+    public function getRangeAttribute($value)
+    {
+        return self::$intToString[$value];
+    }
+
+    /**
+     * [setRangeAttribute description]
+     * @param  [type] $value [description]
+     */
+    public function setRangeAttribute($value)
+    {
+        $this->attributes['range'] = self::$stringToInt[$value];
+    }
+
+    /**
+     * [getValidValues description]
+     * @return [type] [description]
+     */
+    public static function getValidValues()
+    {
+        return self::$validValues;
     }
 }

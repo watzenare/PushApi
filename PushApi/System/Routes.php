@@ -98,18 +98,26 @@ $slim->group('/user', 'authChecker', function() use ($slim) {
         //////////////////////////////////////////
         //         PREFERENCES ROUTES           //
         //////////////////////////////////////////
-        $slim->group('/settings', function() use ($slim) {
-            // Gets user settings
-            $slim->get('', function($id) {
-                (new UserController())->getSubscribed($id);
+        // Gets user preferences
+        $slim->get('/preferences', function($id) {
+            (new UserController())->getPreferences($id);
+        });
+        $slim->group('/preference', function() use ($slim) {
+            // Adds a preference to a user
+            $slim->post('/:idtype', function($id, $idtype) {
+                (new UserController())->setPreference($id, $idtype);
             });
-            // Gets user $id setting $idchannel
-            $slim->get('/:idsetting', function($id, $idchannel) {
-                (new UserController())->getSubscribed($id, $idchannel);
+            // Gets user preference
+            $slim->get('/:idtype', function($id, $idtype) {
+                (new UserController())->getPreference($id, $idtype);
             });
-            // Deletes user $id subscriptions
-            $slim->delete('/:idsetting', function($id, $idchannel) {
-                (new UserController())->deleteSubscribed($id, $idchannel);
+            // Updates user preference
+            $slim->put('/:idtype', function($id, $idtype) {
+                (new UserController())->updatePreference($id, $idtype);
+            });
+            // Deletes user preference
+            $slim->delete('/:idtype', function($id, $idtype) {
+                (new UserController())->deletePreference($id, $idtype);
             });
         });
     });
@@ -182,6 +190,10 @@ $slim->group('/types', 'authChecker', function() use ($slim) {
     // Geting all types
     $slim->get('', function() {
         (new TypeController())->getAllTypes();
+    });
+    // Get all types by $range
+    $slim->get('/range/:range', function($range) {
+        (new TypeController())->getByRange($range);
     });
 });
 

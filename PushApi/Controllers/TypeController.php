@@ -26,14 +26,14 @@ class TypeController extends Controller
     {
         try {
             $name = $this->slim->request->post('name');
-            $range = (int) $this->slim->request->post('range');
+            $range = $this->slim->request->post('range');
 
             if (!isset($name) && !isset($range)) {
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
-            if ($range > Type::BROADCAST || $range < Type::UNICAST) {
-                throw new PushApiException(PushApiException::INVALID_RANGE);
+            if (!in_array($range, Type::getValidValues(), true)) {
+                throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range types: " . Type::UNICAST . ", " . Type::MULTICAST . ", " . Type::BROADCAST);
             }
 
             // Checking if type already exists
@@ -75,10 +75,10 @@ class TypeController extends Controller
         try {
             $update = array();
             $update['name'] = $this->slim->request->put('name');
-            $update['range'] = (int) $this->slim->request->put('range');
+            $update['range'] = $this->slim->request->put('range');
 
-            if ($update['range'] > Type::BROADCAST || $update['range'] < Type::UNICAST) {
-                throw new PushApiException(PushApiException::INVALID_RANGE);
+            if (isset($update['range']) && !in_array($update['range'], Type::getValidValues(), true)) {
+                throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range types: " . Type::UNICAST . ", " . Type::MULTICAST . ", " . Type::BROADCAST);
             }
             
             $update = $this->cleanParams($update);
@@ -86,12 +86,16 @@ class TypeController extends Controller
             if (empty($update)) {
                 throw new PushApiException(PushApiException::NO_DATA);
             }
-
-            $type = Type::where('id', $id)->update($update);
+            
+            $type = Type::find($id);
+            foreach ($update as $key => $value) {
+                $type->$key = $value;
+            }
+            $type->update();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
-        $this->send($this->boolinize($type));
+        $this->send($type->toArray());
     }
 
     /**
@@ -116,6 +120,27 @@ class TypeController extends Controller
     {
         try {
             $type = Type::orderBy('id', 'asc')->get();
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($type->toArray());
+    }
+
+    /**
+     * Retrives all types registered given a range
+     * @param  [int] $range Value refering the range of the type
+     */
+    public function getByRange($range)
+    {
+        try {
+            if (!in_array($update['range'], Type::getValidValues(), true)) {
+                throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range types: " . Type::UNICAST . ", " . Type::MULTICAST . ", " . Type::BROADCAST);
+            }
+            ////////////////////////////////
+            // We need to search by name  //
+            ////////////////////////////////
+            $type = Type::where('range', $range)->orderBy('id', 'asc')->get();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }

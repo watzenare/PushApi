@@ -76,11 +76,15 @@ class ChannelController extends Controller
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
-            $channel = Channel::where('id', $id)->update($update);
+            $channel = Channel::find($id);
+            foreach ($update as $key => $value) {
+                $channel->$key = $value;
+            }
+            $channel->update();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
-        $this->send($this->boolinize($channel));
+        $this->send($channel->toArray());
     }
 
     /**

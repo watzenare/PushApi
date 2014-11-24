@@ -3,8 +3,10 @@
 namespace PushApi\Controllers;
 
 use \PushApi\PushApiException;
+use \PushApi\Models\Type;
 use \PushApi\Models\User;
 use \PushApi\Models\Channel;
+use \PushApi\Models\Preference;
 use \PushApi\Models\Subscription;
 use \PushApi\Controllers\Controller;
 use \Illuminate\Database\QueryException;
@@ -72,8 +74,6 @@ class UserController extends Controller
             $update['email'] = $this->slim->request->put('email');
             $update['idandroid'] = $this->slim->request->put('idandroid');
             $update['idios'] = $this->slim->request->put('idios');
-            $update['unicast'] = $this->slim->request->put('unicast');
-            $update['broadcast'] = $this->slim->request->put('broadcast');
 
             $update = $this->cleanParams($update);
 
@@ -81,11 +81,15 @@ class UserController extends Controller
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
-            $user = User::where('id', $id)->update($update);
+            $user = User::find($id);
+            foreach ($update as $key => $value) {
+                $user->$key = $value;
+            }
+            $user->update();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
-        $this->send($this->boolinize($user));
+        $this->send($user->toArray());
     }
 
     /**
@@ -220,5 +224,125 @@ class UserController extends Controller
         } catch (\Exception $e) {
             throw new PushApiException(PushApiException::INVALID_ACTION);
         }
+    }
+
+    /**
+     * Retrives all preferences of a given user
+     * @param [int] $iduser User identification
+     */
+    public function getPreferences($iduser)
+    {
+        try {
+            $preferences = User::findOrFail($iduser)->preferences()->orderBy('id', 'asc')->get();
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($preferences->toArray());
+    }
+
+    /**
+     * Sets user preference to a given type, if the preference has
+     * been done before, it only displays the information of the preference
+     * else, creates the preference and displays the resulting information
+     * @param [int] $iduser User identification
+     * @param [int] $idtype Type identification
+     */
+    public function setPreference($iduser, $idtype)
+    {
+        try {
+            $option = (string) $this->slim->request->post('option');
+
+            if (!isset($option)) {
+                throw new PushApiException(PushApiException::NO_DATA);
+            }
+
+            $option = bindec($option);
+
+            if ((Preference::EMAIL + Preference::SMARTPHONE) < $option) {
+                throw new PushApiException(PushApiException::INVALID_OPTION);
+            }
+
+            $preference = User::find($iduser)->preferences()->where('type_id', $idtype)->first();
+            if (!isset($preference) || empty($preference)) {
+                if (!empty(User::find($iduser)->toArray()) && !empty(Type::find($idtype)->toArray())) {
+                    $preference = new Preference;
+                    $preference->user_id = $iduser;
+                    $preference->type_id = $idtype;
+                    $preference->option = $option;
+                    $preference->save();
+                }
+            }
+        } catch (QueryException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        } catch (\Exception $e) {
+            var_dump($e);
+            throw new PushApiException(PushApiException::INVALID_ACTION);
+        }
+        $this->send($preference->toArray());
+    }
+
+    /**
+     * Retrives preference of a given type
+     * @param [int] $iduser User identification
+     * @param [int] $idtype Type identification
+     */
+    public function getPreference($iduser, $idtype)
+    {
+        try {
+            $preferences = User::findOrFail($iduser)->preferences()->where('type_id', $idtype)->orderBy('id', 'asc')->get();
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($preferences->toArray());
+    }
+
+    /**
+     * [updatePreference description]
+     * @param [int] $iduser User identification
+     * @param [int] $idtype Type identification
+     */
+    public function updatePreference($iduser, $idtype)
+    {
+        try {
+            $update = array();
+            $update['option'] = (string) $this->slim->request->post('option');
+
+            if (!isset($update['option'])) {
+                throw new PushApiException(PushApiException::NO_DATA);
+            }
+
+            $update['option'] = bindec($update['option']);
+
+            if ((Preference::EMAIL + Preference::SMARTPHONE) < $update['option']) {
+                throw new PushApiException(PushApiException::INVALID_OPTION);
+            }
+
+            $user = Preference::where('type_id', $idtype)->update($update);
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        } catch (\Exception $e) {
+            throw new PushApiException(PushApiException::INVALID_ACTION);
+        }
+        $this->send($this->boolinize($user));
+    }
+
+    /**
+     * Deletes a user preference given a user and a type id
+     * @param [int] $iduser User identification
+     * @param [int] $idtype Type identification
+     */
+    public function deletePreference($iduser, $idtype)
+    {
+        try {
+            $preference = User::findOrFail($iduser)->preferences()->where('type_id', $idtype)->first();
+            $preference->delete();
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        } catch (\Exception $e) {
+            throw new PushApiException(PushApiException::INVALID_ACTION);
+        }
+        $this->send($preference->toArray());
     }
 }

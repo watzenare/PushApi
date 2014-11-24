@@ -81,11 +81,15 @@ class AppController extends Controller
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
-            $app = App::where('id', $id)->update($update);
+            $app = App::find($id);
+            foreach ($update as $key => $value) {
+                $app->$key = $value;
+            }
+            $app->update();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
-        $this->send($this->boolinize($app));
+        $this->send($app->toArray());
     }
 
 	/**

@@ -27,6 +27,7 @@ class PushApi
                     break;
 
                 case PushApiException::INVALID_RANGE:
+                case PushApiException::INVALID_OPTION:
                 case PushApiException::DUPLICATED_VALUE:
                     $this->app->response()->status(HTTP_CONFLICT);
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());

@@ -21,6 +21,7 @@ class PushApiException extends Exception
     const DB_NOT_UPDATED = 13;
     const INVALID_PARAMS = 14;
     const DUPLICATED_VALUE = 15;
+    const INVALID_OPTION = 16;
     
     /**
      * Generates the exception given a code and an extra message if is passed
@@ -74,7 +75,7 @@ class PushApiException extends Exception
                 break;
 
             case self::DB_NOT_UPDATED:
-                return 'Something goes wrong and the database has not been updated';
+                return 'Something has gone wrong and the database has not been updated';
                 break;
 
             case self::INVALID_PARAMS:
@@ -83,6 +84,10 @@ class PushApiException extends Exception
 
             case self::DUPLICATED_VALUE:
                 return 'This content is already added';
+                break;
+
+            case self::INVALID_OPTION:
+                return 'You are trying to set an invalid preferences option';
                 break;
             
             default:

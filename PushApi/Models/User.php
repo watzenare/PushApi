@@ -13,13 +13,13 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
 class User extends Eloquent
 {
     public $timestamps = false;
-    protected $fillable = array('email', 'android_id', 'ios_id', 'unicast', 'broadcast');
+    protected $fillable = array('email', 'android_id', 'ios_id');
     protected $guarded = array('id','created');
     protected $hidden = array('created');
 
     /**
      * Relationship n-1 to get an instance of the subscribed table
-     * @return [Subscribed] Instance of User model
+     * @return [Subscription] Instance of Subscription model
      */
     public function subscriptions()
     {
@@ -28,10 +28,10 @@ class User extends Eloquent
 
     /**
      * Relationship n-1 to get an instance of the preferences table
-     * @return [Preferences] Instance of User model
+     * @return [Preferences] Instance of Preferences model
      */
     public function preferences()
     {
-        return $this->hasMany('\PushApi\Models\Preferences');
+        return $this->hasMany('\PushApi\Models\Preference');
     }
 }

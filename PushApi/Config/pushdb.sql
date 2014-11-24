@@ -14,15 +14,15 @@ CREATE TABLE `users` (
 
 CREATE TABLE `preferences` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `option` bit(8) NOT NULL DEFAULT b'1',
+  `option` int(1) NOT NULL DEFAULT '1',
   `user_id` int(11) NOT NULL,
   `type_id` int(11) NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `type_id` (`type_id`),
-  CONSTRAINT `preferences_ibfk_2` FOREIGN KEY (`type_id`) REFERENCES `types` (`id`),
-  CONSTRAINT `preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+  CONSTRAINT `preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `preferences_ibfk_2` FOREIGN KEY (`type_id`) REFERENCES `types` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 
 CREATE TABLE `types` (

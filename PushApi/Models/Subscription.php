@@ -7,13 +7,13 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  *
- * Model of the subscribed table, manages all the relationships and dependencies
+ * Model of the subscriptions table, manages all the relationships and dependencies
  * that can be done on these table
  */
 class Subscription extends Eloquent
 {
     public $timestamps = false;
-    protected $fillable = array('user_id', 'channel_id', 'preferences');
+    protected $fillable = array('user_id', 'channel_id');
     protected $hidden = array('created');
 
     /**

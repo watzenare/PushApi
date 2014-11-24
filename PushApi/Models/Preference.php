@@ -13,12 +13,12 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
 class Preference extends Eloquent
 {
     // Option values
+    CONST NOTHING = 0;
     CONST EMAIL = 1;
-    CONST ANDROID = 2;
-    CONST IOS = 3;
+    CONST SMARTPHONE = 2;
 
     public $timestamps = false;
-    protected $fillable = array('user_id', 'channel_id', 'preferences');
+    protected $fillable = array('user_id', 'channel_id', 'option');
     protected $hidden = array('created');
 
     /**
@@ -37,5 +37,14 @@ class Preference extends Eloquent
     public function type()
     {
         return $this->belongsTo('\PushApi\Models\Type');
+    }
+
+    /**
+     * Retrives the option value converted into binary
+     * @param  [int] $value Option integer value
+     * @return [string] Binary string result
+     */
+    public function getOptionAttribute($value) {
+        return decbin($value);
     }
 }
