@@ -123,17 +123,13 @@ class AppController extends Controller
 
     public function checkAuth($headers)
     {
-        try {
-            if (isset($headers['APPID']) && isset($headers['AUTH'])) {
-                $app = App::findOrFail($headers['APPID']);
-                if ($app->auth != $headers['AUTH']) {
-                    throw new PushApiException(PushApiException::NOT_AUTORIZED);
-                }
-            } else {
+        if (isset($headers['APPID']) && isset($headers['AUTH'])) {
+            $app = App::findOrFail($headers['APPID']);
+            if ($app->auth != $headers['AUTH']) {
                 throw new PushApiException(PushApiException::NOT_AUTORIZED);
             }
-        } catch (\Exception $e) {
-            throw new PushApiException(PushApiException::INVALID_ACTION);
+        } else {
+            throw new PushApiException(PushApiException::NOT_AUTORIZED);
         }
     }
 }
