@@ -18,7 +18,7 @@ class Preference extends Eloquent
     CONST SMARTPHONE = 2;
 
     public $timestamps = false;
-    protected $fillable = array('user_id', 'channel_id', 'option');
+    protected $fillable = array('user_id', 'theme_id', 'option');
     protected $hidden = array('created');
 
     /**
@@ -31,20 +31,11 @@ class Preference extends Eloquent
     }
 
     /**
-     * Relationship 1-n to get an instance of the type table
-     * @return [Type] Instance of Type model
+     * Relationship 1-n to get an instance of the themes table
+     * @return [Theme] Instance of Theme model
      */
-    public function type()
+    public function theme()
     {
-        return $this->belongsTo('\PushApi\Models\Type');
-    }
-
-    /**
-     * Retrives the option value converted into binary
-     * @param  [int] $value Option integer value
-     * @return [string] Binary string result
-     */
-    public function getOptionAttribute($value) {
-        return decbin($value);
+        return $this->belongsTo('\PushApi\Models\Theme');
     }
 }

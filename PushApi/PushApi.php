@@ -33,6 +33,7 @@ class PushApi
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
 
+                case PushApiException::NO_DATA:
                 case PushApiException::INVALID_CALL:
                     $this->app->response()->status(HTTP_METHOD_NOT_ALLOWED);
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());

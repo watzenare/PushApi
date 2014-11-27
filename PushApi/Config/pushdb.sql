@@ -14,21 +14,21 @@ CREATE TABLE `users` (
 
 CREATE TABLE `preferences` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `option` int(1) NOT NULL DEFAULT '1',
+  `option` tinyint(4) NOT NULL DEFAULT '11',
   `user_id` int(11) NOT NULL,
-  `type_id` int(11) NOT NULL,
+  `theme_id` int(11) NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
-  KEY `type_id` (`type_id`),
+  KEY `theme_id` (`theme_id`),
   CONSTRAINT `preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `preferences_ibfk_2` FOREIGN KEY (`type_id`) REFERENCES `types` (`id`)
+  CONSTRAINT `preferences_ibfk_2` FOREIGN KEY (`theme_id`) REFERENCES `themes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 
-CREATE TABLE `types` (
+CREATE TABLE `themes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(80) NOT NULL,
-  `range` int(1) NOT NULL DEFAULT '1',
+  `range` varchar(9) NOT NULL DEFAULT '',
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
@@ -60,6 +60,17 @@ CREATE TABLE `apps` (
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+CREATE TABLE `logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `theme_id` int(11) NOT NULL,
+  `message` varchar(100) NOT NULL,
+  `other_id` int(11) DEFAULT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `theme_id` (`theme_id`),
+  CONSTRAINT `logs_ibfk_1` FOREIGN KEY (`theme_id`) REFERENCES `themes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 
 #Show create table subscriptions

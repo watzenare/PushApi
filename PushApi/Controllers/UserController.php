@@ -3,8 +3,8 @@
 namespace PushApi\Controllers;
 
 use \PushApi\PushApiException;
-use \PushApi\Models\Type;
 use \PushApi\Models\User;
+use \PushApi\Models\Theme;
 use \PushApi\Models\Channel;
 use \PushApi\Models\Preference;
 use \PushApi\Models\Subscription;
@@ -72,8 +72,8 @@ class UserController extends Controller
         try {
             $update = array();
             $update['email'] = $this->slim->request->put('email');
-            $update['idandroid'] = $this->slim->request->put('idandroid');
-            $update['idios'] = $this->slim->request->put('idios');
+            $update['android_id'] = $this->slim->request->put('android_id');
+            $update['ios_id'] = $this->slim->request->put('ios_id');
 
             $update = $this->cleanParams($update);
 
@@ -162,17 +162,17 @@ class UserController extends Controller
      * Subscribes a user to a given channel, if the subscription has
      * been done before, it only displays the information of the subscription
      * else, creates the subscription and displays the resulting information
-     * @param [int] $iduser    User identification
+     * @param [int] $idUser    User identification
      * @param [int] $idchannel Channel identification
      */
-    public function setSubscribed($iduser, $idchannel)
+    public function setSubscribed($idUser, $idchannel)
     {
         try {
-            $subscription = User::find($iduser)->subscriptions()->where('channel_id', $idchannel)->first();
+            $subscription = User::find($idUser)->subscriptions()->where('channel_id', $idchannel)->first();
             if (!isset($subscription) || empty($subscription)) {
-                if (!empty(User::find($iduser)->toArray()) && !empty(Channel::find($idchannel)->toArray())) {
+                if (!empty(User::find($idUser)->toArray()) && !empty(Channel::find($idchannel)->toArray())) {
                     $subscription = new Subscription;
-                    $subscription->user_id = $iduser;
+                    $subscription->user_id = $idUser;
                     $subscription->channel_id = $idchannel;
                     $subscription->save();
                 }
@@ -189,16 +189,16 @@ class UserController extends Controller
      * Retrives all subscriptions of a given user or it also can check
      * if user is subscribed into a channel (if he is subscribed, the 
      * subscription is displayed)
-     * @param [int] $iduser    User identification
+     * @param [int] $idUser    User identification
      * @param [int] $idchannel Channel identification
      */
-    public function getSubscribed($iduser, $idchannel = false)
+    public function getSubscribed($idUser, $idchannel = false)
     {
         try {
             if ($idchannel) {
-                $subscriptions = User::findOrFail($iduser)->subscriptions()->where('channel_id', $idchannel)->first();
+                $subscriptions = User::findOrFail($idUser)->subscriptions()->where('channel_id', $idchannel)->first();
             } else {
-                $subscriptions = User::findOrFail($iduser)->subscriptions;
+                $subscriptions = User::findOrFail($idUser)->subscriptions;
             }
             $this->send($subscriptions->toArray());
         } catch (ModelNotFoundException $e) {
@@ -210,13 +210,13 @@ class UserController extends Controller
 
     /**
      * Deletes a user subscription given a user and a subscription id
-     * @param [int] $iduser    User identification
+     * @param [int] $idUser    User identification
      * @param [int] $idchannel Channel identification
      */
-    public function deleteSubscribed($iduser, $idchannel)
+    public function deleteSubscribed($idUser, $idchannel)
     {
         try {
-            $subscription = User::findOrFail($iduser)->subscriptions()->where('channel_id', $idchannel)->first();
+            $subscription = User::findOrFail($idUser)->subscriptions()->where('channel_id', $idchannel)->first();
             $subscription->delete();
             $this->send($subscription->toArray());
         } catch (ModelNotFoundException $e) {
@@ -228,12 +228,12 @@ class UserController extends Controller
 
     /**
      * Retrives all preferences of a given user
-     * @param [int] $iduser User identification
+     * @param [int] $idUser User identification
      */
-    public function getPreferences($iduser)
+    public function getPreferences($idUser)
     {
         try {
-            $preferences = User::findOrFail($iduser)->preferences()->orderBy('id', 'asc')->get();
+            $preferences = User::findOrFail($idUser)->preferences()->orderBy('id', 'asc')->get();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
@@ -242,33 +242,33 @@ class UserController extends Controller
     }
 
     /**
-     * Sets user preference to a given type, if the preference has
+     * Sets user preference to a given theme, if the preference has
      * been done before, it only displays the information of the preference
      * else, creates the preference and displays the resulting information
-     * @param [int] $iduser User identification
-     * @param [int] $idtype Type identification
+     * @param [int] $idUser User identification
+     * @param [int] $idTheme Theme identification
      */
-    public function setPreference($iduser, $idtype)
+    public function setPreference($idUser, $idTheme)
     {
         try {
-            $option = (string) $this->slim->request->post('option');
+            $option = (int) $this->slim->request->post('option');
 
             if (!isset($option)) {
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
-            $option = bindec($option);
-
-            if ((Preference::EMAIL + Preference::SMARTPHONE) < $option) {
+            if ($option != Preference::NOTHING
+                && $option != Preference::EMAIL
+                && $option != Preference::SMARTPHONE) {
                 throw new PushApiException(PushApiException::INVALID_OPTION);
             }
 
-            $preference = User::find($iduser)->preferences()->where('type_id', $idtype)->first();
+            $preference = User::find($idUser)->preferences()->where('theme_id', $idTheme)->first();
             if (!isset($preference) || empty($preference)) {
-                if (!empty(User::find($iduser)->toArray()) && !empty(Type::find($idtype)->toArray())) {
+                if (!empty(User::find($idUser)->toArray()) && !empty(Theme::find($idTheme)->toArray())) {
                     $preference = new Preference;
-                    $preference->user_id = $iduser;
-                    $preference->type_id = $idtype;
+                    $preference->user_id = $idUser;
+                    $preference->theme_id = $idTheme;
                     $preference->option = $option;
                     $preference->save();
                 }
@@ -276,21 +276,20 @@ class UserController extends Controller
         } catch (QueryException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         } catch (\Exception $e) {
-            var_dump($e);
             throw new PushApiException(PushApiException::INVALID_ACTION);
         }
         $this->send($preference->toArray());
     }
 
     /**
-     * Retrives preference of a given type
-     * @param [int] $iduser User identification
-     * @param [int] $idtype Type identification
+     * Retrives preference of a given theme
+     * @param [int] $idUser User identification
+     * @param [int] $idTheme Theme identification
      */
-    public function getPreference($iduser, $idtype)
+    public function getPreference($idUser, $idTheme)
     {
         try {
-            $preferences = User::findOrFail($iduser)->preferences()->where('type_id', $idtype)->orderBy('id', 'asc')->get();
+            $preferences = User::findOrFail($idUser)->preferences()->where('theme_id', $idTheme)->orderBy('id', 'asc')->get();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
@@ -299,11 +298,11 @@ class UserController extends Controller
     }
 
     /**
-     * [updatePreference description]
-     * @param [int] $iduser User identification
-     * @param [int] $idtype Type identification
+     * Updates user preference given an id theme
+     * @param [int] $idUser User identification
+     * @param [int] $idTheme Theme identification
      */
-    public function updatePreference($iduser, $idtype)
+    public function updatePreference($idUser, $idTheme)
     {
         try {
             $update = array();
@@ -313,13 +312,13 @@ class UserController extends Controller
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
-            $update['option'] = bindec($update['option']);
-
-            if ((Preference::EMAIL + Preference::SMARTPHONE) < $update['option']) {
+            if ($update['option'] != Preference::NOTHING
+                && $update['option'] != Preference::EMAIL
+                && $update['option'] != Preference::SMARTPHONE) {
                 throw new PushApiException(PushApiException::INVALID_OPTION);
             }
 
-            $user = Preference::where('type_id', $idtype)->update($update);
+            $user = Preference::where('theme_id', $idTheme)->update($update);
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         } catch (\Exception $e) {
@@ -329,14 +328,14 @@ class UserController extends Controller
     }
 
     /**
-     * Deletes a user preference given a user and a type id
-     * @param [int] $iduser User identification
-     * @param [int] $idtype Type identification
+     * Deletes a user preference given a user and a theme id
+     * @param [int] $idUser User identification
+     * @param [int] $idTheme Theme identification
      */
-    public function deletePreference($iduser, $idtype)
+    public function deletePreference($idUser, $idTheme)
     {
         try {
-            $preference = User::findOrFail($iduser)->preferences()->where('type_id', $idtype)->first();
+            $preference = User::findOrFail($idUser)->preferences()->where('theme_id', $idTheme)->first();
             $preference->delete();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
