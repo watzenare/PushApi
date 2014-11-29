@@ -44,4 +44,13 @@ class Theme extends Eloquent
     {
         return self::$validValues;
     }
+
+    /**
+     * Relationship n-1 to get an instance of the logs table
+     * @return [Log] Instance of Log model
+     */
+    public function logs()
+    {
+        return $this->hasMany('\PushApi\Models\Log');
+    }
 }

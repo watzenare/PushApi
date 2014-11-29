@@ -66,11 +66,15 @@ CREATE TABLE `logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `theme_id` int(11) NOT NULL,
   `message` varchar(100) NOT NULL,
-  `other_id` int(11) DEFAULT NULL,
+  `channel_id` int(11) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `theme_id` (`theme_id`),
-  CONSTRAINT `logs_ibfk_1` FOREIGN KEY (`theme_id`) REFERENCES `themes` (`id`)
+  KEY `channel_id` (`channel_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `logs_ibfk_1` FOREIGN KEY (`channel_id`) REFERENCES `channels` (`id`),
+  CONSTRAINT `logs_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 
 #Show create table subscriptions

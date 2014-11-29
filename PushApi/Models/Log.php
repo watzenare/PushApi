@@ -12,5 +12,7 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
  */
 class Log extends Eloquent
 {
-	
+    public $timestamps = false;
+	public $fillable = array('theme_id', 'channel_id', 'user_id', 'message');
+    protected $hidden = array('created');
 }

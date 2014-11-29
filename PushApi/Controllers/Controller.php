@@ -33,6 +33,8 @@ class Controller
         $response->header('Content-Type', JSON);
 
         $response->body(json_encode(array('result' => $result)));
+
+        $this->slim->stop();
     }
 
     /**
