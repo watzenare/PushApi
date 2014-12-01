@@ -34,6 +34,10 @@ class UserController extends Controller
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new PushApiException(PushApiException::NO_DATA);
+            }
+
             $user = User::where('email', $email)->first();
 
             if (!isset($user->email)) {
@@ -78,6 +82,10 @@ class UserController extends Controller
             $update = $this->cleanParams($update);
 
             if (empty($update)) {
+                throw new PushApiException(PushApiException::NO_DATA);
+            }
+
+            if (isset($update['email']) && !filter_var($update['email'], FILTER_VALIDATE_EMAIL)) {
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
