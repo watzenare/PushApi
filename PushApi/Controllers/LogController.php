@@ -10,12 +10,14 @@ use \PushApi\Models\Channel;
 use \PushApi\Models\Preference;
 use \PushApi\Models\Subscription;
 use \PushApi\Controllers\Controller;
+use \PushApi\Controllers\QueueController;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  *
- * Contains the basic and general actions in order to send the messages
+ * Contains the general actions in order to send the messages (retriving actor data and
+ * transforming it in order to be correctly queued)
  */
 class LogController extends Controller
 {
@@ -55,9 +57,11 @@ class LogController extends Controller
         switch ($theme->range) {
             // If theme has this range, checks if the user has set its preferences and prepares the message.
             case Theme::UNICAST:
+
                 if (!isset($userId)) {
                     throw new PushApiException(PushApiException::NO_DATA, "Expected user_id param");
                 }
+
                 try {
                     $user = false;
                     // Searching user into theme preferences (if the user exist we don't need to do sql search)
@@ -75,7 +79,7 @@ class LogController extends Controller
 
                     // Checking if user wants to recive via email
                     if ((Preference::EMAIL & $preference) == Preference::EMAIL) {
-                        $this->addToEmailQueue($user, $theme, $message);
+                        $this->addToEmailQueue($user['email'], $theme, $message);
                     }
                     // Checking if user wants to recive via smartphone
                     if ((Preference::SMARTPHONE & $preference) == Preference::SMARTPHONE) {
@@ -97,10 +101,14 @@ class LogController extends Controller
                 $log->save();
                 break;
 
+            // If theme has this range, checks all users subscribed and its preferences. Prepare the log and
+            // the messages to be queued
             case Theme::MULTICAST:
+
                 if (!isset($channel)) {
                     throw new PushApiException(PushApiException::NO_DATA, "Expected channel param");
                 }
+
                 try {
                     $channel = Channel::with(array('subscriptions.user.preferences' => function($query) use ($theme) {
                         return $query->where('theme_id', $theme->id);
@@ -109,9 +117,10 @@ class LogController extends Controller
                     throw new PushApiException(PushApiException::NOT_FOUND);
                 }
 
-                $usersSubscribers = $channel->subscriptions;
-                $androidUsers = array();
                 $iosUsers = array();
+                $androidUsers = array();
+                $usersSubscribers = $channel->subscriptions;
+
                 // Checking user preferences and add the notification to the right queue
                 foreach ($usersSubscribers->toArray() as $key => $subscription) {
                     // User hasn't set preferences for that theme, by default recive all devices
@@ -158,6 +167,8 @@ class LogController extends Controller
 
                 break;
 
+            // If theme has this range, checks the preferences for the target theme and send to
+            // all users who haven't set option none.
             case Theme::BROADCAST:
                 $usersPreferences = $theme->preferences;
 
@@ -214,44 +225,26 @@ class LogController extends Controller
 	}
 
     /**
-     * [addToEmailQueue description]
-     * @param [type] $user    [description]
-     * @param [type] $theme   [description]
-     * @param [type] $message [description]
+     * Generates an array for email data
+     * @param [string] $email   The email of the target user
+     * @param [string] $theme   The theme of the notification
+     * @param [string] $message The message that actor wants to send
      */
-	private function addToEmailQueue($user, $theme, $message)
+	private function addToEmailQueue($email, $theme, $message)
 	{
-        $this->redis;
-
         $data = array(
-            "to" => $user['email'],
+            "to" => $email,
             "subject" => $theme->name,
             "message" => $message
         );
-        var_dump($data);
-        // $data = str_replace(" ", "\s", addslashes(json_encode($data)));
-
-        // extract data
-        // stripslashes(str_replace("\s", " ", $data));
-
-
-		// $data = array(
-  //           'email' => array(
-  //           ),
-  //           'smartphone' => array(
-  //           ),
-  //       );
-	
-  //       $sent = addToQueue($data);
-
-  //       return $sent;
-	}
+        (new QueueController())->addToQueue($data, QueueController::EMAIL);
+    }
 
     /**
-     * [addToAndroidQueue description]
-     * @param [type] $androidUsers [description]
-     * @param [type] $theme        [description]
-     * @param [type] $message      [description]
+     * Generates an array for android data
+     * @param [array] $androidUsers  One or more ids of android devices
+     * @param [string] $theme        The theme of the notification
+     * @param [string] $message      The message that actor wants to send
      */
     private function addToAndroidQueue($androidUsers, $theme, $message)
     {
@@ -262,15 +255,14 @@ class LogController extends Controller
                 'message' => $message
             )
         );
-
-        var_dump($data);
+        (new QueueController())->addToQueue($data, QueueController::ANDROID);
     }
 
     /**
-     * [addToIosQueue description]
-     * @param [type] $iosUsers [description]
-     * @param [type] $theme    [description]
-     * @param [type] $message  [description]
+     * Generates an array for ios data
+     * @param [array] $iosUsers  One or more ids of ios devices
+     * @param [string] $theme    The theme of the notification
+     * @param [string] $message  The message that actor wants to send
      */
     private function addToIosQueue($iosUsers, $theme, $message)
     {
@@ -281,7 +273,10 @@ class LogController extends Controller
                 'message' => $message
             )
         );
-
-        var_dump($data);
+        (new QueueController())->addToQueue($data, QueueController::IOS);
     }
 }
+
+/////////////////////////////////////////////////////////////////
+// TODO: Add log to addToQueue functions because it won't fail //
+/////////////////////////////////////////////////////////////////
