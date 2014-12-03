@@ -1,3 +1,3 @@
 <?php
-// Runs the API and it's dependencies
+// Runs the API and its dependencies
 require 'BootStrap.php';

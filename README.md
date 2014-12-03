@@ -25,7 +25,6 @@ This is a possible scheme of what the project wants to be:
 - MySQL
 - Redis
 - PHP 5.5+ (PHP 5.5 recommended)
-- [Medoo](http://medoo.in/) 0.9.6.2 (Medoo is requiring PHP with PDO supported)
 
 # Contact
 If you want to contribute with information or resources, you can send information to eloi@tviso.com
