@@ -132,7 +132,7 @@ class LogController extends Controller
 
                     // Checking if user wants to recive via email
                     if ((Preference::EMAIL & $preference) == Preference::EMAIL) {
-                        $this->addToEmailQueue($subscription['user'], $theme, $message);
+                        $this->addToEmailQueue($subscription['user']['email'], $theme, $message);
                     }
                     // Checking if user wants to recive via smartphone
                     if ((Preference::SMARTPHONE & $preference) == Preference::SMARTPHONE) {
@@ -182,7 +182,7 @@ class LogController extends Controller
                         $option = decbin($userPreference['option']);
                         // Checking if user wants to recive via email
                         if ((Preference::EMAIL & $option) == Preference::EMAIL) {
-                            $this->addToEmailQueue($userPreference['user'], $theme, $message);
+                            $this->addToEmailQueue($userPreference['user']['email'], $theme, $message);
                         }
                         // Checking if user wants to recive via smartphone
                         if ((Preference::SMARTPHONE & $option) == Preference::SMARTPHONE) {
