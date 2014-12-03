@@ -13,12 +13,13 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
 class Preference extends Eloquent
 {
     // Option values
+    CONST NOTHING = 0;
     CONST EMAIL = 1;
-    CONST ANDROID = 2;
-    CONST IOS = 3;
+    CONST SMARTPHONE = 2;
+    CONST ALL_RANGES = 3;
 
     public $timestamps = false;
-    protected $fillable = array('user_id', 'channel_id', 'preferences');
+    protected $fillable = array('user_id', 'theme_id', 'option');
     protected $hidden = array('created');
 
     /**
@@ -31,11 +32,11 @@ class Preference extends Eloquent
     }
 
     /**
-     * Relationship 1-n to get an instance of the type table
-     * @return [Type] Instance of Type model
+     * Relationship 1-n to get an instance of the themes table
+     * @return [Theme] Instance of Theme model
      */
-    public function type()
+    public function theme()
     {
-        return $this->belongsTo('\PushApi\Models\Type');
+        return $this->belongsTo('\PushApi\Models\Theme');
     }
 }

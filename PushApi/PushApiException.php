@@ -15,6 +15,8 @@ class PushApiException extends Exception
     const INVALID_ACTION = 1;
     const INVALID_CALL = 2;
     const INVALID_RANGE = 3;
+    const INVALID_DATA = 4;
+    const INVALID_OPTION = 5;
     const NO_DATA = 10;
     const NOT_FOUND = 11;
     const EMPTY_PARAMS = 12;
@@ -24,7 +26,7 @@ class PushApiException extends Exception
     
     /**
      * Generates the exception given a code and an extra message if is passed
-     * @param [int] $code    Exception code
+     * @param [int] $code Exception code
      * @param [string] $message Additional message added to the default exception message
      */
     public function __construct($code, $message = null) {
@@ -57,8 +59,16 @@ class PushApiException extends Exception
                 return 'This call is undefined';
                 break;
 
+            case self::INVALID_DATA:
+                return 'A value contains an invalid data';
+                break;
+
             case self::INVALID_RANGE:
                 return 'A value contains an invalid range';
+                break;
+
+            case self::INVALID_OPTION:
+                return 'You are trying to set an invalid preferences option';
                 break;
 
             case self::NO_DATA:
@@ -74,7 +84,7 @@ class PushApiException extends Exception
                 break;
 
             case self::DB_NOT_UPDATED:
-                return 'Something goes wrong and the database has not been updated';
+                return 'Something has gone wrong and the database has not been updated';
                 break;
 
             case self::INVALID_PARAMS:

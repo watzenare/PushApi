@@ -29,10 +29,6 @@ define('HTTP_INTERNAL_SERVER_ERROR', 500);
 /**
  * Global Constants
  */
-define('NO_ERRORS', 0);
-define('USER_CREATE_FAILED', 1);
-define('USER_ALREADY_EXISTS', 2);
-define('UNKNOWN_DATABASE', 1049);
 define('JSON', 'application/json');
 
 define('GOOGLE_API_KEY', "AIzaSyCHeOCzPlTlwgiqhdG3EZ_sE07FVR2OBSA");

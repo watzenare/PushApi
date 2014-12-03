@@ -4,7 +4,9 @@ namespace PushApi\Controllers;
 
 use \PushApi\PushApiException;
 use \PushApi\Models\User;
+use \PushApi\Models\Theme;
 use \PushApi\Models\Channel;
+use \PushApi\Models\Preference;
 use \PushApi\Models\Subscription;
 use \PushApi\Controllers\Controller;
 use \Illuminate\Database\QueryException;
@@ -29,6 +31,10 @@ class UserController extends Controller
             $email = $this->slim->request->post('email');
 
             if (!isset($email)) {
+                throw new PushApiException(PushApiException::NO_DATA);
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
@@ -70,10 +76,8 @@ class UserController extends Controller
         try {
             $update = array();
             $update['email'] = $this->slim->request->put('email');
-            $update['idandroid'] = $this->slim->request->put('idandroid');
-            $update['idios'] = $this->slim->request->put('idios');
-            $update['unicast'] = $this->slim->request->put('unicast');
-            $update['broadcast'] = $this->slim->request->put('broadcast');
+            $update['android_id'] = $this->slim->request->put('android_id');
+            $update['ios_id'] = $this->slim->request->put('ios_id');
 
             $update = $this->cleanParams($update);
 
@@ -81,11 +85,19 @@ class UserController extends Controller
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
-            $user = User::where('id', $id)->update($update);
+            if (isset($update['email']) && !filter_var($update['email'], FILTER_VALIDATE_EMAIL)) {
+                throw new PushApiException(PushApiException::NO_DATA);
+            }
+
+            $user = User::find($id);
+            foreach ($update as $key => $value) {
+                $user->$key = $value;
+            }
+            $user->update();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
-        $this->send($this->boolinize($user));
+        $this->send($user->toArray());
     }
 
     /**
@@ -158,17 +170,17 @@ class UserController extends Controller
      * Subscribes a user to a given channel, if the subscription has
      * been done before, it only displays the information of the subscription
      * else, creates the subscription and displays the resulting information
-     * @param [int] $iduser    User identification
+     * @param [int] $idUser    User identification
      * @param [int] $idchannel Channel identification
      */
-    public function setSubscribed($iduser, $idchannel)
+    public function setSubscribed($idUser, $idchannel)
     {
         try {
-            $subscription = User::find($iduser)->subscriptions()->where('channel_id', $idchannel)->first();
+            $subscription = User::find($idUser)->subscriptions()->where('channel_id', $idchannel)->first();
             if (!isset($subscription) || empty($subscription)) {
-                if (!empty(User::find($iduser)->toArray()) && !empty(Channel::find($idchannel)->toArray())) {
+                if (!empty(User::find($idUser)->toArray()) && !empty(Channel::find($idchannel)->toArray())) {
                     $subscription = new Subscription;
-                    $subscription->user_id = $iduser;
+                    $subscription->user_id = $idUser;
                     $subscription->channel_id = $idchannel;
                     $subscription->save();
                 }
@@ -185,16 +197,16 @@ class UserController extends Controller
      * Retrives all subscriptions of a given user or it also can check
      * if user is subscribed into a channel (if he is subscribed, the 
      * subscription is displayed)
-     * @param [int] $iduser    User identification
+     * @param [int] $idUser    User identification
      * @param [int] $idchannel Channel identification
      */
-    public function getSubscribed($iduser, $idchannel = false)
+    public function getSubscribed($idUser, $idchannel = false)
     {
         try {
             if ($idchannel) {
-                $subscriptions = User::findOrFail($iduser)->subscriptions()->where('channel_id', $idchannel)->first();
+                $subscriptions = User::findOrFail($idUser)->subscriptions()->where('channel_id', $idchannel)->first();
             } else {
-                $subscriptions = User::findOrFail($iduser)->subscriptions;
+                $subscriptions = User::findOrFail($idUser)->subscriptions;
             }
             $this->send($subscriptions->toArray());
         } catch (ModelNotFoundException $e) {
@@ -206,13 +218,13 @@ class UserController extends Controller
 
     /**
      * Deletes a user subscription given a user and a subscription id
-     * @param [int] $iduser    User identification
+     * @param [int] $idUser    User identification
      * @param [int] $idchannel Channel identification
      */
-    public function deleteSubscribed($iduser, $idchannel)
+    public function deleteSubscribed($idUser, $idchannel)
     {
         try {
-            $subscription = User::findOrFail($iduser)->subscriptions()->where('channel_id', $idchannel)->first();
+            $subscription = User::findOrFail($idUser)->subscriptions()->where('channel_id', $idchannel)->first();
             $subscription->delete();
             $this->send($subscription->toArray());
         } catch (ModelNotFoundException $e) {
@@ -220,5 +232,124 @@ class UserController extends Controller
         } catch (\Exception $e) {
             throw new PushApiException(PushApiException::INVALID_ACTION);
         }
+    }
+
+    /**
+     * Retrives all preferences of a given user
+     * @param [int] $idUser User identification
+     */
+    public function getPreferences($idUser)
+    {
+        try {
+            $preferences = User::findOrFail($idUser)->preferences()->orderBy('id', 'asc')->get();
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($preferences->toArray());
+    }
+
+    /**
+     * Sets user preference to a given theme, if the preference has
+     * been done before, it only displays the information of the preference
+     * else, creates the preference and displays the resulting information
+     * @param [int] $idUser User identification
+     * @param [int] $idTheme Theme identification
+     */
+    public function setPreference($idUser, $idTheme)
+    {
+        try {
+            $option = (int) $this->slim->request->post('option');
+
+            if (!isset($option)) {
+                throw new PushApiException(PushApiException::NO_DATA);
+            }
+
+            if ($option != Preference::NOTHING
+                && $option != Preference::EMAIL
+                && $option != Preference::SMARTPHONE) {
+                throw new PushApiException(PushApiException::INVALID_OPTION);
+            }
+
+            $preference = User::find($idUser)->preferences()->where('theme_id', $idTheme)->first();
+            if (!isset($preference) || empty($preference)) {
+                if (!empty(User::find($idUser)->toArray()) && !empty(Theme::find($idTheme)->toArray())) {
+                    $preference = new Preference;
+                    $preference->user_id = $idUser;
+                    $preference->theme_id = $idTheme;
+                    $preference->option = $option;
+                    $preference->save();
+                }
+            }
+        } catch (QueryException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        } catch (\Exception $e) {
+            throw new PushApiException(PushApiException::INVALID_ACTION);
+        }
+        $this->send($preference->toArray());
+    }
+
+    /**
+     * Retrives preference of a given theme
+     * @param [int] $idUser User identification
+     * @param [int] $idTheme Theme identification
+     */
+    public function getPreference($idUser, $idTheme)
+    {
+        try {
+            $preferences = User::findOrFail($idUser)->preferences()->where('theme_id', $idTheme)->orderBy('id', 'asc')->get();
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($preferences->toArray());
+    }
+
+    /**
+     * Updates user preference given an id theme
+     * @param [int] $idUser User identification
+     * @param [int] $idTheme Theme identification
+     */
+    public function updatePreference($idUser, $idTheme)
+    {
+        try {
+            $update = array();
+            $update['option'] = (string) $this->slim->request->post('option');
+
+            if (!isset($update['option'])) {
+                throw new PushApiException(PushApiException::NO_DATA);
+            }
+
+            if ($update['option'] != Preference::NOTHING
+                && $update['option'] != Preference::EMAIL
+                && $update['option'] != Preference::SMARTPHONE) {
+                throw new PushApiException(PushApiException::INVALID_OPTION);
+            }
+
+            $user = Preference::where('theme_id', $idTheme)->update($update);
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        } catch (\Exception $e) {
+            throw new PushApiException(PushApiException::INVALID_ACTION);
+        }
+        $this->send($this->boolinize($user));
+    }
+
+    /**
+     * Deletes a user preference given a user and a theme id
+     * @param [int] $idUser User identification
+     * @param [int] $idTheme Theme identification
+     */
+    public function deletePreference($idUser, $idTheme)
+    {
+        try {
+            $preference = User::findOrFail($idUser)->preferences()->where('theme_id', $idTheme)->first();
+            $preference->delete();
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        } catch (\Exception $e) {
+            throw new PushApiException(PushApiException::INVALID_ACTION);
+        }
+        $this->send($preference->toArray());
     }
 }

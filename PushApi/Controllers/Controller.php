@@ -18,7 +18,6 @@ class Controller
     public function __construct() {
         $this->slim = \Slim\Slim::getInstance();
         $this->redis = new \Credis_Client('localhost');
-
     }
 
     /**
@@ -29,10 +28,9 @@ class Controller
     protected function send($result)
     {
         $response = $this->slim->response();
-
         $response->header('Content-Type', JSON);
-
         $response->body(json_encode(array('result' => $result)));
+        $this->slim->stop();
     }
 
     /**

@@ -4,6 +4,12 @@ namespace PushApi\Models;
 
 use \Illuminate\Database\Eloquent\Model as Eloquent;
 
+/**
+ * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ *
+ * Model of the apps table, manages all the relationships and dependencies
+ * that can be done on these table
+ */
 class App extends Eloquent
 {
     public $timestamps = false;
@@ -22,6 +28,10 @@ class App extends Eloquent
         });
     }
 
+    /**
+     * Generates a random secret for the app
+     * @return [string] A unique secret generated randomly
+     */
     private static function generateSecret() {
         return substr(md5("fakers__" . rand()), 0, 16);
     }

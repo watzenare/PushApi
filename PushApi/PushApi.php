@@ -26,12 +26,15 @@ class PushApi
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
 
+                case PushApiException::INVALID_DATA:
                 case PushApiException::INVALID_RANGE:
+                case PushApiException::INVALID_OPTION:
                 case PushApiException::DUPLICATED_VALUE:
                     $this->app->response()->status(HTTP_CONFLICT);
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
 
+                case PushApiException::NO_DATA:
                 case PushApiException::INVALID_CALL:
                     $this->app->response()->status(HTTP_METHOD_NOT_ALLOWED);
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());

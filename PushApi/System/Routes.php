@@ -2,16 +2,19 @@
 
 use \Slim\Route;
 use \PushApi\PushApiException;
+use \PushApi\Controllers\Controller;
 use \PushApi\Controllers\AppController;
+use \PushApi\Controllers\LogController;
 use \PushApi\Controllers\UserController;
+use \PushApi\Controllers\ThemeController;
 use \PushApi\Controllers\ChannelController;
 use \PushApi\Controllers\SubscribedController;
-use \PushApi\Controllers\TypeController;
-use \PushApi\Controllers\SendController;
 
 Route::setDefaultConditions(
     array(
         'id' => '\d+',
+        'idchannel' => '\d+',
+        'idtheme' => '\d+',
     )
 );
 
@@ -19,7 +22,7 @@ Route::setDefaultConditions(
  * Middleware that gets the headers and checks if application has autorization
  * @param  SlimRoute $route Routing params
  */
-function authChecker(Route $route) {
+function authChecker() {
     // Getting request headers
     $headers = apache_request_headers();
     (new AppController())->checkAuth($headers);
@@ -98,18 +101,26 @@ $slim->group('/user', 'authChecker', function() use ($slim) {
         //////////////////////////////////////////
         //         PREFERENCES ROUTES           //
         //////////////////////////////////////////
-        $slim->group('/settings', function() use ($slim) {
-            // Gets user settings
-            $slim->get('', function($id) {
-                (new UserController())->getSubscribed($id);
+        // Gets user preferences
+        $slim->get('/preferences', function($id) {
+            (new UserController())->getPreferences($id);
+        });
+        $slim->group('/preference', function() use ($slim) {
+            // Adds a preference to a user
+            $slim->post('/:idtheme', function($id, $idtheme) {
+                (new UserController())->setPreference($id, $idtheme);
             });
-            // Gets user $id setting $idchannel
-            $slim->get('/:idsetting', function($id, $idchannel) {
-                (new UserController())->getSubscribed($id, $idchannel);
+            // Gets user preference
+            $slim->get('/:idtheme', function($id, $idtheme) {
+                (new UserController())->getPreference($id, $idtheme);
             });
-            // Deletes user $id subscriptions
-            $slim->delete('/:idsetting', function($id, $idchannel) {
-                (new UserController())->deleteSubscribed($id, $idchannel);
+            // Updates user preference
+            $slim->put('/:idtheme', function($id, $idtheme) {
+                (new UserController())->updatePreference($id, $idtheme);
+            });
+            // Deletes user preference
+            $slim->delete('/:idtheme', function($id, $idtheme) {
+                (new UserController())->deletePreference($id, $idtheme);
             });
         });
     });
@@ -157,34 +168,38 @@ $slim->group('/channels', 'authChecker', function() use ($slim) {
 });
 
 ///////////////////////////////////
-//         TYPE ROUTES           //
+//         CASE ROUTES           //
 ///////////////////////////////////
-$slim->group('/type', 'authChecker', function() use ($slim) {
-    // Creates type $id or retrives type if it was created before
+$slim->group('/theme', 'authChecker', function() use ($slim) {
+    // Creates theme $id or retrives theme if it was created before
     $slim->post('', function() {
-        (new TypeController())->setType();
+        (new ThemeController())->setTheme();
     });
     // Gets user $id
     $slim->get('/:id', function($id) {
-        (new TypeController())->getType($id);
+        (new ThemeController())->getTheme($id);
     });
-    // Updates type $id given put params
+    // Updates theme $id given put params
     $slim->put('/:id', function($id) {
-        (new TypeController())->updateType($id);
+        (new ThemeController())->updateTheme($id);
     });
-    // Deletes type $id
+    // Deletes theme $id
     $slim->delete('/:id', function($id) {
-        (new TypeController())->deleteType($id);
+        (new ThemeController())->deleteTheme($id);
     });
 });
 
-$slim->group('/types', 'authChecker', function() use ($slim) {
-    // Geting all types
+$slim->group('/themes', 'authChecker', function() use ($slim) {
+    // Geting all themes
     $slim->get('', function() {
-        (new TypeController())->getAllTypes();
+        (new ThemeController())->getAllThemes();
+    });
+    // Get all themes by $range
+    $slim->get('/range/:range', function($range) {
+        (new ThemeController())->getByRange($range);
     });
 });
 
 $slim->post('/send', 'authChecker', function() use ($slim) {
-    (new SendController())->sendMessage();
+    (new LogController())->sendMessage();
 });
