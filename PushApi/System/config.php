@@ -8,6 +8,9 @@ define('DB_PASSWORD', 'f69fda8c6dbbe18b');
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'pushdb');
 
+define('MAIL_SERVER',"localhost");
+define('MAIL_SERVER_PORT', 1025);
+
 /**
  * HTTP responses
  */

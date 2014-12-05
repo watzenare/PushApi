@@ -121,11 +121,14 @@ class AppController extends Controller
         $this->send($app->toArray());
     }
 
-    public function checkAuth($headers)
+    public function checkAuth()
     {
-        if (isset($headers['APPID']) && isset($headers['AUTH'])) {
-            $app = App::findOrFail($headers['APPID']);
-            if ($app->auth != $headers['AUTH']) {
+        $appId = $this->slim->request->headers->get('HTTP_APPID');
+        $auth = $this->slim->request->headers->get('HTTP_AUTH');
+
+        if (isset($appId) && isset($auth)) {
+            $app = App::findOrFail($appId);
+            if ($app->auth != $auth) {
                 throw new PushApiException(PushApiException::NOT_AUTORIZED);
             }
         } else {
