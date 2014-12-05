@@ -14,6 +14,26 @@ class PushApi
     public function __construct(\Slim\Slim $app) {
         $this->app = $app;
 
+        // Only invoked if mode is "production"
+        $this->app->configureMode('production', function () use ($app) {
+            $app->config(array(
+                'debug' => false,
+                'log.enable' => true,
+                'log.level' => \Slim\Log::WARN,
+                'log.writer' => new \Slim\LogWriter(fopen(__DIR__ . DIRECTORY_SEPARATOR . 'System/oficialLog.txt', 'a'))
+            ));
+        });
+
+        // Only invoked if mode is "development"
+        $this->app->configureMode('development', function () use ($app) {
+            $app->config(array(
+                'debug' => true,
+                'log.enable' => false,
+                'log.level' => \Slim\Log::DEBUG,
+                'log.writer' => new \Slim\LogWriter(fopen(__DIR__ . DIRECTORY_SEPARATOR . 'System/debugLog.txt', 'a'))
+            ));
+        });
+
         $this->startErrorHandling();
     }
 
@@ -50,11 +70,6 @@ class PushApi
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
             }
-            // // Print custom errors and HTTP errors or only HTTP
-            // $this->app->body(json_encode(
-            //     'message' => $e->getMessage(),
-            //     'error' => $e->getCode()
-            // ));
         });
         // Custom not found calls handler
         $this->app->notFound(function () {

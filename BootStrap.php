@@ -1,23 +1,21 @@
 <?php
-// Includes Slim Framework and vendor libraries
-require 'vendor/autoload.php';
+// Includes vendor libraries
+require "vendor/autoload.php";
 
 // Include configurations and global PushApi constants
-require "PushApi/Config/config.php";
-require "PushApi/Config/headers.php";
+require "PushApi/System/config.php";
+require "PushApi/System/headers.php";
+require	"PushApi/System/database.php";
 
-// Include the database configuration
-require "PushApi/Config/database.php";
-
-// Includes all files of the PushApi project given it's namespaces and transforms it into directories and files
+// Includes PushApi files using its namespaces
 function autoloader($class) {
     $namespace = str_replace('\\', DIRECTORY_SEPARATOR, $class);
     include __DIR__ . DIRECTORY_SEPARATOR . $namespace . '.php';
 }
 spl_autoload_register('autoloader');
 
-// Starts PushApi
-$slim = new \Slim\Slim($config['test']);
+// Start Slim Framework and PushApi
+$slim = new \Slim\Slim(array('mode' => 'development'));
 $pushApi = new \PushApi\PushApi($slim);
 
 // Charging the API routes
