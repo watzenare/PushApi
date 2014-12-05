@@ -22,16 +22,14 @@ Route::setDefaultConditions(
  * Middleware that gets the headers and checks if application has autorization
  * @param  SlimRoute $route Routing params
  */
-function authChecker() {
-    // Getting request headers
-    $headers = apache_request_headers();
-    (new AppController())->checkAuth($headers);
-}
+$authChecker = function () {
+    (new AppController())->checkAuth();
+};
 
 ////////////////////////////////////
 //          AUTH ROUTES           //
 ////////////////////////////////////
-$slim->group('/app', 'authChecker', function() use ($slim) {
+$slim->group('/app', $authChecker, function() use ($slim) {
     // Creates a new app or retrives the app if it was created before
     $slim->post('', function() {
         (new AppController())->setApp();
@@ -52,14 +50,14 @@ $slim->group('/app', 'authChecker', function() use ($slim) {
     });
 });
 // Geting all apps
-$slim->get('/apps', 'authChecker', function() {
+$slim->get('/apps', $authChecker, function() {
     (new AppController())->getApps();
 });
 
 ///////////////////////////////////
 //         USER ROUTES           //
 ///////////////////////////////////
-$slim->group('/user', 'authChecker', function() use ($slim) {
+$slim->group('/user', $authChecker, function() use ($slim) {
     // Creates user $id or retrives user if it was created before
     $slim->post('', function() {
         (new UserController())->setUser();
@@ -126,7 +124,7 @@ $slim->group('/user', 'authChecker', function() use ($slim) {
     });
 });
 // Geting all users
-$slim->group('/users', 'authChecker', function() use ($slim) {
+$slim->group('/users', $authChecker, function() use ($slim) {
     // Creates users passed, separated by coma, and adds only the valid users
     // (non repeated and valid email)
     $slim->post('', function() {
@@ -141,7 +139,7 @@ $slim->group('/users', 'authChecker', function() use ($slim) {
 //////////////////////////////////////
 //         CHANNEL ROUTES           //
 //////////////////////////////////////
-$slim->group('/channel', 'authChecker', function() use ($slim) {
+$slim->group('/channel', $authChecker, function() use ($slim) {
     // Creates channel $id or retrives channel if it was created before
     $slim->post('', function() {
         (new ChannelController())->setChannel();
@@ -160,7 +158,7 @@ $slim->group('/channel', 'authChecker', function() use ($slim) {
     });
 });
 
-$slim->group('/channels', 'authChecker', function() use ($slim) {
+$slim->group('/channels', $authChecker, function() use ($slim) {
     // Geting all channels
     $slim->get('', function() {
         (new ChannelController())->getAllChannels();
@@ -170,7 +168,7 @@ $slim->group('/channels', 'authChecker', function() use ($slim) {
 ///////////////////////////////////
 //         CASE ROUTES           //
 ///////////////////////////////////
-$slim->group('/theme', 'authChecker', function() use ($slim) {
+$slim->group('/theme', $authChecker, function() use ($slim) {
     // Creates theme $id or retrives theme if it was created before
     $slim->post('', function() {
         (new ThemeController())->setTheme();
@@ -189,7 +187,7 @@ $slim->group('/theme', 'authChecker', function() use ($slim) {
     });
 });
 
-$slim->group('/themes', 'authChecker', function() use ($slim) {
+$slim->group('/themes', $authChecker, function() use ($slim) {
     // Geting all themes
     $slim->get('', function() {
         (new ThemeController())->getAllThemes();
@@ -200,6 +198,6 @@ $slim->group('/themes', 'authChecker', function() use ($slim) {
     });
 });
 
-$slim->post('/send', 'authChecker', function() use ($slim) {
+$slim->post('/send', $authChecker, function() use ($slim) {
     (new LogController())->sendMessage();
 });

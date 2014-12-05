@@ -1,1 +1,4 @@
+composer.lock
 vendor/*
+PushApi/System/debugLog.txt
+PushApi/System/oficialLog.txt
