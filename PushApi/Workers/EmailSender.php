@@ -1,44 +1,26 @@
 <?php
 
-require 'Boot.php';
+// Include configurations and global PushApi constants
+require_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'BootStrap.php';
 
+use \PushApi\System\Mail;
 use \PushApi\Controllers\QueueController;
 
-// // Mockobject
-// $data = array(
-//   "to" => "deivit@series.ly",
-//   "subject" => "user_follow",
-//   "message" => "A user has followed you. You can check it on Tviso webpage."
-// );
+$mail = new Mail();
+$queue = new QueueController();
 
 /**
  * Pops all items from the mail queue and sends messages to the right destination,
  * when there are no more messages into the queue, it dies.
  */
-$data = (new QueueController())->getFromQueue(QueueController::EMAIL);
+$data = $queue->getFromQueue(QueueController::EMAIL);
 $data = json_decode($data, true);
-
 while ($data != null) {
-    // Create the message
-    $message = Swift_Message::newInstance()
+    if ($mail->message($data['to'], $data['subject'], $data['message'])) {
+        $numSent = $mail->send();
+        printf("Message sent to: " . $data['to'] ."\n", $numSent);
+    }
 
-      // Set the From address with an associative array
-      ->setFrom($mailFrom)
-
-      // Set the To addresses with an associative array
-      ->setTo($data['to'])
-
-      // Give the message a subject
-      ->setSubject($subjectConversion[$data['subject']])
-
-      // Give it a body
-      ->setBody($data['message']);
-
-    // Send the message
-    $numSent = $mailer->send($message);
-
-    printf("Message sent to " . $data['to'] . "\n", $numSent);
-
-    $data = (new QueueController())->getFromQueue(QueueController::EMAIL);
+    $data = $queue->getFromQueue(QueueController::EMAIL);
     $data = json_decode($data, true);
 }
