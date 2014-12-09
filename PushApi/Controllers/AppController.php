@@ -127,9 +127,10 @@ class AppController extends Controller
         $auth = $this->slim->request->headers->get('HTTP_AUTH');
 
         if (isset($appId) && isset($auth)) {
-            $app = App::findOrFail($appId);
-            if ($app->auth != $auth) {
-                throw new PushApiException(PushApiException::NOT_AUTORIZED);
+            try {
+                $app = App::findOrFail($appId);
+            } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_AUTORIZED);
             }
         } else {
             throw new PushApiException(PushApiException::NOT_AUTORIZED);
