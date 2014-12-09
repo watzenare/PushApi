@@ -31,5 +31,3 @@ define('HTTP_INTERNAL_SERVER_ERROR', 500);
  * Global Constants
  */
 define('JSON', 'application/json');
-
-define('GOOGLE_API_KEY', "AIzaSyCHeOCzPlTlwgiqhdG3EZ_sE07FVR2OBSA");

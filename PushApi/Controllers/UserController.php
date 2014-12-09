@@ -171,17 +171,17 @@ class UserController extends Controller
      * been done before, it only displays the information of the subscription
      * else, creates the subscription and displays the resulting information
      * @param [int] $idUser    User identification
-     * @param [int] $idchannel Channel identification
+     * @param [int] $idChannel Channel identification
      */
-    public function setSubscribed($idUser, $idchannel)
+    public function setSubscribed($idUser, $idChannel)
     {
         try {
-            $subscription = User::find($idUser)->subscriptions()->where('channel_id', $idchannel)->first();
+            $subscription = User::find($idUser)->subscriptions()->where('channel_id', $idChannel)->first();
             if (!isset($subscription) || empty($subscription)) {
-                if (!empty(User::find($idUser)->toArray()) && !empty(Channel::find($idchannel)->toArray())) {
+                if (!empty(User::find($idUser)->toArray()) && !empty(Channel::find($idChannel)->toArray())) {
                     $subscription = new Subscription;
                     $subscription->user_id = $idUser;
-                    $subscription->channel_id = $idchannel;
+                    $subscription->channel_id = $idChannel;
                     $subscription->save();
                 }
             }
@@ -198,13 +198,13 @@ class UserController extends Controller
      * if user is subscribed into a channel (if he is subscribed, the 
      * subscription is displayed)
      * @param [int] $idUser    User identification
-     * @param [int] $idchannel Channel identification
+     * @param [int] $idChannel Channel identification
      */
-    public function getSubscribed($idUser, $idchannel = false)
+    public function getSubscribed($idUser, $idChannel = false)
     {
         try {
-            if ($idchannel) {
-                $subscriptions = User::findOrFail($idUser)->subscriptions()->where('channel_id', $idchannel)->first();
+            if ($idChannel) {
+                $subscriptions = User::findOrFail($idUser)->subscriptions()->where('channel_id', $idChannel)->first();
             } else {
                 $subscriptions = User::findOrFail($idUser)->subscriptions;
             }
@@ -219,12 +219,12 @@ class UserController extends Controller
     /**
      * Deletes a user subscription given a user and a subscription id
      * @param [int] $idUser    User identification
-     * @param [int] $idchannel Channel identification
+     * @param [int] $idChannel Channel identification
      */
-    public function deleteSubscribed($idUser, $idchannel)
+    public function deleteSubscribed($idUser, $idChannel)
     {
         try {
-            $subscription = User::findOrFail($idUser)->subscriptions()->where('channel_id', $idchannel)->first();
+            $subscription = User::findOrFail($idUser)->subscriptions()->where('channel_id', $idChannel)->first();
             $subscription->delete();
             $this->send($subscription->toArray());
         } catch (ModelNotFoundException $e) {
@@ -265,9 +265,7 @@ class UserController extends Controller
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
-            if ($option != Preference::NOTHING
-                && $option != Preference::EMAIL
-                && $option != Preference::SMARTPHONE) {
+            if ($update['option'] > Preference::ALL_RANGES) {
                 throw new PushApiException(PushApiException::INVALID_OPTION);
             }
 
@@ -314,15 +312,13 @@ class UserController extends Controller
     {
         try {
             $update = array();
-            $update['option'] = (string) $this->slim->request->post('option');
+            $update['option'] = (int) $this->slim->request->post('option');
 
             if (!isset($update['option'])) {
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
-            if ($update['option'] != Preference::NOTHING
-                && $update['option'] != Preference::EMAIL
-                && $update['option'] != Preference::SMARTPHONE) {
+            if ($update['option'] > Preference::ALL_RANGES) {
                 throw new PushApiException(PushApiException::INVALID_OPTION);
             }
 

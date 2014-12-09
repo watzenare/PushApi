@@ -79,15 +79,15 @@ class LogController extends Controller
 
                     // Checking if user wants to recive via email
                     if ((Preference::EMAIL & $preference) == Preference::EMAIL) {
-                        $this->addToEmailQueue($user['email'], $theme, $message);
+                        $this->addToDeviceQueue($user['email'], $theme, $message, QueueController::EMAIL);
                     }
                     // Checking if user wants to recive via smartphone
                     if ((Preference::SMARTPHONE & $preference) == Preference::SMARTPHONE) {
                         if ($user['android_id'] != 0) {
-                            $this->addToAndroidQueue($user['android_id'], $theme, $message);
+                            $this->addToDeviceQueue($user['android_id'], $theme, $message, QueueController::ANDROID);
                         }
                         if ($user['ios_id'] != 0) {
-                            $this->addToIosQueue($user['ios_id'], $theme, $message);
+                            $this->addToDeviceQueue($user['ios_id'], $theme, $message, QueueController::IOS);
                         }
                     }
                 } catch (ModelNotFoundException $e) {
@@ -132,7 +132,7 @@ class LogController extends Controller
 
                     // Checking if user wants to recive via email
                     if ((Preference::EMAIL & $preference) == Preference::EMAIL) {
-                        $this->addToEmailQueue($subscription['user']['email'], $theme, $message);
+                        $this->addToDeviceQueue($subscription['user']['email'], $theme, $message, QueueController::EMAIL);
                     }
                     // Checking if user wants to recive via smartphone
                     if ((Preference::SMARTPHONE & $preference) == Preference::SMARTPHONE) {
@@ -146,17 +146,17 @@ class LogController extends Controller
                         // Android GMC lets send notifications to 1000 devices with one JSON message,
                         // if there are more >1000 we need to refill the list
                         if (sizeof($androidUsers) == 1000) {
-                            $this->addToAndroidQueue($androidUsers, $theme, $message);
+                            $this->addToDeviceQueue($androidUsers, $theme, $message, QueueController::ANDROID);
                             $androidUsers = array();
                         }
                     }
                 }
 
                 if (!empty($androidUsers)) {
-                    $this->addToAndroidQueue($androidUsers, $theme, $message);
+                    $this->addToDeviceQueue($androidUsers, $theme, $message, QueueController::ANDROID);
                 }
                 if (!empty($iosUsers)) {
-                    $this->addToIosQueue($iosUsers, $theme, $message);
+                    $this->addToDeviceQueue($iosUsers, $theme, $message, QueueController::IOS);
                 }
 
                 // Registering message
@@ -182,7 +182,7 @@ class LogController extends Controller
                         $option = decbin($userPreference['option']);
                         // Checking if user wants to recive via email
                         if ((Preference::EMAIL & $option) == Preference::EMAIL) {
-                            $this->addToEmailQueue($userPreference['user']['email'], $theme, $message);
+                            $this->addToDeviceQueue($userPreference['user']['email'], $theme, $message, QueueController::EMAIL);
                         }
                         // Checking if user wants to recive via smartphone
                         if ((Preference::SMARTPHONE & $option) == Preference::SMARTPHONE) {
@@ -196,17 +196,17 @@ class LogController extends Controller
                             // Android GMC lets send notifications to 1000 devices with one JSON message,
                             // if there are more >1000 we need to refill the list
                             if (sizeof($androidUsers) == 1000) {
-                                $this->addToAndroidQueue($androidUsers, $theme, $message);
+                                $this->addToDeviceQueue($androidUsers, $theme, $message, QueueController::ANDROID);
                                 $androidUsers = array();
                             }
                         }
                     }
 
                     if (!empty($androidUsers)) {
-                        $this->addToAndroidQueue($androidUsers, $theme, $message);
+                        $this->addToDeviceQueue($androidUsers, $theme, $message, QueueController::ANDROID);
                     }
                     if (!empty($iosUsers)) {
-                        $this->addToIosQueue($iosUsers, $theme, $message);
+                        $this->addToDeviceQueue($iosUsers, $theme, $message, QueueController::IOS);
                     }
 
                     // Registering message
@@ -222,61 +222,26 @@ class LogController extends Controller
                 break;
         }
         $this->send(true);
-	}
+    }
 
     /**
-     * Generates an array for email data
+     * Generates an array of data prepared to be stored in the $device queue
      * @param [string] $email   The email of the target user
      * @param [string] $theme   The theme of the notification
      * @param [string] $message The message that actor wants to send
+     * @param [string] $device  Destination where the message must be stored
      */
-	private function addToEmailQueue($email, $theme, $message)
-	{
+    private function addToDeviceQueue($email, $theme, $message, $device)
+    {
+        if (!isset($device)) {
+            throw new PushApiException(PushApiException::INVALID_ACTION);
+        }
+
         $data = array(
             "to" => $email,
             "subject" => $theme->name,
             "message" => $message
         );
-        (new QueueController())->addToQueue($data, QueueController::EMAIL);
-    }
-
-    /**
-     * Generates an array for android data
-     * @param [array] $androidUsers  One or more ids of android devices
-     * @param [string] $theme        The theme of the notification
-     * @param [string] $message      The message that actor wants to send
-     */
-    private function addToAndroidQueue($androidUsers, $theme, $message)
-    {
-        $data = array(
-            "registration_ids" => $androidUsers,
-            "collapse_key" => $theme->name,
-            "data" => array(
-                'message' => $message
-            )
-        );
-        (new QueueController())->addToQueue($data, QueueController::ANDROID);
-    }
-
-    /**
-     * Generates an array for ios data
-     * @param [array] $iosUsers  One or more ids of ios devices
-     * @param [string] $theme    The theme of the notification
-     * @param [string] $message  The message that actor wants to send
-     */
-    private function addToIosQueue($iosUsers, $theme, $message)
-    {
-        $data = array(
-            "apple_ids" => $iosUsers,
-            "collapse_key" => $theme->name,
-            "data" => array(
-                'message' => $message
-            )
-        );
-        (new QueueController())->addToQueue($data, QueueController::IOS);
+        (new QueueController())->addToQueue($data, $device);
     }
 }
-
-/////////////////////////////////////////////////////////////////
-// TODO: Add log to addToQueue functions because it won't fail //
-/////////////////////////////////////////////////////////////////

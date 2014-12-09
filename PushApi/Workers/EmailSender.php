@@ -16,7 +16,7 @@ $queue = new QueueController();
 $data = $queue->getFromQueue(QueueController::EMAIL);
 $data = json_decode($data, true);
 while ($data != null) {
-    if ($mail->message($data['to'], $data['subject'], $data['message'])) {
+    if ($mail->setMessage($data['to'], $data['subject'], $data['message'])) {
         $numSent = $mail->send();
         printf("Message sent to: " . $data['to'] ."\n", $numSent);
     }

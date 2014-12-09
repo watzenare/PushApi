@@ -3,13 +3,14 @@
 namespace PushApi\System;
 
 use \PushApi\PushApiException;
+use \PushApi\System\INotification;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  *
  * Manages the main functionalities that mailing service suplies.
  */
-class Mail
+class Mail implements INotification
 {
 	const MAIL_FROM = "no-reply@your_email.com";
 
@@ -41,21 +42,13 @@ class Mail
 		// Create the Mailer using your created Transport
 		$this->mailer = \Swift_Mailer::newInstance($this->transport);
 
-		// // Rate limit to 60MB per-minute
-		// $this->mailer->registerPlugin(new \Swift_Plugins_ThrottlerPlugin(
-		// 1024 * 1024 * 60, \Swift_Plugins_ThrottlerPlugin::BYTES_PER_MINUTE
-		// ));
+		// Rate limit to 60MB per-minute
+		$this->mailer->registerPlugin(new \Swift_Plugins_ThrottlerPlugin(
+			1024 * 1024 * 60, \Swift_Plugins_ThrottlerPlugin::BYTES_PER_MINUTE
+		));
 	}
 
-	/**
-	 * Prepares the message that will be sent
-	 * @param  string  $to      Adress wanted to send to
-	 * @param  string  $subject Subject encoded from database wanted to send
-	 * @param  string  $message Message wanted to display
-	 * @param  string  $from    Adress wanted to send from
-	 * @return boolean          Asserts if the message creation has worked succesfully
-	 */
-	public function message($to, $subject, $message, $from = false)
+	public function setMessage($to, $subject, $message, $from = false)
 	{
 		if (!$from) {
 			$from = self::MAIL_FROM;
@@ -77,10 +70,14 @@ class Mail
 		}
 	}
 
-	/**
-	 * Sends a message to its destination given a message.
-	 * @return int Number of mails sent
-	 */
+	public function getMessage()
+	{
+		if (isset($this->message)) {
+			return $this->message;
+		}
+		return false;
+	}
+
 	public function send()
 	{
 		if (!isset($this->message)) {
@@ -92,9 +89,10 @@ class Mail
 	}
 
 	/**
-	 * Transforms the basic internal subject into a better subject description if it is introduced
+	 * Transforms the basic internal subject into an improved subject description
+	 * if it has been introduced before.
 	 * @param  string $subject Encoded database subject that needs a translation
-	 * @return string          The subject transformed
+	 * @return string The subject transformed
 	 */
 	private function subjectTransformer($subject)
 	{
