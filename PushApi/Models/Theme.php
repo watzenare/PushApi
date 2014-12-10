@@ -29,7 +29,7 @@ class Theme extends Eloquent
 
     /**
      * Relationship n-1 to get an instance of the preferences table
-     * @return [Preferences] Istance of preferences model
+     * @return [Preferences] Instance of preferences model
      */
     public function preferences()
     {
@@ -52,5 +52,14 @@ class Theme extends Eloquent
     public function logs()
     {
         return $this->hasMany('\PushApi\Models\Log');
+    }
+
+    /**
+     * Relationship 1-1 to get an instance of the subjects table
+     * @return [Subject] Instance of Subject model
+     */
+    public function subject()
+    {
+        return $this->hasOne('\PushApi\Models\Subject');
     }
 }

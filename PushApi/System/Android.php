@@ -19,6 +19,8 @@ use \PushApi\System\INotification;
  */
 class Android implements INotification
 {
+	const JSON = 'application/json';
+
 	private $url = "https://android.googleapis.com/gcm/send";
 	private $apiKey = "AIzaSyCHeOCzPlTlwgiqhdG3EZ_sE07FVR2OBSA";
 	private $autorization = "Authorization: key=";
@@ -77,12 +79,19 @@ class Android implements INotification
 
         // Fetching results or failing if doesn't work
         if ($result === false) {
-            die('Curl failed: ' . curl_error($ch));
+            die('Problem ocurred while Curl: ' . curl_error($ch));
         }
  
         // Closing the HTTP connection
         curl_close($ch);
 
+        $result = $this->resultScan($result);
+
+		return $result;
+	}
+
+	private function resultScan($result)
+	{
 		return $result;
 	}
 }

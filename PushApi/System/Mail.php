@@ -4,6 +4,7 @@ namespace PushApi\System;
 
 use \PushApi\PushApiException;
 use \PushApi\System\INotification;
+use \PushApi\Models\Theme;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -16,17 +17,8 @@ class Mail implements INotification
 
 	private $transport;
 	private $mailer;
-	private $subjectsDictionary = array(
-		'user_follow' => 'User followed you on Tviso',
-		'user_comment' => 'User commented you on Tviso',
-		'user_recommend' => 'User recommended Tviso content',
-		'user_vote' => 'User voted your comment',
-		'newsletter' => 'News from Tviso, read the message!',
-		'movie_on_tv' => "Movie you're following on TV!",
-		'queue_subject_1' => 'Improved subject 1',
-		'queue_subject_2' => 'Improved subject 2',
-		'add_yours' => 'add_yours'
-	);
+	private $subjects;
+
 	private $message;
 
 	public function __construct()
@@ -91,16 +83,23 @@ class Mail implements INotification
 	/**
 	 * Transforms the basic internal subject into an improved subject description
 	 * if it has been introduced before.
+	 * The subjects already found are loaded into a local variable in order to
+	 * avoid the overloading of the database.
 	 * @param  string $subject Encoded database subject that needs a translation
 	 * @return string The subject transformed
 	 */
-	private function subjectTransformer($subject)
+	private function subjectTransformer($name)
 	{
-		// If there isn't a translation of the subject it is returned the original subject
-		if (array_key_exists($subject, $this->subjectsDictionary)) {
-			return $this->subjectsDictionary[$subject];
+		if (isset($this->subjects[$name])) {
+			return $this->subjects[$name];
 		} else {
-			return $subject;
+			try {
+	            $subject = Theme::where('name', $name)->first()->subject->toArray();
+	        } catch (ModelNotFoundException $e) {
+	            throw new PushApiException(PushApiException::NOT_FOUND);
+	        }
+			$this->subjects[$name] = $subject['description'];
+			return $this->subjects[$name];
 		}
 	}
 }

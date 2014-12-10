@@ -14,12 +14,10 @@ $queue = new QueueController();
  * when there are no more messages into the queue, it dies.
  */
 $data = $queue->getFromQueue(QueueController::ANDROID);
-$data = json_decode($data, true);
 while ($data != null) {
-    if ($android->setMessage($data['to'], $data['subject'], $data['message'])) {
+    if ($android->setMessage($data->to, $data->subject, $data->message)) {
         $result = $android->send();
     }
 
     $data = $queue->getFromQueue(QueueController::ANDROID);
-    $data = json_decode($data, true);
 }

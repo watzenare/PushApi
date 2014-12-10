@@ -14,13 +14,11 @@ $queue = new QueueController();
  * when there are no more messages into the queue, it dies.
  */
 $data = $queue->getFromQueue(QueueController::EMAIL);
-$data = json_decode($data, true);
 while ($data != null) {
-    if ($mail->setMessage($data['to'], $data['subject'], $data['message'])) {
+    if ($mail->setMessage($data->to, $data->subject, $data->message)) {
         $numSent = $mail->send();
-        printf("Message sent to: " . $data['to'] ."\n", $numSent);
+        printf("Message sent to: " . $data->to ."\n", $numSent);
     }
 
     $data = $queue->getFromQueue(QueueController::EMAIL);
-    $data = json_decode($data, true);
 }
