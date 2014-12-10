@@ -8,7 +8,7 @@
     - [Email](#email)
     - [Smartphones](#smartphones)
     - [Twitter](#twitter)
-  - [Schemes](#shemes)
+  - [Schemes](#schemes)
     - [General view](#general-view)
     - [More](#more)
 - [Tools used](#tools-used)
@@ -21,7 +21,7 @@ The PushApi is a server side project using PHP. It provides a way to notify user
 
 > This is a huge project that it is being implemented during the final degree project. Once finished, it will be able to accept external contributions.
 
-## How it works
+### How it works
 
 The API has an internal database (the tables will be described in the database scheme [More](#more)).
 In order to receive events, users must be registered into the API and then they can be subscribed into different Themes (this themes will be set by the administrator of the API). When user subscribes into a new Theme, user can choose where he wants to receive the notification (mail, smartphone, all, ...), by default, notifications will be sent via all the devices in order to force him to set its preferences.
@@ -29,16 +29,16 @@ The multicast Themes are assigned to different Channels that users can also subs
 
 When a notification is sent, API always returns the result directly to the client but it will send the notification when it can. For each target it has a Redis queue that sends step by step the different notifications that are being added continually to the various queues (soon it will be added [Forever](http://github.com/nodejitsu/forever) in order to ensure that a given script runs continuously).
 
-## Targets
+### Targets
 
 The API is being developed in order to support all kinds of targets if all these targets are configured correctly but the initial expected targets that is wanted to reach before the end of this project are the following ones:
 
-### Email
+#### Email
 
 The basic notification method it is done via email (sometimes is called as SPAM due to its bad use). This API will send all mails to subscribed users without using external mailing services.
 
 
-### Smartphones
+#### Smartphones
 
 The other targets of this project are the most used smartphones (mainly Android and iOs) using the official servers for each company:
 - GCM ([Google Cloud Messaging](https://developer.android.com/google/gcm/index.html)).
@@ -47,23 +47,23 @@ The other targets of this project are the most used smartphones (mainly Android 
 Both servers let sending notifications to various users with only one message. That is an advantage against the mail service.
 At the beginning it was proposed to send notifications directly to the different smartphones without using the official services but the idea was deprecated because the lack of time and experience were a fisic solid wall.
 
-### Twitter
+#### Twitter
 
 This is a new target that has been proposed during the project but it won't be applied until the main targets are finished. The purpose of this target is to make a Twitter tweet mentioning the target users interested on receive the notifications.
 
 [Back to index](#index)
 
-## Schemes
+### Schemes
 
 The following schemes wants to be descriptive parts of the project in order to make it easier to understand how it works or what is its functionality.
 
-### General view
+#### General view
 
 This is a possible scheme of what the project wants to be:
 
 ![pushApi](img/option3.png)
 
-### More
+#### More
 
 Comming soon
 
