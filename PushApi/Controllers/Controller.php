@@ -17,7 +17,7 @@ class Controller
      */
     public function __construct() {
         $this->slim = \Slim\Slim::getInstance();
-        $this->redis = new \Credis_Client('localhost');
+        $this->redis = new \Credis_Client(REDIS_IP);
     }
 
     /**
@@ -28,7 +28,7 @@ class Controller
     protected function send($result)
     {
         $response = $this->slim->response();
-        $response->header('Content-Type', JSON);
+        $response->header('Content-Type', 'application/json');
         $response->body(json_encode(array('result' => $result)));
         $this->slim->stop();
     }
