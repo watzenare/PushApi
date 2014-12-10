@@ -31,24 +31,22 @@ $authChecker = function () {
 ////////////////////////////////////
 //          AUTH ROUTES           //
 ////////////////////////////////////
-$slim->group('/app', $authChecker, function() use ($slim) {
-    // Creates a new app or retrives the app if it was created before
-    $slim->post('', function() {
-        (new AppController())->setApp();
+// Creates a new app or retrives the app if it was created before
+$slim->post('', function() {
+    (new AppController())->setApp();
+});
+$slim->group('/app/:id', $authChecker, function() use ($slim) {
+    // Gets the app $id
+    $slim->get('', function($id) {
+        (new AppController())->getApp($id);
     });
-    $slim->group('/:id', function() use ($slim) {
-        // Gets the app $id
-        $slim->get('', function($id) {
-            (new AppController())->getApp($id);
-        });
-        // Updates app $id given put params or retrives a new app secret
-        $slim->put('', function($id) {
-            (new AppController())->updateApp($id);
-        });
-        // Deletes app $id
-        $slim->delete('', function($id) {
-            (new AppController())->deleteApp($id);
-        });
+    // Updates app $id given put params or retrives a new app secret
+    $slim->put('', function($id) {
+        (new AppController())->updateApp($id);
+    });
+    // Deletes app $id
+    $slim->delete('', function($id) {
+        (new AppController())->deleteApp($id);
     });
 });
 // Geting all apps

@@ -54,9 +54,8 @@ CREATE TABLE `subscriptions` (
 
 CREATE TABLE `apps` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `secret` varchar(16) NOT NULL,
   `name` varchar(100) NOT NULL,
-  `auth` varchar(32) NOT NULL,
+  `secret` varchar(16) NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)

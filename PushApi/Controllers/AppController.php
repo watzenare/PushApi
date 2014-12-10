@@ -121,8 +121,24 @@ class AppController extends Controller
         $this->send($app->toArray());
     }
 
+    /**
+     * Checks if the call has an autentification token is valid and lets
+     * the app use the PushApi methods or dies if it is an invalid key.
+     * In order to autentificate the aplication it is required to send via
+     * HTTP headers the following tags:
+     *
+     * @param 'appid' that must contain the id of the app that wants to use the API
+     * @param 'auth' that must contain the autentification key
+     *
+     * The autentification key is a MD5 hash key obtained from merging 3 values
+     * that the agent must know in order:
+     *
+     * @example md5(application_name + current_date(format = yy-mm-dd) + application_secret)
+     */
     public function checkAuth()
     {
+        $todayData = date('Y-m-d');
+
         $appId = $this->slim->request->headers->get('HTTP_APPID');
         $auth = $this->slim->request->headers->get('HTTP_AUTH');
 
@@ -130,7 +146,10 @@ class AppController extends Controller
             try {
                 $app = App::findOrFail($appId);
             } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_AUTORIZED);
+                throw new PushApiException(PushApiException::NOT_AUTORIZED);
+            }
+            if (md5($app->name . $todayData . $app->secret) != $auth) {
+                throw new PushApiException(PushApiException::NOT_AUTORIZED);
             }
         } else {
             throw new PushApiException(PushApiException::NOT_AUTORIZED);
