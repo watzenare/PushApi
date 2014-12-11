@@ -29,10 +29,11 @@ class SubjectController extends Controller
                 throw new PushApiException(PushApiException::NO_DATA);
             }
 
+            // Checking if theme exists
             $theme = Theme::where('name', $themeName)->first();
-            
+
             if (!isset($theme) && empty($theme)) {
-                throw new PushApiException(PushApiException::NOT_FOUND, 'Theme name not found');
+                throw new PushApiException(PushApiException::NOT_FOUND, 'theme_name not found');
             }
 
             $subject = Subject::where('theme_id', $theme->id)->first();
@@ -46,13 +47,17 @@ class SubjectController extends Controller
     }
 
     /**
-     * Retrives the subject information given its id
+     * Retrives all edited subjects or the subject information given its id
      * @param [int] $idSubject Subject identification
      */
-    public function getSubject($idSubject)
+    public function getSubject($idSubject = false)
     {
         try {
-            $subject = Subject::findOrFail($idSubject);
+            if (!$idSubject) {
+                $subjects = Subject::orderBy('id', 'asc')->get();
+            } else {
+                $subject = Subject::findOrFail($idSubject);
+            }
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
@@ -97,19 +102,5 @@ class SubjectController extends Controller
         }
         $subject->delete();
         $this->send($subject->toArray());
-    }
-
-    /**
-     * Retrives all edited subjects
-     */
-    public function getSubjects()
-    {
-        try {
-            $subjects = Subject::orderBy('id', 'asc')->get();
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
-        }
-
-        $this->send($subjects->toArray());
     }
 }

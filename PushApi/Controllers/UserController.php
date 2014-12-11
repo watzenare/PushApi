@@ -9,7 +9,6 @@ use \PushApi\Models\Channel;
 use \PushApi\Models\Preference;
 use \PushApi\Models\Subscription;
 use \PushApi\Controllers\Controller;
-use \Illuminate\Database\QueryException;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -27,40 +26,39 @@ class UserController extends Controller
      */
     public function setUser()
     {
-        try {
-            $email = $this->slim->request->post('email');
+        $email = $this->slim->request->post('email');
 
-            if (!isset($email)) {
-                throw new PushApiException(PushApiException::NO_DATA);
-            }
+        if (!isset($email)) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
 
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                throw new PushApiException(PushApiException::NO_DATA);
-            }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
 
-            $user = User::where('email', $email)->first();
+        // Checking if user already exists
+        $user = User::where('email', $email)->first();
 
-            if (!isset($user->email)) {
-                $user = new User;
-                $user->email = $email;
-                $user->save();
-            }
-        } catch (QueryException $e) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
-        } catch (\Exception $e) {
-            throw new PushApiException(PushApiException::INVALID_ACTION);
+        if (!isset($user->email)) {
+            $user = new User;
+            $user->email = $email;
+            $user->save();
         }
         $this->send($user->toArray());
     }
 
     /**
-     * Retrives user information if it is registered
+     * Retrives all users registred or the user information if it is registered
      * @param [int] $id  User identification
      */
-    public function getUser($id)
+    public function getUser($id = false)
     {
         try {
-            $user = User::findOrFail($id);
+            if (!$id) {
+                $user = User::orderBy('id', 'asc')->get();
+            } else {
+                $user = User::findOrFail($id);
+            }
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
@@ -73,30 +71,32 @@ class UserController extends Controller
      */
     public function updateUser($id)
     {
+        $update = array();
+        $update['email'] = $this->slim->request->put('email');
+        $update['android_id'] = $this->slim->request->put('android_id');
+        $update['ios_id'] = $this->slim->request->put('ios_id');
+
+        $update = $this->cleanParams($update);
+
+        if (empty($update)) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
+
+        if (isset($update['email']) && !filter_var($update['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
+
         try {
-            $update = array();
-            $update['email'] = $this->slim->request->put('email');
-            $update['android_id'] = $this->slim->request->put('android_id');
-            $update['ios_id'] = $this->slim->request->put('ios_id');
-
-            $update = $this->cleanParams($update);
-
-            if (empty($update)) {
-                throw new PushApiException(PushApiException::NO_DATA);
-            }
-
-            if (isset($update['email']) && !filter_var($update['email'], FILTER_VALIDATE_EMAIL)) {
-                throw new PushApiException(PushApiException::NO_DATA);
-            }
-
-            $user = User::find($id);
-            foreach ($update as $key => $value) {
-                $user->$key = $value;
-            }
-            $user->update();
+            $user = User::findOrFail($id);
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
+
+        foreach ($update as $key => $value) {
+            $user->$key = $value;
+        }
+
+        $user->update();
         $this->send($user->toArray());
     }
 
@@ -117,52 +117,32 @@ class UserController extends Controller
 
     /**
      * Creates new users with given params and displays the information
-     * of the created user. If the user is tried to registrate twice or
+     * of the created user. If the user is tried to registered twice or
      * has an invalid email, it isn't added again.
      */
     public function setUsers()
     {
-        try {
-            $added = array();
-            $emails = $this->slim->request->post('emails');
+        $added = array();
+        $emails = $this->slim->request->post('emails');
 
-            if (!isset($emails)) {
-                throw new PushApiException(PushApiException::NO_DATA);
-            }
+        if (!isset($emails)) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
 
-            $emails = explode(",", $emails);
+        $emails = explode(",", $emails);
 
-            foreach ($emails as $key => $email) {
-                if (empty($email) || filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $user = User::where('email', $email)->first();
+        foreach ($emails as $key => $email) {
+            if (empty($email) || filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $user = User::where('email', $email)->first();
 
-                    if (!isset($user->email)) {
-                        $user = new User;
-                        $user->email = $email;
-                        $user->save();
-                        array_push($added, $user);
-                    }
+                if (!isset($user->email)) {
+                    $user = new User;
+                    $user->email = $email;
+                    $user->save();
+                    array_push($added, $user);
                 }
             }
-        } catch (QueryException $e) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
-        } catch (\Exception $e) {
-            throw new PushApiException(PushApiException::INVALID_ACTION);
         }
         $this->send($added);
-    }
-
-    /**
-     * Retrives all users registered
-     */
-    public function getAllUsers()
-    {
-        try {
-            $user = User::orderBy('id', 'asc')->get();
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
-        }
-
-        $this->send($user->toArray());
     }
 }

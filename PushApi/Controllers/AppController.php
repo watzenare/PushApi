@@ -23,32 +23,30 @@ class AppController extends Controller
 	 */
 	public function setApp()
 	{
-        try {
-            $name = $this->slim->request->post('name');
+        $name = $this->slim->request->post('name');
 
-            if (!isset($name)) {
-                throw new PushApiException(PushApiException::NO_DATA);
-            }
-
-            // There's a limit of created apps
-            $app = App::get();
-            if (sizeof($app->toArray()) >= App::MAX_APPS_ENABLED) {
-                throw new PushApiException(PushApiException::INVALID_ACTION);
-            }
-
-            $app = App::where('name', $name)->first();
-
-            if (!isset($app->name)) {
-                $app = new App;
-                $app->name = $name;
-                $app->save();
-            }
-        } catch (QueryException $e) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
-        } catch (\Exception $e) {
-            throw new PushApiException(PushApiException::INVALID_ACTION);
+        if (!isset($name)) {
+            throw new PushApiException(PushApiException::NO_DATA);
         }
-        $this->send($app->toArray());
+
+        // There's a limit of created apps
+        $apps = App::get();
+
+        if (sizeof($apps->toArray()) >= App::MAX_APPS_ENABLED) {
+            throw new PushApiException(PushApiException::LIMIT_EXCEEDED);
+        }
+
+        // Checks if the app already exists
+        $app = App::where('name', $name)->first();
+
+        if (!isset($app->name)) {
+            $app = new App;
+            $app->name = $name;
+            $app->save();
+            $this->send($app->toArray());
+        } else {
+            $this->send(false);
+        }
     }
 
 	/**
@@ -71,24 +69,27 @@ class AppController extends Controller
      */
 	public function updateApp($id)
 	{
+        $update = array();
+        $update['name'] = $this->slim->request->put('name');
+
+        $update = $this->cleanParams($update);
+
+        if (empty($update)) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
+
+        // Checking if the app exists
         try {
-            $update = array();
-            $update['name'] = $this->slim->request->put('name');
-
-            $update = $this->cleanParams($update);
-
-            if (empty($update)) {
-                throw new PushApiException(PushApiException::NO_DATA);
-            }
-
-            $app = App::find($id);
-            foreach ($update as $key => $value) {
-                $app->$key = $value;
-            }
-            $app->update();
+            $app = App::findOrFail($id);
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
+
+        foreach ($update as $key => $value) {
+            $app->$key = $value;
+        }
+
+        $app->update();
         $this->send($app->toArray());
     }
 
@@ -100,10 +101,10 @@ class AppController extends Controller
 	{
         try {
             $app = App::findOrFail($id);
-            $app->delete();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
+        $app->delete();
         $this->send($app->toArray());
     }
 
