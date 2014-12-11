@@ -57,7 +57,7 @@ class Android implements INotification
 		// Preparing HTTP headers
 		$this->headers = array(
 			$this->autorization . $this->apiKey,
-			$this->contentType . JSON
+			$this->contentType . self::JSON
 		);
 
 		// Preparing HTTP connection

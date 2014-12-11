@@ -195,13 +195,6 @@ $slim->group('/themes', $authChecker, function() use ($slim) {
     });
 });
 
-///////////////////////////////////
-//         SEND ROUTES           //
-///////////////////////////////////
-$slim->post('/send', $authChecker, function() use ($slim) {
-    (new LogController())->sendMessage();
-});
-
 //////////////////////////////////////
 //         SUBJECT ROUTES           //
 //////////////////////////////////////
@@ -228,4 +221,11 @@ $slim->group('/subjects', $authChecker, function() use ($slim) {
     $slim->get('', function() {
         (new SubjectController())->getSubject();
     });
+});
+
+///////////////////////////////////
+//         SEND ROUTES           //
+///////////////////////////////////
+$slim->post('/send', $authChecker, function() use ($slim) {
+    (new LogController())->sendMessage();
 });
