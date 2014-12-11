@@ -23,32 +23,30 @@ class AppController extends Controller
 	 */
 	public function setApp()
 	{
-        try {
-            $name = $this->slim->request->post('name');
+        $name = $this->slim->request->post('name');
 
-            if (!isset($name)) {
-                throw new PushApiException(PushApiException::NO_DATA);
-            }
-
-            // There's a limit of created apps
-            $app = App::get();
-            if (sizeof($app->toArray()) >= App::MAX_APPS_ENABLED) {
-                throw new PushApiException(PushApiException::INVALID_ACTION);
-            }
-
-            $app = App::where('name', $name)->first();
-
-            if (!isset($app->name)) {
-                $app = new App;
-                $app->name = $name;
-                $app->save();
-            }
-        } catch (QueryException $e) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
-        } catch (\Exception $e) {
-            throw new PushApiException(PushApiException::INVALID_ACTION);
+        if (!isset($name)) {
+            throw new PushApiException(PushApiException::NO_DATA);
         }
-        $this->send($app->toArray());
+
+        // There's a limit of created apps
+        $apps = App::get();
+
+        if (sizeof($apps->toArray()) >= App::MAX_APPS_ENABLED) {
+            throw new PushApiException(PushApiException::LIMIT_EXCEEDED);
+        }
+
+        // Checks if the app already exists
+        $app = App::where('name', $name)->first();
+
+        if (!isset($app->name)) {
+            $app = new App;
+            $app->name = $name;
+            $app->save();
+            $this->send($app->toArray());
+        } else {
+            $this->send(false);
+        }
     }
 
 	/**
@@ -71,24 +69,27 @@ class AppController extends Controller
      */
 	public function updateApp($id)
 	{
+        $update = array();
+        $update['name'] = $this->slim->request->put('name');
+
+        $update = $this->cleanParams($update);
+
+        if (empty($update)) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
+
+        // Checking if the app exists
         try {
-            $update = array();
-            $update['name'] = $this->slim->request->put('name');
-
-            $update = $this->cleanParams($update);
-
-            if (empty($update)) {
-                throw new PushApiException(PushApiException::NO_DATA);
-            }
-
-            $app = App::find($id);
-            foreach ($update as $key => $value) {
-                $app->$key = $value;
-            }
-            $app->update();
+            $app = App::findOrFail($id);
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
+
+        foreach ($update as $key => $value) {
+            $app->$key = $value;
+        }
+
+        $app->update();
         $this->send($app->toArray());
     }
 
@@ -100,10 +101,10 @@ class AppController extends Controller
 	{
         try {
             $app = App::findOrFail($id);
-            $app->delete();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
+        $app->delete();
         $this->send($app->toArray());
     }
 
@@ -121,14 +122,34 @@ class AppController extends Controller
         $this->send($app->toArray());
     }
 
+    /**
+     * Checks if the call has an autentification token is valid and lets
+     * the app use the PushApi methods or dies if it is an invalid key.
+     * In order to autentificate the aplication it is required to send via
+     * HTTP headers the following tags:
+     *
+     * @param 'appid' that must contain the id of the app that wants to use the API
+     * @param 'auth' that must contain the autentification key
+     *
+     * The autentification key is a MD5 hash key obtained from merging 3 values
+     * that the agent must know in order:
+     *
+     * @example md5(application_name + current_date(format = yy-mm-dd) + application_secret)
+     */
     public function checkAuth()
     {
+        $todayData = date('Y-m-d');
+
         $appId = $this->slim->request->headers->get('HTTP_APPID');
         $auth = $this->slim->request->headers->get('HTTP_AUTH');
 
         if (isset($appId) && isset($auth)) {
-            $app = App::findOrFail($appId);
-            if ($app->auth != $auth) {
+            try {
+                $app = App::findOrFail($appId);
+            } catch (ModelNotFoundException $e) {
+                throw new PushApiException(PushApiException::NOT_AUTORIZED);
+            }
+            if (md5($app->name . $todayData . $app->secret) != $auth) {
                 throw new PushApiException(PushApiException::NOT_AUTORIZED);
             }
         } else {

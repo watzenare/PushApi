@@ -10,6 +10,7 @@ use \Exception;
 class PushApiException extends Exception
 {
     
+    const LIMIT_EXCEEDED = -2;
     const NOT_AUTORIZED = -1;
     const DEFAULT_NO_ERRORS = 0;
     const INVALID_ACTION = 1;
@@ -33,7 +34,7 @@ class PushApiException extends Exception
         if (!isset($message)) {
             $message = $this->getExceptionMessage($code);
         } else {
-            $message = $this->getExceptionMessage($code) . ': ' . $message;
+            $message = $this->getExceptionMessage($code) . ": " . $message;
         }
     
         // Generates the exception
@@ -47,56 +48,60 @@ class PushApiException extends Exception
      */
     private function getExceptionMessage($code) {
         switch ($code) {
+            case self::LIMIT_EXCEEDED:
+                return "The creation limit is reached";
+                break;
+
             case self::NOT_AUTORIZED:
-                return 'No permisions to use this call';
+                return "No permisions to use this call";
                 break;
 
             case self::INVALID_ACTION:
-                return 'This action is invalid';
+                return "This action is invalid";
                 break;
 
             case self::INVALID_CALL:
-                return 'This call is undefined';
+                return "This call is undefined";
                 break;
 
             case self::INVALID_DATA:
-                return 'A value contains an invalid data';
+                return "A value contains an invalid data";
                 break;
 
             case self::INVALID_RANGE:
-                return 'A value contains an invalid range';
+                return "A value contains an invalid range";
                 break;
 
             case self::INVALID_OPTION:
-                return 'You are trying to set an invalid preferences option';
+                return "You are trying to set an invalid preferences option";
                 break;
 
             case self::NO_DATA:
-                return 'No data given by parameters';
+                return "There aren't the expected request parameters";
                 break;
 
             case self::NOT_FOUND:
-                return 'No results found';
+                return "No results found";
                 break;
 
             case self::EMPTY_PARAMS:
-                return 'No params where given';
+                return "No params where given";
                 break;
 
             case self::DB_NOT_UPDATED:
-                return 'Something has gone wrong and the database has not been updated';
+                return "Something has gone wrong and the database has not been updated";
                 break;
 
             case self::INVALID_PARAMS:
-                return 'An invalid param was given';
+                return "An invalid param was given";
                 break;
 
             case self::DUPLICATED_VALUE:
-                return 'This content is already added';
+                return "This content is already added";
                 break;
             
             default:
-                return 'Exception not found';
+                return "Exception not found";
                 break;
         }
     }

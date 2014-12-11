@@ -18,7 +18,7 @@ class QueueController extends Controller
 
     /**
      * Adds at the end of the specific queue the data recived
-     * @param [string] $data   Data we want to add into the queue
+     * @param [array] $data   Data we want to add into the queue
      * @param [string] $target The target queue name
      * @return [boolean]       Success of the operation
      */
@@ -47,21 +47,21 @@ class QueueController extends Controller
     /**
      * Retrieves the data data of the queue from the begining of the target queue
      * @param  [string] $target The target queue name
-     * @return [string/boolean] The data in the queue
+     * @return [array/boolean] The data in the queue
      */
     public function getFromQueue($target)
     {
         switch ($target) {
             case self::EMAIL:
-                return $this->redis->lPop(self::EMAIL);
+                return json_decode($this->redis->lPop(self::EMAIL));
                 break;
 
             case self::ANDROID:
-                return $this->redis->lPop(self::ANDROID);
+                return json_decode($this->redis->lPop(self::ANDROID));
                 break;
 
             case self::IOS:
-                return $this->redis->lPop(self::IOS);
+                return json_decode($this->redis->lPop(self::IOS));
                 break;
 
             default:
