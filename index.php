@@ -1,15 +1,12 @@
 <?php
+// Runs the API and its dependencies
+require 'BootStrap.php';
 
-// Includes Slim Framework and vendor libraries
-require 'vendor/autoload.php';
+// Start Slim Framework and PushApi
+$slim = new \Slim\Slim(array('mode' => 'development'));
+$pushApi = new \PushApi\PushApi($slim);
 
-// Includes all files of the project and it lets the application runs
-function autoloader($class) {
-    // Changes namespaces to real directories by updating the direction of slashes
-    $namespace = str_replace('\\', DIRECTORY_SEPARATOR, $class);
-    include __DIR__ . DIRECTORY_SEPARATOR . $namespace . '.php';
-}
-spl_autoload_register('autoloader');
+// Charging the API routes
+require "PushApi/System/Routes.php";
 
-// Starts the Push App
-$pushApi = new \PushApi\PushApi('Test');
+$slim->run();

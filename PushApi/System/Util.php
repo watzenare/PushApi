@@ -39,4 +39,21 @@ class Util
             echo '</pre>';
         }
     }
+
+    public static function validateFields($validFields, $updatingFields) {
+        $count = 0;
+        foreach ($updatingFields as $key => $value) {
+            if (in_array($key, $validFields, true)) {
+                $count++;
+            } else {
+                return false;
+            }
+        }
+
+        if ($count <= count($validFields)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
