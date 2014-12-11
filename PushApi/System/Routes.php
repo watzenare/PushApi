@@ -32,7 +32,7 @@ $authChecker = function () {
 //          AUTH ROUTES           //
 ////////////////////////////////////
 // Creates a new app or retrives the app if it was created before
-$slim->post('', function() {
+$slim->post('/app', function() {
     (new AppController())->setApp();
 });
 $slim->group('/app/:id', $authChecker, function() use ($slim) {
@@ -101,7 +101,7 @@ $slim->group('/user', $authChecker, function() use ($slim) {
         //////////////////////////////////////////
         // Gets user preferences
         $slim->get('/preferences', function($id) {
-            (new PreferenceController())->getPreferences($id);
+            (new PreferenceController())->getPreference($id);
         });
         $slim->group('/preference', function() use ($slim) {
             // Adds a preference to a user
@@ -123,7 +123,6 @@ $slim->group('/user', $authChecker, function() use ($slim) {
         });
     });
 });
-// Geting all users
 $slim->group('/users', $authChecker, function() use ($slim) {
     // Creates users passed, separated by coma, and adds only the valid users
     // (non repeated and valid email)
@@ -132,7 +131,7 @@ $slim->group('/users', $authChecker, function() use ($slim) {
     });
     // Geting all users
     $slim->get('', function() {
-        (new UserController())->getAllUsers();
+        (new UserController())->getUser();
     });
 });
 
@@ -157,11 +156,10 @@ $slim->group('/channel', $authChecker, function() use ($slim) {
         (new ChannelController())->deleteChannel($id);
     });
 });
-
 $slim->group('/channels', $authChecker, function() use ($slim) {
     // Geting all channels
     $slim->get('', function() {
-        (new ChannelController())->getAllChannels();
+        (new ChannelController())->getChannel();
     });
 });
 
@@ -186,23 +184,15 @@ $slim->group('/theme', $authChecker, function() use ($slim) {
         (new ThemeController())->deleteTheme($id);
     });
 });
-
 $slim->group('/themes', $authChecker, function() use ($slim) {
     // Geting all themes
     $slim->get('', function() {
-        (new ThemeController())->getAllThemes();
+        (new ThemeController())->getTheme();
     });
     // Get all themes by $range
     $slim->get('/range/:range', function($range) {
         (new ThemeController())->getByRange($range);
     });
-});
-
-/////////////////
-// SEND ROUTES //
-/////////////////
-$slim->post('/send', $authChecker, function() use ($slim) {
-    (new LogController())->sendMessage();
 });
 
 //////////////////////////////////////
@@ -214,21 +204,28 @@ $slim->group('/subject', $authChecker, function() use ($slim) {
         (new SubjectController())->setSubject();
     });
     // Gets subject $idSubject
-    $slim->get('/:idSubject', function($idSubject) {
+    $slim->get('/:idsubject', function($idSubject) {
         (new SubjectController())->getSubject($idSubject);
     });
     // Updates subject $idSubject given put params
-    $slim->put('/:idSubject', function($idSubject) {
+    $slim->put('/:idsubject', function($idSubject) {
         (new SubjectController())->updateSubject($idSubject);
     });
     // Deletes subject $idSubject
-    $slim->delete('/:idSubject', function($idSubject) {
+    $slim->delete('/:idsubject', function($idSubject) {
         (new SubjectController())->deleteSubject($idSubject);
     });
 });
 $slim->group('/subjects', $authChecker, function() use ($slim) {
     // Geting all subjects
     $slim->get('', function() {
-        (new SubjectController())->getSubjects();
+        (new SubjectController())->getSubject();
     });
+});
+
+///////////////////////////////////
+//         SEND ROUTES           //
+///////////////////////////////////
+$slim->post('/send', $authChecker, function() use ($slim) {
+    (new LogController())->sendMessage();
 });

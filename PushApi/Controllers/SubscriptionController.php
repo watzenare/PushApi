@@ -7,7 +7,6 @@ use \PushApi\Controllers\Controller;
 use \PushApi\Models\User;
 use \PushApi\Models\Channel;
 use \PushApi\Models\Subscription;
-use \Illuminate\Database\QueryException;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -28,20 +27,24 @@ class SubscriptionController extends Controller
     {
         try {
             $subscription = User::find($idUser)->subscriptions()->where('channel_id', $idChannel)->first();
-            if (!isset($subscription) || empty($subscription)) {
-                if (!empty(User::find($idUser)->toArray()) && !empty(Channel::find($idChannel)->toArray())) {
-                    $subscription = new Subscription;
-                    $subscription->user_id = $idUser;
-                    $subscription->channel_id = $idChannel;
-                    $subscription->save();
-                }
-            }
-        } catch (QueryException $e) {
+        } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
-        } catch (\Exception $e) {
-            throw new PushApiException(PushApiException::INVALID_ACTION);
         }
-        $this->send($subscription->toArray());
+
+        if (!isset($subscription) || empty($subscription)) {
+            if (!empty(Channel::find($idChannel))) {
+                $subscription = new Subscription;
+                $subscription->user_id = $idUser;
+                $subscription->channel_id = $idChannel;
+                $subscription->save();
+            }
+        }
+
+        if (!empty($subscription)) {
+            $this->send($subscription->toArray());
+        } else {
+            $this->send(array());
+        }
     }
 
     /**
@@ -61,10 +64,12 @@ class SubscriptionController extends Controller
             }
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
-        } catch (\Exception $e) {
-            throw new PushApiException(PushApiException::INVALID_ACTION);
         }
-        $this->send($subscriptions->toArray());
+        if (!empty($subscriptions)) {
+            $this->send($subscriptions->toArray());
+        } else {
+            $this->send(array());
+        }
     }
 
     /**
@@ -76,12 +81,15 @@ class SubscriptionController extends Controller
     {
         try {
             $subscription = User::findOrFail($idUser)->subscriptions()->where('channel_id', $idChannel)->first();
-            $subscription->delete();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
-        } catch (\Exception $e) {
-            throw new PushApiException(PushApiException::INVALID_ACTION);
         }
-        $this->send($subscription->toArray());
+
+        if (!empty($subscription)) {
+            $subscription->delete();
+            $this->send($subscription->toArray());
+        } else {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
     }
 }
