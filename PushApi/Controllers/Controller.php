@@ -12,9 +12,6 @@ class Controller
     protected $slim;
     protected $redis;
 
-    /**
-     * Main constructor that catches an instance of the framework
-     */
     public function __construct() {
         $this->slim = \Slim\Slim::getInstance();
         $this->redis = new \Credis_Client(REDIS_IP);
@@ -35,8 +32,8 @@ class Controller
 
     /**
      * Deletes unset parameters given an array
-     * @param  array $data
-     * @return array       An updated array without unset params
+     * @param  [array] $data
+     * @return [array]       An updated array without unset params
      */
     protected function cleanParams($data = array()) {
         foreach ($data as $key => $value) {
