@@ -5,13 +5,16 @@ namespace PushApi;
 use \Exception;
 
 /**
- * Customized PushApi Exceptions
+ * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ *
+ * Customized PushApi Exceptions in order to handle the different errors
+ * that could happen while the app is running.
  */
 class PushApiException extends Exception
 {
     
     const LIMIT_EXCEEDED = -2;
-    const NOT_AUTORIZED = -1;
+    const NOT_AUTHORIZED = -1;
     const DEFAULT_NO_ERRORS = 0;
     const INVALID_ACTION = 1;
     const INVALID_CALL = 2;
@@ -52,7 +55,7 @@ class PushApiException extends Exception
                 return "The creation limit is reached";
                 break;
 
-            case self::NOT_AUTORIZED:
+            case self::NOT_AUTHORIZED:
                 return "No permisions to use this call";
                 break;
 
