@@ -18,3 +18,11 @@ define('MAIL_SERVER_PORT', 1025);
  */
 define('REDIS_IP', 'localhost');
 define('REDIS_PORT', '6379');
+
+/**
+ * Defining log routes
+ */
+define('PROD_LOG', "/var/tmp/production-errors.log");
+define('DEV_LOG', "/var/tmp/development-errors.log");
+define('PROD_SEND_LOG', "/var/tmp/production-send-messages.log");
+define('DEV_SEND_LOG', "/var/tmp/development-send-messages.log");

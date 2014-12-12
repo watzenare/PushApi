@@ -6,7 +6,6 @@ use \PushApi\PushApiException;
 use \PushApi\Controllers\Controller;
 use \PushApi\Models\Theme;
 use \PushApi\Models\Subject;
-use \Illuminate\Database\QueryException;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**

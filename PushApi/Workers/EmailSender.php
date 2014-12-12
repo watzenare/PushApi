@@ -16,8 +16,8 @@ $queue = new QueueController();
 $data = $queue->getFromQueue(QueueController::EMAIL);
 while ($data != null) {
     if ($mail->setMessage($data->to, $data->subject, $data->message)) {
-        $numSent = $mail->send();
-        printf("Message sent to: " . $data->to ."\n", $numSent);
+        $result = $mail->send();
+        error_log("Redis_mail_queue: " . json_encode($data) . " Send_result: " . $result . PHP_EOL, 3, PROD_SEND_LOG);
     }
 
     $data = $queue->getFromQueue(QueueController::EMAIL);
