@@ -10,10 +10,11 @@
     - [Twitter](#twitter)
   - [Schemes](#schemes)
     - [General view](#general-view)
-    - [More](#more)
+    - [DataBase](#database)
 - [Tools used](#tools-used)
 - [Comments](#comments)
 - [Support](#support)
+- [Pending](#pending)
 
 ## Introduction
 
@@ -23,7 +24,7 @@ The PushApi is a server side project using PHP. It provides a way to notify user
 
 ### How it works
 
-The API has an internal database (the tables will be described in the database scheme [More](#more)).
+The API has an internal database (the tables will be described in the database scheme [DataBase](#database)).
 In order to receive events, users must be registered into the API and then they can be subscribed into different Themes (this themes will be set by the administrator of the API). When user subscribes into a new Theme, user can choose where he wants to receive the notification (mail, smartphone, all, ...), by default, notifications will be sent via all the devices in order to force him to set its preferences.
 The multicast Themes are assigned to different Channels that users can also subscribe.
 
@@ -63,9 +64,13 @@ This is a possible scheme of what the project wants to be:
 
 ![pushApi](img/option3.png)
 
-#### More
+#### DataBase
 
-Comming soon
+The current MySQL tables used are the following ones:
+
+![pushApi](img/db_design.png)
+
+It is not represented in any scheme but there are 3 Redis Lists used in order to queue the notifications before send them properly.
 
 [Back to index](#index)
 
@@ -86,5 +91,18 @@ Comming soon
 ## Support
 
 If you want to give your opinion, you can send me an email or comment the project directly (if you want to contribute with information or resources). Once the official degree project finished, I will accept foreign contributions if you are interested in.
+
+[Back to index](#index)
+
+## Pending
+
+Here are some pending tasks to do that aren't developed yet.
+
+- Update the Android worker checking the GCM responses and update user data if it is required (some special cases required).
+- Use [Forever](http://github.com/nodejitsu/forever) with the workers.
+- Develop tests (it is one of the most important things while programing and I haven't got time to develop it yet).
+- To log most of the functionalities.
+- Create a Client that uses the API.
+- Create some kind of mail template in order to send a better email.
 
 Thank you.
