@@ -5,7 +5,6 @@ namespace PushApi\Controllers;
 use \PushApi\PushApiException;
 use \PushApi\Models\App;
 use \PushApi\Controllers\Controller;
-use \Illuminate\Database\QueryException;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -29,9 +28,9 @@ class AppController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        // There's a limit of created apps
         $apps = App::get();
 
+        // There's a limit of apps creation and it must be checked
         if (sizeof($apps->toArray()) >= App::MAX_APPS_ENABLED) {
             throw new PushApiException(PushApiException::LIMIT_EXCEEDED);
         }
@@ -123,15 +122,15 @@ class AppController extends Controller
     }
 
     /**
-     * Checks if the call has an autentification token is valid and lets
+     * Checks if the call has an authentication token is valid and lets
      * the app use the PushApi methods or dies if it is an invalid key.
-     * In order to autentificate the aplication it is required to send via
+     * In order to authenticate the aplication it is required to send via
      * HTTP headers the following tags:
      *
-     * @param 'appid' that must contain the id of the app that wants to use the API
-     * @param 'auth' that must contain the autentification key
+     * @param 'X-App-Id' that must contain the id of the app that wants to use the API
+     * @param 'X-App-Auth' that must contain the authentication key
      *
-     * The autentification key is a MD5 hash key obtained from merging 3 values
+     * The authentication key is a MD5 hash key obtained from merging 3 values
      * that the agent must know in order:
      *
      * @example md5(application_name + current_date(format = yy-mm-dd) + application_secret)
@@ -140,20 +139,20 @@ class AppController extends Controller
     {
         $todayData = date('Y-m-d');
 
-        $appId = $this->slim->request->headers->get('HTTP_APPID');
-        $auth = $this->slim->request->headers->get('HTTP_AUTH');
+        $appId = $this->slim->request->headers->get('X-App-Id');
+        $auth = $this->slim->request->headers->get('X-App-Auth');
 
         if (isset($appId) && isset($auth)) {
             try {
                 $app = App::findOrFail($appId);
             } catch (ModelNotFoundException $e) {
-                throw new PushApiException(PushApiException::NOT_AUTORIZED);
+                throw new PushApiException(PushApiException::NOT_AUTHORIZED);
             }
             if (md5($app->name . $todayData . $app->secret) != $auth) {
-                throw new PushApiException(PushApiException::NOT_AUTORIZED);
+                throw new PushApiException(PushApiException::NOT_AUTHORIZED);
             }
         } else {
-            throw new PushApiException(PushApiException::NOT_AUTORIZED);
+            throw new PushApiException(PushApiException::NOT_AUTHORIZED);
         }
     }
 }

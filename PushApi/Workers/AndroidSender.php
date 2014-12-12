@@ -17,6 +17,7 @@ $data = $queue->getFromQueue(QueueController::ANDROID);
 while ($data != null) {
     if ($android->setMessage($data->to, $data->subject, $data->message)) {
         $result = $android->send();
+        error_log("Redis_android_queue: " . json_encode($data) . " GCM_result: " . $result . PHP_EOL, 3, PROD_SEND_LOG);
     }
 
     $data = $queue->getFromQueue(QueueController::ANDROID);
