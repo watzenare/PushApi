@@ -8,7 +8,7 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  *
  * Model of the apps table, manages all the relationships and dependencies
- * that can be done on these table
+ * that can be done on this table
  */
 class App extends Eloquent
 {
@@ -19,12 +19,15 @@ class App extends Eloquent
     // Only can be created MAX num of apps
     const MAX_APPS_ENABLED = 1;
 
+    /**
+     * Setting an app secret when the app is created
+     */
     public static function boot()
     {
         parent::boot();
 
         static::creating(function($app) {
-        	$app->secret = generateSecret();
+        	$app->secret = self::generateSecret();
         });
     }
 
