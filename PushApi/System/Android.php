@@ -116,26 +116,28 @@ class Android implements INotification
 	public function checkResults($users, $result)
 	{
 		for ($i = 0; $i < sizeof($users); $i++) {
+            var_dump($i);
 			// user can't be reached and the message should be sent again
 			if (isset($result[$i]->error) && $result[$i]->error == self::UNAVAILABLE) {
 				$this->message["registration_ids"] = array($users[$i]);
 				$this->send();
 			}
-			
-			// user id has changed or is invalid and it should be removed in order to avoid send a message again
-			if (isset($result[$i]->error) && ($result[$i]->error == self::INVALID_REGISTRATION
-				|| $result[$i]->error == self::NOT_REGISTERED)) {
-
+            
+            // user id has changed or is invalid and it should be removed in order to avoid send a message again
+            if (isset($result[$i]->error) && ($result[$i]->error == self::INVALID_REGISTRATION
+                || $result[$i]->error == self::NOT_REGISTERED)) {
 		        $user = User::where('android_id', $users[$i])->first();
-		    	$user->android_id = "0";
-		    	$user->update();
-			}
+		    	if (isset($user)) {
+                    $user->android_id = "0";
+                    $user->update();
+                }
+            }
 
-			// user id has changed and it must be updated because this is the only warning that will send the GCM
-			if (isset($result[$i]->registration_id)) {
-				$user->android_id = $result[$i]->registration_id;
-		    	$user->update();
-			}
+            // user id has changed and it must be updated because this is the only warning that will send the GCM
+            if (isset($result[$i]->registration_id)) {
+                $user->android_id = $result[$i]->registration_id;
+                $user->update();
+            }
 		}
 	}
 }
