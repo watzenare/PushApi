@@ -28,12 +28,8 @@ while ($data != null) {
         error_log("Redis_android_queue: " . json_encode($data) . " GCM_result: " . $result . PHP_EOL, 3, PROD_SEND_LOG);
 		
 		$result = json_decode($result);
-        if ($result['failure'] != 0) {
-        	$android->checkFailureResults($data->to, $result['results']);
-        }
-
-        if ($result['canonical_ids'] != 0) {
-        	$android->checkCanonicalResults($data->to, $result['results']);
+        if ($result->failure != 0 || $result->canonical_ids != 0) {
+        	$android->checkResults($data->to, $result->results);
         }
     }
 
