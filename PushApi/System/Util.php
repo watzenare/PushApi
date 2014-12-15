@@ -2,11 +2,16 @@
 
 namespace PushApi\System;
 
+/**
+ * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ *
+ * Container class used to store diferent useful functions
+ */
 class Util
 {
     /**
-     * Prints perfectly all kind of data, it can print through console or normal deb
-    */
+     * Prints perfectly all kind of data. Very useful when debugging and data is unreadable
+     */
     public static function p()
     {
         $consolePrint = false;
@@ -37,23 +42,6 @@ class Util
         }
         if (!$consolePrint) {
             echo '</pre>';
-        }
-    }
-
-    public static function validateFields($validFields, $updatingFields) {
-        $count = 0;
-        foreach ($updatingFields as $key => $value) {
-            if (in_array($key, $validFields, true)) {
-                $count++;
-            } else {
-                return false;
-            }
-        }
-
-        if ($count <= count($validFields)) {
-            return true;
-        } else {
-            return false;
         }
     }
 }
