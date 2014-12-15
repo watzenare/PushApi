@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Worker that retrives data from the mail queue, transforms that information into a mail
+ * message and sends the message to its receiver. It is stored the data and the result of
+ * sending the message.
+ */
+
 // Include configurations and global PushApi constants
 require_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'BootStrap.php';
 
