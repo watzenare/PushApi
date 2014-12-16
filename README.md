@@ -1,5 +1,7 @@
 # PushApi
 
+[![Analytics](https://ga-beacon.appspot.com/UA-57718174-1/pushapi/readme?pixel)](https://github.com/watzenare/pushapi)
+
 ## Index
 
 - [Introduction](#introduction)
