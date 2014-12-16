@@ -12,6 +12,7 @@
     - [General view](#general-view)
     - [DataBase](#database)
 - [Tools used](#tools-used)
+- [Client](#client)
 - [Comments](#comments)
 - [Support](#support)
 - [Pending](#pending)
@@ -22,6 +23,7 @@ The PushApi is a server side project using PHP. It provides a way to notify user
 
 > This is a huge project that it is being implemented during the final degree project. Once finished, it will be able to accept external contributions.
 
+
 ### How it works
 
 The API has an internal database (the tables will be described in the database scheme [DataBase](#database)).
@@ -30,9 +32,11 @@ The multicast Themes are assigned to different Channels that users can also subs
 
 When a notification is sent, API always returns the result directly to the client but it will send the notification when it can. For each target it has a Redis queue that sends step by step the different notifications that are being added continually to the various queues (soon it will be added [Forever](http://github.com/nodejitsu/forever) in order to ensure that a given script runs continuously).
 
+
 ### Targets
 
 The API is being developed in order to support all kinds of targets if all these targets are configured correctly but the initial expected targets that is wanted to reach before the end of this project are the following ones:
+
 
 #### Email
 
@@ -48,21 +52,25 @@ The other targets of this project are the most used smartphones (mainly Android 
 Both servers let sending notifications to various users with only one message. That is an advantage against the mail service.
 At the beginning it was proposed to send notifications directly to the different smartphones without using the official services but the idea was deprecated because the lack of time and experience were a fisic solid wall.
 
+
 #### Twitter
 
 This is a new target that has been proposed during the project but it won't be applied until the main targets are finished. The purpose of this target is to make a Twitter tweet mentioning the target users interested on receive the notifications.
 
 [Back to index](#index)
 
+
 ### Schemes
 
 The following schemes wants to be descriptive parts of the project in order to make it easier to understand how it works or what is its functionality.
+
 
 #### General view
 
 This is a possible scheme of what the project wants to be:
 
 ![pushApi](img/option3.png)
+
 
 #### DataBase
 
@@ -74,7 +82,9 @@ It is not represented in any scheme but there are 3 Redis Lists used in order to
 
 [Back to index](#index)
 
+
 ## Tools used
+
 - Server Apache2
 - MySQL
 - Redis
@@ -82,11 +92,22 @@ It is not represented in any scheme but there are 3 Redis Lists used in order to
 
 [Back to index](#index)
 
+
+## Client
+
+In order to use the API more easily, there are a standalone Client that facilitates the use of the PushApi. Find it here: [PushApi_Client](https://github.com/watzenare/PushApi_Client)
+
+It is a PHP Client but it will be more Clients later (i.e. Python Client).
+
+[Back to index](#index)
+
+
 ## Comments
 
 > It doesn't want to be the best notification system because I haven't got too much experience and the main target is to learn as much as I can, but I am trying to do something that I think that can improve my programing skills. As it says the beginning of the description, this is a degree project and it isn't expected to be the best system (but I am doing all my best).
 
 [Back to index](#index)
+
 
 ## Support
 
@@ -94,15 +115,14 @@ If you want to give your opinion, you can send me an email or comment the projec
 
 [Back to index](#index)
 
+
 ## Pending
 
 Here are some pending tasks to do that aren't developed yet.
 
-- Update the Android worker checking the GCM responses and update user data if it is required (some special cases required).
 - Use [Forever](http://github.com/nodejitsu/forever) with the workers.
 - Develop tests (it is one of the most important things while programing and I haven't got time to develop it yet).
 - To log most of the functionalities.
-- Create a Client that uses the API.
 - Create some kind of mail template in order to send a better email.
 
 Thank you.
