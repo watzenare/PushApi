@@ -116,7 +116,6 @@ class Android implements INotification
 	public function checkResults($users, $result)
 	{
 		for ($i = 0; $i < sizeof($users); $i++) {
-            var_dump($i);
 			// user can't be reached and the message should be sent again
 			if (isset($result[$i]->error) && $result[$i]->error == self::UNAVAILABLE) {
 				$this->message["registration_ids"] = array($users[$i]);

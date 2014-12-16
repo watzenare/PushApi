@@ -29,7 +29,7 @@ CREATE TABLE `channels` (
 
 CREATE TABLE `preferences` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `option` tinyint(4) NOT NULL DEFAULT '11',
+  `option` tinyint(4) NOT NULL DEFAULT '3',
   `user_id` int(11) NOT NULL,
   `theme_id` int(11) NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
