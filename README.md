@@ -85,9 +85,8 @@ It is not represented in any scheme but there are 3 Redis Lists used in order to
 [Back to index](#index)
 
 
-## Tools used
+## Used tools
 
-- Server Apache2
 - MySQL
 - Redis
 - PHP 5.5+ (PHP 5.5 recommended)
@@ -115,6 +114,10 @@ It is a PHP Client but it will be more Clients later (i.e. Python Client).
 
 If you want to give your opinion, you can send me an email or comment the project directly (if you want to contribute with information or resources). Once the official degree project finished, I will accept foreign contributions if you are interested in.
 
+Contributions are accepted for the project
+
+[![Website Button](http://www.rahmenversand.com/images/paypal_logo_klein.gif "Donate!")](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=eloi.ballara%40gmail%2ecom&lc=US&item_name=PushApi%20Developers&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest&amount=5 "Contribute to the project")
+
 [Back to index](#index)
 
 
@@ -125,6 +128,7 @@ Here are some pending tasks to do that aren't developed yet.
 - Use [Forever](http://github.com/nodejitsu/forever) with the workers.
 - Develop tests (it is one of the most important things while programing and I haven't got time to develop it yet).
 - To log most of the functionalities.
+- Add multilevel security (One App to rule them all).
 - Create some kind of mail template in order to send a better email.
 
 Thank you.
