@@ -85,8 +85,8 @@ class Mail implements INotification
 	 * if it has been introduced before.
 	 * The subjects already found are loaded into a local variable in order to
 	 * avoid the overloading of the database.
-	 * @param  string $subject Encoded database subject that needs a translation
-	 * @return string The subject transformed
+	 * @param  [string] $subject Encoded database subject that needs a translation
+	 * @return [string] The subject transformed
 	 */
 	private function subjectTransformer($name)
 	{

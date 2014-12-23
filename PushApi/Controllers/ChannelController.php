@@ -5,7 +5,6 @@ namespace PushApi\Controllers;
 use \PushApi\PushApiException;
 use \PushApi\Models\Channel;
 use \PushApi\Controllers\Controller;
-use \Illuminate\Database\QueryException;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**

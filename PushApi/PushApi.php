@@ -4,9 +4,13 @@ namespace PushApi;
 
 use \Slim\Slim;
 use \PushApi\PushApiException;
-use \PushApi\System\Util;
-use \PushApi\System\LogWriter;
 
+/**
+ * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ *
+ * Main API class that configures the framework and handles exceptions
+ * that could happen while the API is running.
+ */
 class PushApi
 {
     const HTTP_OK = 200;
@@ -31,9 +35,6 @@ class PushApi
         $this->app->configureMode('production', function () use ($app) {
             $app->config(array(
                 'debug' => false,
-                'log.enable' => true,
-                'log.level' => \Slim\Log::WARN,
-                'log.writer' => new \Slim\LogWriter(fopen(__DIR__ . DIRECTORY_SEPARATOR . 'System/oficialLog.txt', 'a'))
             ));
         });
 
@@ -41,17 +42,17 @@ class PushApi
         $this->app->configureMode('development', function () use ($app) {
             $app->config(array(
                 'debug' => true,
-                'log.enable' => false,
-                'log.level' => \Slim\Log::DEBUG,
-                'log.writer' => new \Slim\LogWriter(fopen(__DIR__ . DIRECTORY_SEPARATOR . 'System/debugLog.txt', 'a'))
             ));
         });
 
         $this->startErrorHandling();
     }
 
+    /**
+     * Customized error handler. It displays the right HTTP header response if the
+     * API generates some kind of exeption while running.
+     */
     private function startErrorHandling() {
-        // Custom error handler
         $this->app->error(function (PushApiException $e) {
             switch ($e->getCode()) {
                 case PushApiException::NOT_FOUND:
@@ -75,7 +76,7 @@ class PushApi
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
 
-                case PushApiException::NOT_AUTORIZED:
+                case PushApiException::NOT_AUTHORIZED:
                     $this->app->response()->status(self::HTTP_UNAUTHORIZED);
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
@@ -86,7 +87,8 @@ class PushApi
                     break;
             }
         });
-        // Custom not found calls handler
+        // If a call doesn't exist it is custmoized the not found
+        // (default not found HTTP header) result message
         $this->app->notFound(function () {
             $this->app->response()->header('X-Status-Reason', "Call doesn't exist on PushApi");
         });

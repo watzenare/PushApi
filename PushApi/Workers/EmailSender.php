@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Worker that retrives data from the mail queue, transforms that information into a mail
+ * message and sends the message to its receiver. It is stored the data and the result of
+ * sending the message.
+ */
+
 // Include configurations and global PushApi constants
 require_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'BootStrap.php';
 
@@ -16,8 +22,8 @@ $queue = new QueueController();
 $data = $queue->getFromQueue(QueueController::EMAIL);
 while ($data != null) {
     if ($mail->setMessage($data->to, $data->subject, $data->message)) {
-        $numSent = $mail->send();
-        printf("Message sent to: " . $data->to ."\n", $numSent);
+        $result = $mail->send();
+        error_log("Redis_mail_queue: " . json_encode($data) . " Send_result: " . $result . PHP_EOL, 3, PROD_SEND_LOG);
     }
 
     $data = $queue->getFromQueue(QueueController::EMAIL);
