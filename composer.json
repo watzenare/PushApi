@@ -1,4 +1,12 @@
 {
+	"name": "pushapi/pushapi",
+	"description": "PHP REST API that lets you manage the notifications of your website.",
+	"keywords": [
+	    "pushapi",
+	    "pushapi-php",
+		"push-php"
+	],
+	"license": "MIT",
 	"require": {
 		"slim/slim": "2.*",
 		"illuminate/database": "4.2.9",

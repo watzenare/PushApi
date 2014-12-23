@@ -1,8 +1,6 @@
 # PushApi
 
-[![Analytics](https://ga-beacon.appspot.com/UA-57718174-1/pushapi/readme?pixel)](https://github.com/watzenare/pushapi)
-
-## Index
+## Index [![Analytics](https://ga-beacon.appspot.com/UA-57718174-1/pushapi/readme?pixel)](https://github.com/watzenare/pushapi)
 
 - [Introduction](#introduction)
   - [How it works](#how-it-works)
@@ -12,12 +10,16 @@
     - [Twitter](#twitter)
   - [Schemes](#schemes)
     - [General view](#general-view)
+    - [Inside the API](#inside-the-api)
     - [DataBase](#database)
-- [Tools used](#tools-used)
+- [Used tools](#used-tools)
 - [Client](#client)
+- [Run Workers with Forever](#run-workers-with-forever)
 - [Comments](#comments)
 - [Support](#support)
 - [Pending](#pending)
+- [Documentation](#documentation)
+
 
 ## Introduction
 
@@ -69,9 +71,21 @@ The following schemes wants to be descriptive parts of the project in order to m
 
 #### General view
 
-This is a possible scheme of what the project wants to be:
+This is the scheme of what the project will support with the basic targets.
 
-![pushApi](img/option3.png)
+![pushApi](img/general_structure.png)
+
+
+#### Inside the API
+
+The following figure shows how the API is structured internally and what the client can see.
+
+![pushApi](img/inside_api.png)
+
+From left to right:
+- an agent has a PushApi app created and it can use the API calls (each call can check the API database).
+- once the app receives a send call, it checks the users that can receive the notifications and sort all of them by its preference (email, android, ios), then it stores the sending information into the queue that should go and returns a response to the agent.
+- internally, the server has senders that are running all the time sending the messages that are being stored into the queues. Each queue has a different worker and it can be set a determinate number of daemons running that workers.
 
 
 #### DataBase
@@ -80,7 +94,17 @@ The current MySQL tables used are the following ones:
 
 ![pushApi](img/db_design.png)
 
-It is not represented in any scheme but there are 3 Redis Lists used in order to queue the notifications before send them properly.
+- Agent, it stores the apps that are being created.
+- Users, all the users that will use the service are stored in here, it is only stored its receive identifications.
+- Themes, the different themes that are established for the notifications.
+- Preferences, foreach theme an user can set its preferences in order to choose how he wants to receive the notification.
+- Channels, groups that users can follow in order to get customized notifications.
+- Subscriptions, users that wants to receive channel notifications should be subscribed before.
+- Logs, a sending log that is stored each time a send request is done in order to register the call params request.
+- Subjects, the themes names could not be good names for sending as mail subjects and this table contains a customizable translation (example: user_comment => User has commented your profile).
+
+
+There are also 3 Redis Lists used in order to queue the notifications before send them properly (one list for each possible destination).
 
 [Back to index](#index)
 
@@ -90,6 +114,7 @@ It is not represented in any scheme but there are 3 Redis Lists used in order to
 - MySQL
 - Redis
 - PHP 5.5+ (PHP 5.5 recommended)
+- [Forever](http://github.com/nodejitsu/forever)
 
 [Back to index](#index)
 
@@ -102,6 +127,20 @@ It is a PHP Client but it will be more Clients later (i.e. Python Client).
 
 [Back to index](#index)
 
+## Run Workers with Forever
+
+It is recommended to install [Forever](http://github.com/nodejitsu/forever) at the server side and run the Workers in as a daemon in background.
+
+Here is an example:
+
+``` bash
+  $ forever start -c php --minUptime 1500 --spinSleepTime 1500 EmailSender.php
+  $ forever start -c php --minUptime 1500 --spinSleepTime 1500 AndroidSender.php
+```
+
+For more info you can see the [Forever](http://github.com/nodejitsu/forever) commands.
+
+[Back to index](#index)
 
 ## Comments
 
@@ -112,9 +151,9 @@ It is a PHP Client but it will be more Clients later (i.e. Python Client).
 
 ## Support
 
-If you want to give your opinion, you can send me an email or comment the project directly (if you want to contribute with information or resources). Once the official degree project finished, I will accept foreign contributions if you are interested in.
+If you want to give your opinion, you can send me an [email](mailto:eloi@tviso.com), comment the project directly (if you want to contribute with information or resources) or fork the project and make a pull request.
 
-Contributions are accepted for the project
+Also I will be grateful if you want to make a donation, this project hasn't got a death date and it wants to be improved constantly:
 
 [![Website Button](http://www.rahmenversand.com/images/paypal_logo_klein.gif "Donate!")](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=eloi.ballara%40gmail%2ecom&lc=US&item_name=PushApi%20Developers&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest&amount=5 "Contribute to the project")
 
@@ -123,12 +162,19 @@ Contributions are accepted for the project
 
 ## Pending
 
-Here are some pending tasks to do that aren't developed yet.
+Here are some pending tasks that aren't developed yet.
 
-- Use [Forever](http://github.com/nodejitsu/forever) with the workers.
-- Develop tests (it is one of the most important things while programing and I haven't got time to develop it yet).
+- Unit testing (do mock objects simulating the DB and checking the routes and controllers).
 - To log most of the functionalities.
 - Add multilevel security (One App to rule them all).
-- Create some kind of mail template in order to send a better email.
+- Create mail template in order to send a better email.
 
-Thank you.
+[Back to index](#index)
+
+
+## Documentation
+
+If you want to see more information about the PushApi you can check the [wiki](https://github.com/watzenare/PushApi/wiki).
+
+
+Thank you!
