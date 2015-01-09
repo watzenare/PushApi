@@ -1,4 +1,7 @@
 <?php
+
+define('DEBUG', true);
+
 /**
  * Database configuration
  */
@@ -12,6 +15,7 @@ define('DB_NAME', 'pushdb');
  */
 define('MAIL_SERVER', "localhost");
 define('MAIL_SERVER_PORT', 1025);
+define('MAIL_FROM', "no-reply@tviso.com");
 
 /**
  * Redis configuration
@@ -26,3 +30,8 @@ define('PROD_LOG', "/var/tmp/production-errors.log");
 define('DEV_LOG', "/var/tmp/development-errors.log");
 define('PROD_SEND_LOG', "/var/tmp/production-send-messages.log");
 define('DEV_SEND_LOG', "/var/tmp/development-send-messages.log");
+
+/**
+ * Defining the Android Auth Key
+ */
+define('ANDROID_KEY', "AIzaSyCHeOCzPlTlwgiqhdG3EZ_sE07FVR2OBSA");

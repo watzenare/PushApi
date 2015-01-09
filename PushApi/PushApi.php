@@ -4,6 +4,7 @@ namespace PushApi;
 
 use \Slim\Slim;
 use \PushApi\PushApiException;
+use \Pimple\Container;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -13,6 +14,12 @@ use \PushApi\PushApiException;
  */
 class PushApi
 {
+    const SLIM = 'slim';
+    const REDIS = 'redis';
+
+    /**
+     * HTTP Headers
+     */
     const HTTP_OK = 200;
     const HTTP_CREATED = 201;
     const HTTP_NO_CONTENT = 204;
@@ -27,6 +34,7 @@ class PushApi
     const HTTP_INTERNAL_SERVER_ERROR = 500;
 
     private $app;
+    private static $container;
 
     public function __construct(\Slim\Slim $app) {
         $this->app = $app;
@@ -46,6 +54,7 @@ class PushApi
         });
 
         $this->startErrorHandling();
+        self::$container = $this->fillContainer();
     }
 
     /**
@@ -92,5 +101,53 @@ class PushApi
         $this->app->notFound(function () {
             $this->app->response()->header('X-Status-Reason', "Call doesn't exist on PushApi");
         });
+    }
+
+    /**
+     * Adds into a container all the services that the API requires.
+     * @return [Container] The Container object fully created
+     */
+    private function fillContainer()
+    {
+        $c = new Container();
+
+        $c[PushApi::SLIM] = function ($c) {
+            return \Slim\Slim::getInstance();
+        };
+
+        $c[PushApi::REDIS] = function ($c) {
+            return new \Credis_Client(REDIS_IP);
+        };
+
+        return $c;
+    }
+
+    /**
+     * [setContainerParameter description]
+     * @param [type] $parameter [description]
+     * @param [type] $value     [description]
+     */
+    public static function setContainerParameter($parameter, $value)
+    {
+        self::$container[$parameter] = $value;
+    }
+
+    /**
+     * [getContainerService description]
+     * @param  [type] $serviceName [description]
+     * @return [type]              [description]
+     */
+    public static function getContainerService($serviceName)
+    {
+        return self::$container[$serviceName];
+    }
+
+    /**
+     * [getContainer description]
+     * @return [type] [description]
+     */
+    public static function getContainer()
+    {
+        return self::$container;
     }
 }

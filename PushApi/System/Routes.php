@@ -12,6 +12,7 @@ use \PushApi\Controllers\SubscriptionController;
 use \PushApi\Controllers\PreferenceController;
 use \PushApi\Controllers\SubjectController;
 
+// Checking that some url params are sent with the right format
 Route::setDefaultConditions(
     array(
         'id' => '\d+',
