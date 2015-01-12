@@ -138,12 +138,12 @@ class PushApi
 
     /**
      * Sets a new parameter or service into the container storing it with an index.
-     * @param [string] $parameter The reference name of the service
-     * @param [string] $value     An instance of the service
+     * @param [string] $serviceName  The reference name of the service
+     * @param [string] $value  An instance of the service
      */
-    public static function setContainerService($parameter, $value)
+    public static function setContainerService($serviceName, $value)
     {
-        self::$container[$parameter] = $value;
+        self::$container[$serviceName] = $value;
     }
 
     /**
