@@ -137,19 +137,19 @@ class PushApi
     }
 
     /**
-     * [setContainerParameter description]
-     * @param [type] $parameter [description]
-     * @param [type] $value     [description]
+     * Sets a new parameter or service into the container storing it with an index.
+     * @param [string] $parameter The reference name of the service
+     * @param [string] $value     An instance of the service
      */
-    public static function setContainerParameter($parameter, $value)
+    public static function setContainerService($parameter, $value)
     {
         self::$container[$parameter] = $value;
     }
 
     /**
-     * [getContainerService description]
-     * @param  [type] $serviceName [description]
-     * @return [type]              [description]
+     * Retrieves a specific content of the container given a target index.
+     * @param  [string]  $serviceName  The reference name of the service
+     * @return [Container]  The content of the container
      */
     public static function getContainerService($serviceName)
     {
@@ -157,8 +157,8 @@ class PushApi
     }
 
     /**
-     * [getContainer description]
-     * @return [type] [description]
+     * Returns all the data that is stored into the container.
+     * @return [Container] All the container data
      */
     public static function getContainer()
     {
