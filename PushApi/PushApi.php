@@ -3,7 +3,10 @@
 namespace PushApi;
 
 use \Slim\Slim;
+use \Pimple\Container;
 use \PushApi\PushApiException;
+use \PushApi\System\Mail;
+use \PushApi\System\Android;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -13,6 +16,14 @@ use \PushApi\PushApiException;
  */
 class PushApi
 {
+    const SLIM = 'slim';
+    const REDIS = 'redis';
+    const MAIL = 'mail';
+    const ANDROID = 'android';
+
+    /**
+     * HTTP Headers
+     */
     const HTTP_OK = 200;
     const HTTP_CREATED = 201;
     const HTTP_NO_CONTENT = 204;
@@ -27,25 +38,29 @@ class PushApi
     const HTTP_INTERNAL_SERVER_ERROR = 500;
 
     private $app;
+    private static $container;
 
-    public function __construct(\Slim\Slim $app) {
+    public function __construct($app) {
         $this->app = $app;
 
-        // Only invoked if mode is "production"
-        $this->app->configureMode('production', function () use ($app) {
-            $app->config(array(
-                'debug' => false,
-            ));
-        });
+        if (isset($app)) {
+            // Only invoked if mode is "production"
+            $this->app->configureMode('production', function () use ($app) {
+                $app->config(array(
+                    'debug' => false,
+                ));
+            });
 
-        // Only invoked if mode is "development"
-        $this->app->configureMode('development', function () use ($app) {
-            $app->config(array(
-                'debug' => true,
-            ));
-        });
+            // Only invoked if mode is "development"
+            $this->app->configureMode('development', function () use ($app) {
+                $app->config(array(
+                    'debug' => true,
+                ));
+            });
 
-        $this->startErrorHandling();
+            $this->startErrorHandling();
+        }
+        self::$container = $this->fillContainer();
     }
 
     /**
@@ -92,5 +107,61 @@ class PushApi
         $this->app->notFound(function () {
             $this->app->response()->header('X-Status-Reason', "Call doesn't exist on PushApi");
         });
+    }
+
+    /**
+     * Adds into a container all the services that the API requires.
+     * @return [Container] The Container object fully created
+     */
+    private function fillContainer()
+    {
+        $c = new Container();
+
+        $c[PushApi::SLIM] = function ($c) {
+            return \Slim\Slim::getInstance();
+        };
+
+        $c[PushApi::REDIS] = function ($c) {
+            return new \Credis_Client(REDIS_IP);
+        };
+
+        $c[PushApi::MAIL] = function ($c) {
+            return new Mail();
+        };
+
+        $c[PushApi::ANDROID] = function ($c) {
+            return new Android();
+        };
+
+        return $c;
+    }
+
+    /**
+     * Sets a new parameter or service into the container storing it with an index.
+     * @param [string] $serviceName  The reference name of the service
+     * @param [string] $value  An instance of the service
+     */
+    public static function setContainerService($serviceName, $value)
+    {
+        self::$container[$serviceName] = $value;
+    }
+
+    /**
+     * Retrieves a specific content of the container given a target index.
+     * @param  [string]  $serviceName  The reference name of the service
+     * @return [Container]  The content of the container
+     */
+    public static function getContainerService($serviceName)
+    {
+        return self::$container[$serviceName];
+    }
+
+    /**
+     * Returns all the data that is stored into the container.
+     * @return [Container] All the container data
+     */
+    public static function getContainer()
+    {
+        return self::$container;
     }
 }

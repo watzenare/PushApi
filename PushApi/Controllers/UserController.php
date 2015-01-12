@@ -129,7 +129,7 @@ class UserController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        $emails = explode(",", $emails);
+        $emails = explode(",", trim($emails));
 
         foreach ($emails as $key => $email) {
             if (empty($email) || filter_var($email, FILTER_VALIDATE_EMAIL)) {

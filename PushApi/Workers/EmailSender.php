@@ -9,10 +9,13 @@
 // Include configurations and global PushApi constants
 require_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'BootStrap.php';
 
-use \PushApi\System\Mail;
+use \PushApi\PushApi;
 use \PushApi\Controllers\QueueController;
 
-$mail = new Mail();
+// Initializing the PushApi and it's services
+$pushApi = new PushApi(null);
+
+$mail = $pushApi->getContainerService(PushApi::MAIL);
 $queue = new QueueController();
 
 /**

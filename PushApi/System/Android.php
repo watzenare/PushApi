@@ -11,7 +11,7 @@ use \PushApi\Models\User;
  *
  * Manages the main functionalities that handles android notifications sending.
  *
- * Note: If your organization has a firewall that restricts the traffic to or from the Internet,
+ * Google Note: If your organization has a firewall that restricts the traffic to or from the Internet,
  * you need to configure it to allow connectivity with GCM in order for your Android devices to
  * receive messages. The ports to open are: 5228, 5229, and 5230. GCM typically only uses 5228,
  * but it sometimes uses 5229 and 5230. GCM doesn't provide specific IPs, so you should allow your
@@ -40,10 +40,12 @@ class Android implements INotification
 
 	private $url = "https://android.googleapis.com/gcm/send";
 	// See documentation in order to get the $apiKey
-	private $apiKey = "AIzaSyCHeOCzPlTlwgiqhdG3EZ_sE07FVR2OBSA";
+	private $apiKey = ANDROID_KEY;
 	private $autorization = "Authorization: key=";
 	private $contentType = "Content-type: ";
 	private $headers = array();
+
+	private $debug = DEBUG;
 
 	private $message;
 
@@ -56,9 +58,12 @@ class Android implements INotification
 				"text" => $message
 			),
 			"delay_while_idle" => true,
-			// This parameter allows developers to test a request without send a real message
-			"dry_run" => true
 		);
+
+		if ($debug) {
+			// This parameter allows developers to test a request without send a real message
+			$this->message["dry_run"] = $debug;
+		}
 
 		return isset($this->message);
 	}

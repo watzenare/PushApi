@@ -121,9 +121,11 @@ There are also 3 Redis Lists used in order to queue the notifications before sen
 
 ## Client
 
-In order to use the API more easily, there are a standalone Client that facilitates the use of the PushApi. Find it here: [PushApi_Client](https://github.com/watzenare/PushApi_Client)
+In order to use the API more easily, there are diferent standalone Clients that facilitates the use of the PushApi by using diferent languages. You can find your Client at the following points:
 
-It is a PHP Client but it will be more Clients later (i.e. Python Client).
+- PHP: [PushApi_Client](https://github.com/watzenare/PushApi_Client)
+
+Currently there is only the PHP Client but soon there will be more. Also you can create your own (i.e. Python Client).
 
 [Back to index](#index)
 

@@ -13,8 +13,6 @@ use \PushApi\Models\Theme;
  */
 class Mail implements INotification
 {
-	const MAIL_FROM = "no-reply@your_email.com";
-
 	private $transport;
 	private $mailer;
 	private $subjects;
@@ -43,7 +41,7 @@ class Mail implements INotification
 	public function setMessage($to, $subject, $message, $from = false)
 	{
 		if (!$from) {
-			$from = self::MAIL_FROM;
+			$from = MAIL_FROM;
 		}
 
 	    $this->message = \Swift_Message::newInstance()

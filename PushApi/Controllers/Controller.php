@@ -2,6 +2,8 @@
 
 namespace PushApi\Controllers;
 
+use \PushApi\PushApi;
+
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  *
@@ -13,8 +15,8 @@ class Controller
     protected $redis;
 
     public function __construct() {
-        $this->slim = \Slim\Slim::getInstance();
-        $this->redis = new \Credis_Client(REDIS_IP);
+        $this->slim = PushApi::getContainerService(PushApi::SLIM);
+        $this->redis = PushApi::getContainerService(PushApi::REDIS);
     }
 
     /**
@@ -33,7 +35,7 @@ class Controller
     /**
      * Deletes unset parameters given an array
      * @param  [array] $data
-     * @return [array]       An updated array without unset params
+     * @return [array] An updated array without unset params
      */
     protected function cleanParams($data = array()) {
         foreach ($data as $key => $value) {
@@ -47,7 +49,7 @@ class Controller
     /**
      * Changes the value of an integer changing it into a boolean value
      * @param  [int] $data Integer
-     * @return [bool]       Boolean value
+     * @return [bool] Boolean value
      */
     protected function boolinize($data) {
         return ((int)$data != 0);

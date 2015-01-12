@@ -11,10 +11,13 @@
 // Include configurations and global PushApi constants
 require_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'BootStrap.php';
 
-use \PushApi\System\Android;
+use \PushApi\PushApi;
 use \PushApi\Controllers\QueueController;
 
-$android = new Android();
+// Initializing the PushApi and it's services
+(new PushApi(null));
+
+$android = $pushApi->getContainerService(PushApi::ANDROID);
 $queue = new QueueController();
 
 /**
