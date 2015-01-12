@@ -24,6 +24,7 @@ class LogController extends Controller
     private $androidUsers = array();
     private $iosUsers = array();
     private $message = '';
+    private $theme;
 
     /**
      * Given the different parameters, it is ordered to check the range of the message and

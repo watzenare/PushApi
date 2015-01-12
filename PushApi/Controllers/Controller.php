@@ -2,7 +2,7 @@
 
 namespace PushApi\Controllers;
 
-use PushApi\PushApi;
+use \PushApi\PushApi;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
