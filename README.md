@@ -125,7 +125,7 @@ In order to use the API more easily, there are diferent standalone Clients that 
 
 - PHP: [PushApi_Client](https://github.com/watzenare/PushApi_Client)
 
-Currently there is only the PHP Client but soon it will be more. Also you can create your own (i.e. Python Client).
+Currently there is only the PHP Client but soon there will be more. Also you can create your own (i.e. Python Client).
 
 [Back to index](#index)
 
