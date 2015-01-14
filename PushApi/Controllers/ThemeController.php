@@ -17,18 +17,23 @@ class ThemeController extends Controller
     /**
      * Creates a new theme into the registration with given params and
      * displays the information of the created theme. If the theme tries
-     * to registrate twice (checked by name), the information of the 
-     * saved theme is displayed without adding him again into the 
-     * registration
+     * to registrate twice (checked by name), the information of the
+     * saved theme is displayed without adding him again into the
+     * registration.
+     *
+     * Call params:
+     * @var "name" required
+     * @var "range" required
      */
     public function setTheme()
     {
-        $name = $this->slim->request->post('name');
-        $range = $this->slim->request->post('range');
 
-        if (!isset($name) && !isset($range)) {
+        if (!isset($this->requestParams['name']) && !isset($this->requestParams['range'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
+
+        $name = $this->requestParams['name'];
+        $range = $this->requestParams['range'];
 
         if (!in_array($range, Theme::getValidValues(), true)) {
             throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range themes: " . Theme::UNICAST . ", " . Theme::MULTICAST . ", " . Theme::BROADCAST);
@@ -68,17 +73,27 @@ class ThemeController extends Controller
     /**
      * Updates theme infomation given its identification and params to update
      * @param [int] $id  Theme identification
+     *
+     * Call params:
+     * @var "name" required
+     * @var "range" required
      */
     public function updateTheme($id)
     {
         $update = array();
-        $update['name'] = $this->slim->request->put('name');
-        $update['range'] = $this->slim->request->put('range');
 
-        if (isset($update['range']) && !in_array($update['range'], Theme::getValidValues(), true)) {
+        if (isset($this->requestParams['range']) && !in_array($this->requestParams['range'], Theme::getValidValues(), true)) {
             throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range themes: " . Theme::UNICAST . ", " . Theme::MULTICAST . ", " . Theme::BROADCAST);
         }
-        
+
+        if (isset($this->requestParams['name'])) {
+            $update['name'] = $this->requestParams['name'];
+        }
+
+        if (isset($this->requestParams['range'])) {
+            $update['range'] = $this->requestParams['range'];
+        }
+
         $update = $this->cleanParams($update);
 
         if (empty($update)) {

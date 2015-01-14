@@ -1,8 +1,11 @@
-# PushApi
+# PushApi [![Analytics](https://ga-beacon.appspot.com/UA-57718174-1/pushapi/readme?pixel)](https://github.com/watzenare/pushapi)
 
-## Index [![Analytics](https://ga-beacon.appspot.com/UA-57718174-1/pushapi/readme?pixel)](https://github.com/watzenare/pushapi)
+The PushApi is a server side project using PHP. It provides a way to notify users of different kind of events. There is the possibility to send notifications using unicast (target user), multicast (interested group) or broadcast (all users).
 
-- [Introduction](#introduction)
+> This is a huge project that it is being implemented during the final degree project. Once finished, it will be able to accept external contributions.
+
+## Index
+
   - [How it works](#how-it-works)
   - [Targets](#targets)
     - [Email](#email)
@@ -14,18 +17,12 @@
     - [DataBase](#database)
 - [Used tools](#used-tools)
 - [Client](#client)
-- [Run Workers with Forever](#run-workers-with-forever)
+- [Keeping workers alive](#keeping-workers-alive)
 - [Comments](#comments)
+- [Wiki :book:](#wiki)
 - [Support](#support)
 - [Pending](#pending)
-- [Documentation](#documentation)
 
-
-## Introduction
-
-The PushApi is a server side project using PHP. It provides a way to notify users of different kind of events. There is the possibility to send notifications using unicast (target user), multicast (interested group) or broadcast (all users).
-
-> This is a huge project that it is being implemented during the final degree project. Once finished, it will be able to accept external contributions.
 
 
 ### How it works
@@ -35,6 +32,8 @@ In order to receive events, users must be registered into the API and then they 
 The multicast Themes are assigned to different Channels that users can also subscribe.
 
 When a notification is sent, API always returns the result directly to the client but it will send the notification when it can. For each target it has a Redis queue that sends step by step the different notifications that are being added continually to the various queues (soon it will be added [Forever](http://github.com/nodejitsu/forever) in order to ensure that a given script runs continuously).
+
+You can also read the [wiki](https://github.com/watzenare/PushApi/wiki) documentation if you want to know more about the PushApi.
 
 
 ### Targets
@@ -129,7 +128,7 @@ Currently there is only the PHP Client but soon there will be more. Also you can
 
 [Back to index](#index)
 
-## Run Workers with Forever
+## Keeping workers alive
 
 It is recommended to install [Forever](http://github.com/nodejitsu/forever) at the server side and run the Workers in as a daemon in background.
 
@@ -140,7 +139,7 @@ Here is an example:
   $ forever start -c php --minUptime 1500 --spinSleepTime 1500 AndroidSender.php
 ```
 
-For more info you can see the [Forever](http://github.com/nodejitsu/forever) commands.
+For more info you can see the [Forever](http://github.com/nodejitsu/forever) project.
 
 [Back to index](#index)
 
@@ -150,6 +149,11 @@ For more info you can see the [Forever](http://github.com/nodejitsu/forever) com
 
 [Back to index](#index)
 
+## Wiki
+
+If you want to see more information about the PushApi you can check the [wiki](https://github.com/watzenare/PushApi/wiki).
+
+[Back to index](#index)
 
 ## Support
 
@@ -161,7 +165,6 @@ Also I will be grateful if you want to make a donation, this project hasn't got 
 
 [Back to index](#index)
 
-
 ## Pending
 
 Here are some pending tasks that aren't developed yet.
@@ -172,11 +175,5 @@ Here are some pending tasks that aren't developed yet.
 - Create mail template in order to send a better email.
 
 [Back to index](#index)
-
-
-## Documentation
-
-If you want to see more information about the PushApi you can check the [wiki](https://github.com/watzenare/PushApi/wiki).
-
 
 Thank you!

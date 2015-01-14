@@ -22,14 +22,18 @@ class PreferenceController extends Controller
      * else, creates the preference and displays the resulting information
      * @param [int] $idUser User identification
      * @param [int] $idTheme Theme identification
+     *
+     * Call params:
+     * @var "option" required
      */
     public function setPreference($idUser, $idTheme)
     {
-        $option = (int) $this->slim->request->post('option');
 
-        if (!isset($option)) {
+        if (!isset($this->requestParams['option'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
+
+        $option = (int) $this->requestParams['option'];
 
         if ($option > Preference::ALL_RANGES) {
             throw new PushApiException(PushApiException::INVALID_OPTION);
@@ -89,15 +93,19 @@ class PreferenceController extends Controller
      * Updates user preference given an id theme
      * @param [int] $idUser User identification
      * @param [int] $idTheme Theme identification
+     *
+     * Call params:
+     * @var "option" required
      */
     public function updatePreference($idUser, $idTheme)
     {
         $update = array();
-        $update['option'] = (int) $this->slim->request->post('option');
 
-        if (!isset($update['option'])) {
+        if (!isset($this->requestParams['option'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
+
+        $update['option'] = (int) $this->requestParams['option'];
 
         if ($update['option'] > Preference::ALL_RANGES) {
             throw new PushApiException(PushApiException::INVALID_OPTION);
