@@ -15,7 +15,7 @@ use \PushApi\PushApi;
 use \PushApi\Controllers\QueueController;
 
 // Initializing the PushApi and it's services
-(new PushApi(null));
+$pushApi = (new PushApi(null));
 
 $android = $pushApi->getContainerService(PushApi::ANDROID);
 $queue = new QueueController();

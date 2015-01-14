@@ -12,7 +12,58 @@ use \PushApi\Controllers\SubscriptionController;
 use \PushApi\Controllers\PreferenceController;
 use \PushApi\Controllers\SubjectController;
 
-// Checking that some url params are sent with the right format
+/**
+ * Retreives the headers and the encoded params for each HTTP request.
+ * @return [array] All the needed params received from the HTTP call
+ */
+$getRequestData = function() use ($slim) {
+
+    $params = array();
+
+    $method = $slim->request->getMethod();
+
+    switch ($method) {
+        case 'GET':
+            $params = $slim->request->get();
+            break;
+
+        case 'POST':
+            $params = $slim->request->post();
+            break;
+
+        case 'PUT':
+            $params = $slim->request->put();
+            break;
+
+        case 'DELETE':
+            $params = $slim->request->delete();
+            break;
+
+        default:
+            $slim->stop();
+            break;
+    }
+
+    // Customized HTTP headers
+    $params['X-App-Id'] = $slim->request->headers->get('X-App-Id');
+    $params['X-App-Auth'] = $slim->request->headers->get('X-App-Auth');
+
+    return $params;
+};
+
+$params = $getRequestData();
+
+/**
+ * Middleware that gets the headers and checks if application has autorization
+ * @param  SlimRoute $route Routing params
+ */
+$authChecker = function() use ($params) {
+    (new AppController($params))->checkAuth();
+};
+
+/**
+ * Validating the format of received url's
+ */
 Route::setDefaultConditions(
     array(
         'id' => '\d+',
@@ -21,29 +72,21 @@ Route::setDefaultConditions(
     )
 );
 
-/**
- * Middleware that gets the headers and checks if application has autorization
- * @param  SlimRoute $route Routing params
- */
-$authChecker = function () {
-    (new AppController())->checkAuth();
-};
-
 ////////////////////////////////////
 //          AUTH ROUTES           //
 ////////////////////////////////////
 // Creates a new app or retrives the app if it was created before
-$slim->post('/app', function() {
-    (new AppController())->setApp();
+$slim->post('/app', function() use ($params) {
+    (new AppController($params))->setApp();
 });
-$slim->group('/app/:id', $authChecker, function() use ($slim) {
+$slim->group('/app/:id', $authChecker, function() use ($slim, $params) {
     // Gets the app $id
     $slim->get('', function($id) {
         (new AppController())->getApp($id);
     });
     // Updates app $id given put params or retrives a new app secret
-    $slim->put('', function($id) {
-        (new AppController())->updateApp($id);
+    $slim->put('', function($id) use ($params) {
+        (new AppController($params))->updateApp($id);
     });
     // Deletes app $id
     $slim->delete('', function($id) {
@@ -58,19 +101,19 @@ $slim->get('/apps', $authChecker, function() {
 ///////////////////////////////////
 //         USER ROUTES           //
 ///////////////////////////////////
-$slim->group('/user', $authChecker, function() use ($slim) {
+$slim->group('/user', $authChecker, function() use ($slim, $params) {
     // Creates user $id or retrives user if it was created before
-    $slim->post('', function() {
-        (new UserController())->setUser();
+    $slim->post('', function() use ($params) {
+        (new UserController($params))->setUser();
     });
-    $slim->group('/:id', function() use ($slim) {
+    $slim->group('/:id', function() use ($slim, $params) {
         // Gets user $id
         $slim->get('', function($id) {
             (new UserController())->getUser($id);
         });
         // Updates user $id given put params
-        $slim->put('', function($id) {
-            (new UserController())->updateUser($id);
+        $slim->put('', function($id) use ($params) {
+            (new UserController($params))->updateUser($id);
         });
         // Deletes user $id
         $slim->delete('', function($id) {
@@ -80,8 +123,8 @@ $slim->group('/user', $authChecker, function() use ($slim) {
         //         SUBSCRIBE ROUTES           //
         ////////////////////////////////////////
         // Subscribes a user to a channel
-        $slim->post('/subscribe/:idchannel', function($id, $idchannel) {
-            (new SubscriptionController())->setSubscribed($id, $idchannel);
+        $slim->post('/subscribe/:idchannel', function($id, $idchannel) use ($params) {
+            (new SubscriptionController($params))->setSubscribed($id, $idchannel);
         });
         $slim->group('/subscribed', function() use ($slim) {
             // Gets user subscriptions
@@ -104,18 +147,18 @@ $slim->group('/user', $authChecker, function() use ($slim) {
         $slim->get('/preferences', function($id) {
             (new PreferenceController())->getPreference($id);
         });
-        $slim->group('/preference', function() use ($slim) {
+        $slim->group('/preference', function() use ($slim, $params) {
             // Adds a preference to a user
-            $slim->post('/:idtheme', function($id, $idtheme) {
-                (new PreferenceController())->setPreference($id, $idtheme);
+            $slim->post('/:idtheme', function($id, $idtheme) use ($params) {
+                (new PreferenceController($params))->setPreference($id, $idtheme);
             });
             // Gets user preference
             $slim->get('/:idtheme', function($id, $idtheme) {
                 (new PreferenceController())->getPreference($id, $idtheme);
             });
             // Updates user preference
-            $slim->put('/:idtheme', function($id, $idtheme) {
-                (new PreferenceController())->updatePreference($id, $idtheme);
+            $slim->put('/:idtheme', function($id, $idtheme) use ($params) {
+                (new PreferenceController($params))->updatePreference($id, $idtheme);
             });
             // Deletes user preference
             $slim->delete('/:idtheme', function($id, $idtheme) {
@@ -124,11 +167,11 @@ $slim->group('/user', $authChecker, function() use ($slim) {
         });
     });
 });
-$slim->group('/users', $authChecker, function() use ($slim) {
+$slim->group('/users', $authChecker, function() use ($slim, $params) {
     // Creates users passed, separated by coma, and adds only the valid users
     // (non repeated and valid email)
-    $slim->post('', function() {
-        (new UserController())->setUsers();
+    $slim->post('', function() use ($params) {
+        (new UserController($params))->setUsers();
     });
     // Geting all users
     $slim->get('', function() {
@@ -139,18 +182,18 @@ $slim->group('/users', $authChecker, function() use ($slim) {
 //////////////////////////////////////
 //         CHANNEL ROUTES           //
 //////////////////////////////////////
-$slim->group('/channel', $authChecker, function() use ($slim) {
+$slim->group('/channel', $authChecker, function() use ($slim, $params) {
     // Creates channel $id or retrives channel if it was created before
-    $slim->post('', function() {
-        (new ChannelController())->setChannel();
+    $slim->post('', function() use ($params) {
+        (new ChannelController($params))->setChannel();
     });
     // Gets user $id
     $slim->get('/:id', function($id) {
         (new ChannelController())->getChannel($id);
     });
     // Updates channel $id given put params
-    $slim->put('/:id', function($id) {
-        (new ChannelController())->updateChannel($id);
+    $slim->put('/:id', function($id) use ($params) {
+        (new ChannelController($params))->updateChannel($id);
     });
     // Deletes channel $id
     $slim->delete('/:id', function($id) {
@@ -167,18 +210,18 @@ $slim->group('/channels', $authChecker, function() use ($slim) {
 ////////////////////////////////////
 //         THEME ROUTES           //
 ////////////////////////////////////
-$slim->group('/theme', $authChecker, function() use ($slim) {
+$slim->group('/theme', $authChecker, function() use ($slim, $params) {
     // Creates theme $id or retrives theme if it was created before
-    $slim->post('', function() {
-        (new ThemeController())->setTheme();
+    $slim->post('', function() use ($params) {
+        (new ThemeController($params))->setTheme();
     });
     // Gets theme $id
     $slim->get('/:id', function($id) {
         (new ThemeController())->getTheme($id);
     });
     // Updates theme $id given put params
-    $slim->put('/:id', function($id) {
-        (new ThemeController())->updateTheme($id);
+    $slim->put('/:id', function($id) use ($params) {
+        (new ThemeController($params))->updateTheme($id);
     });
     // Deletes theme $id
     $slim->delete('/:id', function($id) {
@@ -199,18 +242,18 @@ $slim->group('/themes', $authChecker, function() use ($slim) {
 //////////////////////////////////////
 //         SUBJECT ROUTES           //
 //////////////////////////////////////
-$slim->group('/subject', $authChecker, function() use ($slim) {
+$slim->group('/subject', $authChecker, function() use ($slim, $params) {
     // Creates subject retrives it if it was created before
-    $slim->post('', function() {
-        (new SubjectController())->setSubject();
+    $slim->post('', function() use ($params) {
+        (new SubjectController($params))->setSubject();
     });
     // Gets subject $idSubject
     $slim->get('/:idsubject', function($idSubject) {
         (new SubjectController())->getSubject($idSubject);
     });
     // Updates subject $idSubject given put params
-    $slim->put('/:idsubject', function($idSubject) {
-        (new SubjectController())->updateSubject($idSubject);
+    $slim->put('/:idsubject', function($idSubject) use ($params) {
+        (new SubjectController($params))->updateSubject($idSubject);
     });
     // Deletes subject $idSubject
     $slim->delete('/:idsubject', function($idSubject) {
@@ -227,6 +270,6 @@ $slim->group('/subjects', $authChecker, function() use ($slim) {
 ///////////////////////////////////
 //         SEND ROUTES           //
 ///////////////////////////////////
-$slim->post('/send', $authChecker, function() use ($slim) {
-    (new LogController())->sendMessage();
+$slim->post('/send', $authChecker, function() use ($slim, $params) {
+    (new LogController($params))->sendMessage();
 });

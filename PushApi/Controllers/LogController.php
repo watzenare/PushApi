@@ -34,21 +34,25 @@ class LogController extends Controller
      * If user hasn't set preferences from that theme, default send is to all ranges. There is
      * only one possibility that the user doesn't recive notifications, he has to set the preference
      * of that theme. Otherwise, he can recive emails (if smartphones aren't set).
+     *
+     * Call params:
+     * @var "message" required
+     * @var "theme" required
+     * @var "user_id"
+     * @var "channel"
      */
 	public function sendMessage()
 	{
-        $this->message = $this->slim->request->post('message');
-        $this->theme = $this->slim->request->post('theme');
-        $userId = (int) $this->slim->request->post('user_id');
-        $channel = $this->slim->request->post('channel');
-        
         /**
          * The most important first values to check are message and theme because if theme it's
          * multicast we don't need to check the other parameters
          */
-        if (!isset($this->message) && !isset($this->theme)) {
+        if (!isset($this->requestParams['message']) || !isset($this->requestParams['theme'])) {
             throw new PushApiException(PushApiException::NO_DATA, "Expected case param");
         }
+        
+        $this->message = $this->requestParams['message'];
+        $this->theme = $this->requestParams['theme'];
 
         // Search if preference exist and if true, it gets all the users that have set preferences.
         $theme = Theme::with('preferences.user')->where('name', $this->theme)->first();
@@ -62,9 +66,11 @@ class LogController extends Controller
             // If theme has this range, checks if the user has set its preferences and prepares the message.
             case Theme::UNICAST:
 
-                if (!isset($userId)) {
+                if (!isset($this->requestParams['user_id'])) {
                     throw new PushApiException(PushApiException::NO_DATA, "Expected user_id param");
                 }
+
+                $userId = (int) $this->requestParams['user_id'];
 
                 $user = false;
                 // Searching user into theme preferences (if the user exist we don't need to do sql search)
@@ -106,6 +112,8 @@ class LogController extends Controller
                 if (!isset($channel)) {
                     throw new PushApiException(PushApiException::NO_DATA, "Expected channel param");
                 }
+
+                $channel = $this->requestParams['channel'];
 
                 try {
                     $channel = Channel::with(array('subscriptions.user.preferences' => function($query) use ($theme) {
