@@ -12,46 +12,36 @@ use \PushApi\Controllers\SubscriptionController;
 use \PushApi\Controllers\PreferenceController;
 use \PushApi\Controllers\SubjectController;
 
-/**
- * Retreives the headers and the encoded params for each HTTP request.
- * @return [array] All the needed params received from the HTTP call
- */
-$getRequestData = function() use ($slim) {
+// Retreiving the headers and the encoded params for each HTTP request.
+$params = array();
 
-    $params = array();
+$method = $slim->request->getMethod();
 
-    $method = $slim->request->getMethod();
+switch ($method) {
+    case 'GET':
+        $params = $slim->request->get();
+        break;
 
-    switch ($method) {
-        case 'GET':
-            $params = $slim->request->get();
-            break;
+    case 'POST':
+        $params = $slim->request->post();
+        break;
 
-        case 'POST':
-            $params = $slim->request->post();
-            break;
+    case 'PUT':
+        $params = $slim->request->put();
+        break;
 
-        case 'PUT':
-            $params = $slim->request->put();
-            break;
+    case 'DELETE':
+        $params = $slim->request->delete();
+        break;
 
-        case 'DELETE':
-            $params = $slim->request->delete();
-            break;
+    default:
+        $slim->stop();
+        break;
+}
 
-        default:
-            $slim->stop();
-            break;
-    }
-
-    // Customized HTTP headers
-    $params['X-App-Id'] = $slim->request->headers->get('X-App-Id');
-    $params['X-App-Auth'] = $slim->request->headers->get('X-App-Auth');
-
-    return $params;
-};
-
-$params = $getRequestData();
+// Customized HTTP headers
+$params['X-App-Id'] = $slim->request->headers->get('X-App-Id');
+$params['X-App-Auth'] = $slim->request->headers->get('X-App-Auth');
 
 /**
  * Middleware that gets the headers and checks if application has autorization
