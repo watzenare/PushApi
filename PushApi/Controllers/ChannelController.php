@@ -17,17 +17,20 @@ class ChannelController extends Controller
     /**
      * Creates a new channel into the registration with given params and
      * displays the information of the created channel. If the channel tries
-     * to registrate twice (checked by name), the information of the 
-     * registrated channel is displayed without adding him again into the 
-     * registration
+     * to registrate twice (checked by name), the information of the
+     * registrated channel is displayed without adding him again into the
+     * registration.
+     *
+     * Call params:
+     * @var "name" required
      */
     public function setChannel()
     {
-        $name = $this->slim->request->post('name');
-
-        if (!isset($name)) {
+        if (!isset($this->requestParams['name'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
+
+        $name = $this->requestParams['name'];
 
         // Checking if channel already exists
         $channel = Channel::where('name', $name)->first();
@@ -61,17 +64,19 @@ class ChannelController extends Controller
     /**
      * Updates channel infomation given its identification and params to update
      * @param [int] $id  Channel identification
+     *
+     * Call params:
+     * @var "name" required
      */
     public function updateChannel($id)
     {
         $update = array();
-        $update['name'] = $this->slim->request->put('name');
 
-        $update = $this->cleanParams($update);
-
-        if (empty($update)) {
+        if (!isset($this->requestParams['name'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
+
+        $update['name'] = $this->requestParams['name'];
 
         try {
             $channel = Channel::findOrFail($id);

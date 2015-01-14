@@ -11,10 +11,12 @@ use \PushApi\PushApi;
  */
 class Controller
 {
+    protected $requestParams;
     protected $slim;
     protected $redis;
 
-    public function __construct() {
+    public function __construct($requestParams = null) {
+        $this->requestParams = $requestParams;
         $this->slim = PushApi::getContainerService(PushApi::SLIM);
         $this->redis = PushApi::getContainerService(PushApi::REDIS);
     }
