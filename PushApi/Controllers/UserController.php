@@ -29,7 +29,7 @@ class UserController extends Controller
      */
     public function setUser()
     {
-        if (!isset($email)) {
+        if (!isset($this->requestParams['email'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
