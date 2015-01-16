@@ -22,15 +22,18 @@ class UserController extends Controller
      * Creates a new user with given params and displays the information
      * of the created user. If the user tries to registrate twice (checked
      * by mail), the information of the registrated user is displayed
-     * without adding him again into the registration
+     * without adding him again into the registration.
+     *
+     * Call params:
+     * @var "email" required
      */
     public function setUser()
     {
-        $email = $this->slim->request->post('email');
-
-        if (!isset($email)) {
+        if (!isset($this->requestParams['email'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
+
+        $email = $this->requestParams['email'];
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new PushApiException(PushApiException::NO_DATA);
@@ -68,13 +71,27 @@ class UserController extends Controller
     /**
      * Updates user infomation given its identification and params to update
      * @param [int] $id  User identification
+     *
+     * Call params:
+     * @var "email" optional
+     * @var "android_id" optional
+     * @var "ios_id" optional
      */
     public function updateUser($id)
     {
         $update = array();
-        $update['email'] = $this->slim->request->put('email');
-        $update['android_id'] = $this->slim->request->put('android_id');
-        $update['ios_id'] = $this->slim->request->put('ios_id');
+
+        if (isset($this->requestParams['email'])) {
+            $update['email'] = $this->requestParams['email'];
+        }
+
+        if (isset($this->requestParams['android_id'])) {
+            $update['android_id'] = $this->requestParams['android_id'];
+        }
+
+        if (isset($this->requestParams['ios_id'])) {
+            $update['ios_id'] = $this->requestParams['ios_id'];
+        }
 
         $update = $this->cleanParams($update);
 
@@ -119,20 +136,23 @@ class UserController extends Controller
      * Creates new users with given params and displays the information
      * of the created user. If the user is tried to registered twice or
      * has an invalid email, it isn't added again.
+     *
+     * Call params:
+     * @var "emails" required
      */
     public function setUsers()
     {
         $added = array();
-        $emails = $this->slim->request->post('emails');
 
-        if (!isset($emails)) {
+        if (!isset($this->requestParams['emails'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        $emails = explode(",", trim($emails));
+        $emails = preg_replace('/\s+/', '', $this->requestParams['emails']);
+        $emails = explode(",", $emails);
 
         foreach ($emails as $key => $email) {
-            if (empty($email) || filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if (!empty($email) || filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $user = User::where('email', $email)->first();
 
                 if (!isset($user->email)) {

@@ -18,15 +18,19 @@ class SubjectController extends Controller
     /**
      * Sets a description for a given subject or returns the information if it has
      * been edited before.
+     *
+     * Call params:
+     * @var "theme_name" required
+     * @var "description" required
      */
     public function setSubject()
     {
-            $themeName = $this->slim->request->post('theme_name');
-            $description = $this->slim->request->post('description');
-
-            if (!isset($themeName) || !isset($description)) {
+            if (!isset($this->requestParams['theme_name']) || !isset($this->requestParams['description'])) {
                 throw new PushApiException(PushApiException::NO_DATA);
             }
+
+            $themeName = $this->requestParams['theme_name'];
+            $description = $this->requestParams['description'];
 
             // Checking if theme exists
             $theme = Theme::where('name', $themeName)->first();
@@ -53,7 +57,7 @@ class SubjectController extends Controller
     {
         try {
             if (!$idSubject) {
-                $subjects = Subject::orderBy('id', 'asc')->get();
+                $subject = Subject::orderBy('id', 'asc')->get();
             } else {
                 $subject = Subject::findOrFail($idSubject);
             }
@@ -66,17 +70,19 @@ class SubjectController extends Controller
     /**
      * Updates subject description given a subject id
      * @param [int] $idSubject User identification
+     *
+     * Call params:
+     * @var "description" required
      */
     public function updateSubject($idSubject)
     {
         $update = array();
-        $update['description'] = $this->slim->request->put('description');
 
-        $update = $this->cleanParams($update);
-
-        if (empty($update)) {
+        if (!isset($this->requestParams['description'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
+
+        $update['description'] = $this->requestParams['description'];
 
         try {
             $subject = Subject::findOrFail($idSubject);
