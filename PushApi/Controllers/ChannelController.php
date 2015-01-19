@@ -62,6 +62,21 @@ class ChannelController extends Controller
     }
 
     /**
+     * Retrives the channel information given its name
+     * @param [string] $channel_name  Channel name
+     */
+    public function getChannelByName()
+    {
+        if (!isset($this->requestParams['name'])) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
+
+        $channel = Channel::where('name', $this->requestParams['name'])->get();
+
+        $this->send($channel->toArray());
+    }
+
+    /**
      * Updates channel infomation given its identification and params to update
      * @param [int] $id  Channel identification
      *

@@ -177,7 +177,7 @@ $slim->group('/channel', $authChecker, function() use ($slim, $params) {
     $slim->post('', function() use ($params) {
         (new ChannelController($params))->setChannel();
     });
-    // Gets user $id
+    // Gets channel $id
     $slim->get('/:id', function($id) {
         (new ChannelController())->getChannel($id);
     });
@@ -195,6 +195,10 @@ $slim->group('/channels', $authChecker, function() use ($slim) {
     $slim->get('', function() {
         (new ChannelController())->getChannel();
     });
+});
+// Gets channel information given its name
+$slim->get('/channel_name', function() use ($params) {
+    (new ChannelController($params))->getChannelByName();
 });
 
 ////////////////////////////////////
@@ -227,6 +231,10 @@ $slim->group('/themes', $authChecker, function() use ($slim) {
     $slim->get('/range/:range', function($range) {
         (new ThemeController())->getByRange($range);
     });
+});
+// Gets theme information given its name
+$slim->get('/theme_name', function() use ($params) {
+    (new ThemeController($params))->getThemeByName();
 });
 
 //////////////////////////////////////
