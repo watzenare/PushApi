@@ -71,6 +71,21 @@ class ThemeController extends Controller
     }
 
     /**
+     * Retrives the theme information given its name
+     * @param [string] $theme_name  Theme name
+     */
+    public function getThemeByName()
+    {
+        if (!isset($this->requestParams['name'])) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
+
+        $theme = Theme::where('name', $this->requestParams['name'])->get();
+
+        $this->send($theme->toArray());
+    }
+
+    /**
      * Updates theme infomation given its identification and params to update
      * @param [int] $id  Theme identification
      *

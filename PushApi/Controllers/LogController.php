@@ -66,114 +66,21 @@ class LogController extends Controller
             // If theme has this range, checks if the user has set its preferences and prepares the message.
             case Theme::UNICAST:
 
-                if (!isset($this->requestParams['user_id'])) {
-                    throw new PushApiException(PushApiException::NO_DATA, "Expected user_id param");
-                }
-
-                $userId = (int) $this->requestParams['user_id'];
-
-                $user = false;
-                // Searching user into theme preferences (if the user exist we don't need to do sql search)
-                foreach ($theme->preferences->toArray() as $key => $preferenceUser) {
-                    if ($preferenceUser['user']['id'] == $userId) {
-                        $user = $preferenceUser['user'];
-                        $preference = decbin($preferenceUser['option']);
-                    }
-                }
-
-                if (!$user) {
-                    try {
-                        $user = User::findOrFail($userId);
-                    } catch (ModelNotFoundException $e) {
-                        throw new PushApiException(PushApiException::NOT_FOUND);
-                    }
-                    $preference = decbin(Preference::ALL_RANGES);
-                }
-
-                $this->preQueuingDecider(
-                        $preference,
-                        $user['email'],
-                        $user['android_id'],
-                        $user['ios_id'],
-                        false
-                    );
-
-                // Registering message
-                $log->theme_id = $theme->id;
-                $log->user_id = $userId;
-                $log->message = $this->message;
-                $log->save();
+                $this->unicastChecker($theme, $log);
                 break;
 
             // If theme has this range, checks all users subscribed and its preferences. Prepare the log and
             // the messages to be queued
             case Theme::MULTICAST:
 
-                if (!isset($channel)) {
-                    throw new PushApiException(PushApiException::NO_DATA, "Expected channel param");
-                }
-
-                $channel = $this->requestParams['channel'];
-
-                try {
-                    $channel = Channel::with(array('subscriptions.user.preferences' => function($query) use ($theme) {
-                        return $query->where('theme_id', $theme->id);
-                    }))->where('name', $channel)->first();
-                } catch (ModelNotFoundException $e) {
-                    throw new PushApiException(PushApiException::NOT_FOUND);
-                }
-
-                // Checking user preferences and add the notification to the right queue
-                foreach ($channel->subscriptions->toArray() as $key => $subscription) {
-                    // User hasn't set preferences for that theme, by default recive all devices
-                    if (empty($subscription['user']['preferences'][0])) {
-                        $preference = decbin(Preference::ALL_RANGES);
-                    } else {
-                        $preference = decbin($subscription['user']['preferences'][0]['option']);
-                    }
-
-                    $this->preQueuingDecider(
-                            $preference,
-                            $subscription['user']['email'],
-                            $subscription['user']['android_id'],
-                            $subscription['user']['ios_id'],
-                            true
-                        );
-                }
-
-                $this->storeToQueues();
-
-                // Registering message
-                $log->theme_id = $theme->id;
-                $log->channel_id = $channel->id;
-                $log->message = $this->message;
-                $log->save();
-
+                $this->multicastChecker($theme, $log);
                 break;
 
             // If theme has this range, checks the preferences for the target theme and send to
             // all users who haven't set option none.
             case Theme::BROADCAST:
 
-                // Checking user preferences and add the notification to the right queue
-                foreach ($theme->preferences->toArray() as $key => $userPreference) {
-                    $preference = decbin($userPreference['option']);
-                    $this->preQueuingDecider(
-                        $preference,
-                        $userPreference['user']['email'],
-                        $userPreference['user']['android_id'],
-                        $userPreference['user']['ios_id'],
-                        true
-                    );
-                }
-
-                $this->storeToQueues();
-
-                // Registering message
-                $log->theme_id = $theme->id;
-                $log->message = $this->message;
-                $log->save();
-
+                $this->broadcastChecker($theme, $log);
                 break;
             
             default:
@@ -181,6 +88,134 @@ class LogController extends Controller
                 break;
         }
         $this->send(true);
+    }
+
+    /**
+     * Manages the required unicast information in order to generate the right
+     * data that will be stored into the queues.
+     * @param  [Theme] $theme A theme model with the theme information
+     * @param  [Log] $log   An instance of the log model
+     */
+    private function unicastChecker($theme, $log)
+    {
+        if (!isset($this->requestParams['user_id'])) {
+            throw new PushApiException(PushApiException::NO_DATA, "Expected user_id param");
+        }
+
+        $userId = (int) $this->requestParams['user_id'];
+
+        $user = false;
+        // Searching user into theme preferences (if the user exist we don't need to do sql search)
+        foreach ($theme->preferences->toArray() as $key => $preferenceUser) {
+            if ($preferenceUser['user']['id'] == $userId) {
+                $user = $preferenceUser['user'];
+                $preference = decbin($preferenceUser['option']);
+            }
+        }
+
+        if (!$user) {
+            try {
+                $user = User::findOrFail($userId);
+            } catch (ModelNotFoundException $e) {
+                throw new PushApiException(PushApiException::NOT_FOUND);
+            }
+            $preference = decbin(Preference::ALL_RANGES);
+        }
+
+        $this->preQueuingDecider(
+                $preference,
+                $user['email'],
+                $user['android_id'],
+                $user['ios_id'],
+                false
+            );
+
+        // Registering message
+        $log->theme_id = $theme->id;
+        $log->user_id = $userId;
+        $log->message = $this->message;
+        $log->save();
+    }
+
+    /**
+     * Manages the required multicast information in order to generate the right
+     * data that will be stored into the queues.
+     * @param  [Theme] $theme A theme model with the theme information
+     * @param  [Log] $log   An instance of the log model
+     */
+    private function multicastChecker($theme, $log)
+    {
+        if (!isset($this->requestParams['channel'])) {
+            throw new PushApiException(PushApiException::NO_DATA, "Expected channel param");
+        }
+
+        $channelName = $this->requestParams['channel'];
+
+        try {
+            $channel = Channel::with(array('subscriptions.user.preferences' => function($query) use ($theme) {
+                return $query->where('theme_id', $theme->id);
+            }))->where('name', $channelName)->first();
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        if (!isset($channel)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        // Checking user preferences and add the notification to the right queue
+        foreach ($channel->subscriptions->toArray() as $key => $subscription) {
+            // User hasn't set preferences for that theme, by default recive all devices
+            if (empty($subscription['user']['preferences'][0])) {
+                $preference = decbin(Preference::ALL_RANGES);
+            } else {
+                $preference = decbin($subscription['user']['preferences'][0]['option']);
+            }
+
+            $this->preQueuingDecider(
+                    $preference,
+                    $subscription['user']['email'],
+                    $subscription['user']['android_id'],
+                    $subscription['user']['ios_id'],
+                    true
+                );
+        }
+
+        $this->storeToQueues();
+
+        // Registering message
+        $log->theme_id = $theme->id;
+        $log->channel_id = $channel->id;
+        $log->message = $this->message;
+        $log->save();
+    }
+
+    /**
+     * Manages the required broadcast information in order to generate the right
+     * data that will be stored into the queues.
+     * @param  [Theme] $theme A theme model with the theme information
+     * @param  [Log] $log   An instance of the log model
+     */
+    private function broadcastChecker($theme, $log)
+    {
+        // Checking user preferences and add the notification to the right queue
+        foreach ($theme->preferences->toArray() as $key => $userPreference) {
+            $preference = decbin($userPreference['option']);
+            $this->preQueuingDecider(
+                $preference,
+                $userPreference['user']['email'],
+                $userPreference['user']['android_id'],
+                $userPreference['user']['ios_id'],
+                true
+            );
+        }
+
+        $this->storeToQueues();
+
+        // Registering message
+        $log->theme_id = $theme->id;
+        $log->message = $this->message;
+        $log->save();
     }
 
     /**
