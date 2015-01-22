@@ -72,7 +72,7 @@ class ThemeController extends Controller
 
     /**
      * Retrives the theme information given its name
-     * @param [string] $theme_name  Theme name
+     * @param [string] $name  Theme name
      */
     public function getThemeByName()
     {
@@ -80,9 +80,15 @@ class ThemeController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        $theme = Theme::where('name', $this->requestParams['name'])->get();
+        $theme = Theme::where('name', $this->requestParams['name'])->first();
 
-        $this->send($theme->toArray());
+        if ($theme == null) {
+            $theme = [];
+        } else {
+            $theme = $theme->toArray();
+        }
+
+        $this->send($theme);
     }
 
     /**

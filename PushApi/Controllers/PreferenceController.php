@@ -74,7 +74,7 @@ class PreferenceController extends Controller
     {
         try {
             if ($idTheme) {
-                $preferences = User::findOrFail($idUser)->preferences()->where('theme_id', $idTheme)->orderBy('id', 'asc')->get();
+                $preferences = User::findOrFail($idUser)->preferences()->where('theme_id', $idTheme)->orderBy('id', 'asc')->first();
             } else {
                 $preferences = User::findOrFail($idUser)->preferences()->orderBy('id', 'asc')->get();
             }
