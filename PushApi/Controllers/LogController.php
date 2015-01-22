@@ -105,7 +105,7 @@ class LogController extends Controller
         $userId = (int) $this->requestParams['user_id'];
 
         $user = false;
-        // Searching user into theme preferences (if the user exist we don't need to do sql search)
+        // Searching user into theme preferences (if the user exist we don't need to find him into database)
         foreach ($theme->preferences->toArray() as $key => $preferenceUser) {
             if ($preferenceUser['user']['id'] == $userId) {
                 $user = $preferenceUser['user'];
@@ -113,6 +113,7 @@ class LogController extends Controller
             }
         }
 
+        // If we don't find the user, the default preference is to send him through all devices
         if (!$user) {
             try {
                 $user = User::findOrFail($userId);
@@ -160,12 +161,12 @@ class LogController extends Controller
         }
 
         if (!isset($channel)) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            throw new PushApiException(PushApiException::NOT_FOUND, "Channel doesn't exist");
         }
 
         // Checking user preferences and add the notification to the right queue
         foreach ($channel->subscriptions->toArray() as $key => $subscription) {
-            // User hasn't set preferences for that theme, by default recive all devices
+            // User hasn't set preferences for that theme, by default receive all devices
             if (empty($subscription['user']['preferences'][0])) {
                 $preference = decbin(Preference::ALL_RANGES);
             } else {
@@ -199,13 +200,25 @@ class LogController extends Controller
     private function broadcastChecker($theme, $log)
     {
         // Checking user preferences and add the notification to the right queue
-        foreach ($theme->preferences->toArray() as $key => $userPreference) {
-            $preference = decbin($userPreference['option']);
+        $users = User::orderBy('id', 'asc')->get()->toArray();
+        foreach ($users as $key => $user) {
+            // Search if the user has set broadcast preferences
+            $preference = User::findOrFail($user['id'])
+                                ->preferences()
+                                ->where('theme_id', $theme['id'])
+                                ->first();
+            // If user has set, it is used that option but if not set, default is all devices
+            if (isset($preference)) {
+                $preference = $preference->option;
+            } else {
+                $preference = Preference::ALL_RANGES;
+            }
+
             $this->preQueuingDecider(
-                $preference,
-                $userPreference['user']['email'],
-                $userPreference['user']['android_id'],
-                $userPreference['user']['ios_id'],
+                decbin($preference),
+                $user['email'],
+                $user['android_id'],
+                $user['ios_id'],
                 true
             );
         }
