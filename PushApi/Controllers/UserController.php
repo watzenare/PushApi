@@ -47,7 +47,14 @@ class UserController extends Controller
             $user->email = $email;
             $user->save();
         }
-        $this->send($user->toArray());
+
+        if ($user == null) {
+            $user = [];
+        } else {
+            $user = $user->toArray();
+        }
+
+        $this->send($user);
     }
 
     /**

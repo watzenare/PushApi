@@ -63,7 +63,7 @@ class ChannelController extends Controller
 
     /**
      * Retrives the channel information given its name
-     * @param [string] $channel_name  Channel name
+     * @param [string] $name  Channel name
      */
     public function getChannelByName()
     {
@@ -71,9 +71,15 @@ class ChannelController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        $channel = Channel::where('name', $this->requestParams['name'])->get();
+        $channel = Channel::where('name', $this->requestParams['name'])->first();
 
-        $this->send($channel->toArray());
+        if ($channel == null) {
+            $channel = [];
+        } else {
+            $channel = $channel->toArray();
+        }
+
+        $this->send($channel);
     }
 
     /**
