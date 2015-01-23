@@ -172,7 +172,6 @@ Here are some pending tasks that aren't developed yet.
 - Unit testing (do mock objects simulating the DB and checking the routes and controllers).
 - To log most of the functionalities.
 - Add multilevel security (One App to rule them all).
-- Create mail template in order to send a better email.
 
 [Back to index](#index)
 

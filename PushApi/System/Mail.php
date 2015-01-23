@@ -16,6 +16,7 @@ class Mail implements INotification
     private $transport;
     private $mailer;
     private $subjects;
+    private $template = null;
 
     private $message;
 
@@ -38,7 +39,7 @@ class Mail implements INotification
         ));
     }
 
-    public function setMessage($to, $subject, $message, $from = false)
+    public function setMessage($to, $subject, $text, $from = false)
     {
         if (!$from) {
             $from = MAIL_FROM;
@@ -52,7 +53,12 @@ class Mail implements INotification
                 $to => $to
             ))
             ->setSubject($this->subjectTransformer($subject))
-            ->setBody($message);
+            ->setBody($text);
+
+            if (isset($this->template)) {
+                $this->message->addPart($this->template, 'text/html');
+            }
+
         if (isset($this->message)) {
             return true;
         } else {
@@ -66,6 +72,16 @@ class Mail implements INotification
             return $this->message;
         }
         return false;
+    }
+
+    public function setTemplate($template)
+    {
+        $this->template = $template;
+    }
+
+    public function getTemplate()
+    {
+        return $this->template;
     }
 
     public function send()
