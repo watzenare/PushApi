@@ -11,7 +11,7 @@ require_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'BootSt
 
 // Geting the mail template and adding it into the message
 ob_start();
-include_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . "templates/mail.php";
+include_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . "templates/mail.html";
 $template = ob_get_contents();
 ob_end_clean();
 
@@ -30,9 +30,11 @@ $queue = new QueueController();
  */
 $data = $queue->getFromQueue(QueueController::EMAIL);
 while ($data != null) {
-    // Replacing the template text content with the notification message and adding it into the message
-    $mailTemplate = str_replace("<notification-message-text>", $data->message, $template);
-    $mail->setTemplate($mailTemplate);
+    if (isset($template)) {
+        // Replacing the template text content with the notification message and adding it into the message
+        $mailTemplate = str_replace("<textNotificationMessage>", $data->message, $template);
+        $mail->setTemplate($mailTemplate);
+    }
 
     if ($mail->setMessage($data->to, $data->subject, $data->message)) {
         $result = $mail->send();
