@@ -53,15 +53,15 @@ class QueueController extends Controller
     {
         switch ($target) {
             case self::EMAIL:
-                return json_decode($this->redis->lPop(self::EMAIL));
+                return json_decode($this->redis->blPop(self::EMAIL));
                 break;
 
             case self::ANDROID:
-                return json_decode($this->redis->lPop(self::ANDROID));
+                return json_decode($this->redis->blPop(self::ANDROID));
                 break;
 
             case self::IOS:
-                return json_decode($this->redis->lPop(self::IOS));
+                return json_decode($this->redis->blPop(self::IOS));
                 break;
 
             default:
