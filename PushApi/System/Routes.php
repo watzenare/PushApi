@@ -11,6 +11,7 @@ use \PushApi\Controllers\ChannelController;
 use \PushApi\Controllers\SubscriptionController;
 use \PushApi\Controllers\PreferenceController;
 use \PushApi\Controllers\SubjectController;
+use \PushApi\Controllers\TrackingController;
 
 // Retreiving the headers and the encoded params for each HTTP request.
 $params = array();
@@ -61,6 +62,14 @@ Route::setDefaultConditions(
         'idtheme' => '\d+',
     )
 );
+
+///////////////////////////////////////
+//          TRACKING ROUTE           //
+///////////////////////////////////////
+// Returns an 1x1 pixel while tracks the user
+$slim->get('/tracking/px.gif', function() use ($params) {
+    (new TrackingController($params))->getTrackingPixel();
+});
 
 ////////////////////////////////////
 //          AUTH ROUTES           //
