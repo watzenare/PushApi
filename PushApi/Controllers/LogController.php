@@ -65,21 +65,18 @@ class LogController extends Controller
         switch ($theme->range) {
             // If theme has this range, checks if the user has set its preferences and prepares the message.
             case Theme::UNICAST:
-
                 $this->unicastChecker($theme, $log);
                 break;
 
             // If theme has this range, checks all users subscribed and its preferences. Prepare the log and
             // the messages to be queued
             case Theme::MULTICAST:
-
                 $this->multicastChecker($theme, $log);
                 break;
 
             // If theme has this range, checks the preferences for the target theme and send to
             // all users who haven't set option none.
             case Theme::BROADCAST:
-
                 $this->broadcastChecker($theme, $log);
                 break;
             
@@ -103,6 +100,20 @@ class LogController extends Controller
         }
 
         $userId = (int) $this->requestParams['user_id'];
+
+        // Prevention to send twice a day the same notification
+        try {
+            $history = $log->where('theme_id', $theme->id)->where('user_id', $userId)->get()->toArray();
+            $todayDate = date("Y-m-d");
+            foreach ($history as $key => $row) {
+                $date = new \DateTime($row['created']);
+                if ($todayDate == $date->format("Y-m-d")) {
+                    return true;
+                }
+            }
+        } catch (ModelNotFoundException $e) {
+            // If no results found there's no problem to send the notification
+        }
 
         $user = false;
         // Searching user into theme preferences (if the user exist we don't need to find him into database)
