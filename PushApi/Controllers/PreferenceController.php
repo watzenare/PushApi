@@ -112,7 +112,7 @@ class PreferenceController extends Controller
         }
 
         try {
-            $user = Preference::where('theme_id', $idTheme)->update($update);
+            $user = Preference::where('theme_id', $idTheme)->where('user_id', $idUser)->update($update);
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }

@@ -44,8 +44,12 @@ class Mail implements INotification
         if (!$from) {
             $from = MAIL_FROM;
         }
-
-        $this->message = \Swift_Message::newInstance()
+        
+        $this->message = \Swift_Message::newInstance();
+        $this->message
+            ->setReturnPath($from)
+            ->setReplyTo($from);
+        $this->message
             ->setFrom(array(
                 $from => $from
             ))
@@ -55,9 +59,9 @@ class Mail implements INotification
             ->setSubject($this->subjectTransformer($subject))
             ->setBody($text);
 
-            if (isset($this->template)) {
-                $this->message->addPart($this->template, 'text/html');
-            }
+        if (isset($this->template)) {
+            $this->message->addPart($this->template, 'text/html');
+        }
 
         if (isset($this->message)) {
             return true;

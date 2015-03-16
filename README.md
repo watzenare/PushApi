@@ -2,7 +2,6 @@
 
 The PushApi is a server side project using PHP. It provides a way to notify users of different kind of events. There is the possibility to send notifications using unicast (target user), multicast (interested group) or broadcast (all users).
 
-> This is a huge project that it is being implemented during the final degree project. Once finished, it will be able to accept external contributions.
 
 ## Index
 
@@ -19,7 +18,7 @@ The PushApi is a server side project using PHP. It provides a way to notify user
 - [Client](#client)
 - [Keeping workers alive](#keeping-workers-alive)
 - [Comments](#comments)
-- [Wiki :book:](#wiki)
+- [Wiki](#wiki)
 - [Support](#support)
 - [Pending](#pending)
 
@@ -151,7 +150,7 @@ For more info you can see the [Forever](http://github.com/nodejitsu/forever) pro
 
 ## Wiki
 
-If you want to see more information about the PushApi you can check the [wiki](https://github.com/watzenare/PushApi/wiki).
+To see more information about the PushApi you can check the [wiki](https://github.com/watzenare/PushApi/wiki).
 
 [Back to index](#index)
 
