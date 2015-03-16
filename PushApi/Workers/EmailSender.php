@@ -33,8 +33,8 @@ while ($data != null) {
     if (isset($template)) {
         // Replacing the template text content with the notification message and adding it into the message
         $mailTemplate = str_replace("<textNotificationMessage>", $data->message, $template);
-        $trackingParams = "receiver=" . urlencode($data->to) . "&amp;theme=" . $data->subject;
-        $mailTemplate = str_replace("<trackingParams>", $trackingParams, $template);
+        $trackingParams = '<img src="http://pushapi.com:90/tracking/px.gif?receiver=' . urlencode($data->to) . '&amp;theme=' . $data->subject . '">';
+        $mailTemplate = str_replace("<trackingParams>", $trackingParams, $mailTemplate);
         $mail->setTemplate($mailTemplate);
     }
 
