@@ -26,7 +26,14 @@ $queue = new QueueController();
  */
 $data = $queue->getFromQueue(QueueController::ANDROID);
 while ($data != null) {
-    if ($android->setMessage($data->to, $data->subject, $data->message)) {
+    // Checking if there's set some customized subject
+    if (isset($data->subject)) {
+        $subject = $data->subject;
+    } else {
+        $subject = null;
+    }
+
+    if ($android->setMessage($data->to, $subject, $data->theme, $data->message)) {
         $result = $android->send();
         error_log("Redis_android_queue: " . json_encode($data) . " GCM_result: " . $result . PHP_EOL, 3, PROD_SEND_LOG);
 		

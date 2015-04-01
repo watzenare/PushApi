@@ -20,7 +20,7 @@ interface INotification
 	 * @param  [string]  $from    Adress wanted to send from
 	 * @return [boolean]          Asserts if the message creation has worked succesfully
 	 */
-	public function setMessage($to, $subject, $message, $from = false);
+	public function setMessage($to, $subject, $theme, $message, $from = false);
 
 	/**
 	 * Returns the message if it is already set

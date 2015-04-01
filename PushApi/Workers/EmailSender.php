@@ -30,15 +30,31 @@ $queue = new QueueController();
  */
 $data = $queue->getFromQueue(QueueController::EMAIL);
 while ($data != null) {
+    // Checking if message has got delay time and if it can be sent or if it is not the time yet
+    if (isset($data->delay) && $data->delay > Date("Y-m-d h:i:s a")) {
+        // Add the notification to the queue again
+        $queue->addToQueue($data, QueueController::EMAIL);
+        // Get a new notification message
+        $data = $queue->getFromQueue(QueueController::EMAIL);
+        continue;
+    }
+
     if (isset($template)) {
         // Replacing the template text content with the notification message and adding it into the message
         $mailTemplate = str_replace("<textNotificationMessage>", $data->message, $template);
-        $trackingParams = '<img src="http://pushapi.com:90/tracking/px.gif?receiver=' . urlencode($data->to) . '&amp;theme=' . $data->subject . '">';
+        $trackingParams = '<img src="http://pushapi.com:90/tracking/px.gif?receiver=' . urlencode($data->to) . '&amp;theme=' . $data->theme . '">';
         $mailTemplate = str_replace("<trackingParams>", $trackingParams, $mailTemplate);
         $mail->setTemplate($mailTemplate);
     }
 
-    if ($mail->setMessage($data->to, $data->subject, $data->message)) {
+    // Checking if there's set some customized subject from the mail
+    if (isset($data->subject)) {
+        $subject = $data->subject;
+    } else {
+        $subject = null;
+    }
+
+    if ($mail->setMessage($data->to, $subject, $data->theme, $data->message)) {
         $result = $mail->send();
         error_log("Redis_mail_queue: " . json_encode($data) . " Send_result: " . $result . PHP_EOL, 3, PROD_SEND_LOG);
     }

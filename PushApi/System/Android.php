@@ -49,11 +49,11 @@ class Android implements INotification
 
 	private $message;
 
-	public function setMessage($to, $subject, $message, $from = false)
+	public function setMessage($to, $subject, $theme, $message, $from = false)
 	{
 		$this->message = array(
 			"registration_ids" => $to,
-			"collapse_key" => $subject,
+			"collapse_key" => $theme,
 			"data" => array(
 				"text" => $message
 			),
