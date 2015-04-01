@@ -61,9 +61,14 @@ class LogController extends Controller
             $this->subject = $this->requestParams['subject'];
         }
 
-        // If delay is set, notification will be send after the delay time
+        // If delay is set, notification will be send after the delay time.
+        // Delay must be in seconds and a message can't be delayed more than 1 hour.
         if (isset($this->requestParams['delay'])) {
-            $this->delay = $this->requestParams['delay'];
+            if ($this->requestParams['delay'] <= 3600) {
+                $this->delay = Date("Y-m-d h:i:s a", time() + $this->requestParams['delay']);
+            } else {
+                throw new PushApiException(PushApiException::INVALID_OPTION, "Max delay value 3600 (1 hour)");
+            }
         }
 
         // Search if preference exist and if true, it gets all the users that have set preferences.
