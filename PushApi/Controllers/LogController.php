@@ -25,6 +25,8 @@ class LogController extends Controller
     private $iosUsers = array();
     private $message = '';
     private $theme;
+    private $subject;
+    private $delay;
 
     /**
      * Given the different parameters, it is ordered to check the range of the message and
@@ -53,6 +55,16 @@ class LogController extends Controller
         
         $this->message = $this->requestParams['message'];
         $this->theme = $this->requestParams['theme'];
+
+        // If user wants, it can be customized the subject of the notification without being default
+        if (isset($this->requestParams['subject'])) {
+            $this->subject = $this->requestParams['subject'];
+        }
+
+        // If delay is set, notification will be send after the delay time
+        if (isset($this->requestParams['delay'])) {
+            $this->delay = $this->requestParams['delay'];
+        }
 
         // Search if preference exist and if true, it gets all the users that have set preferences.
         $theme = Theme::with('preferences.user')->where('name', $this->theme)->first();
@@ -314,11 +326,18 @@ class LogController extends Controller
             throw new PushApiException(PushApiException::INVALID_ACTION);
         }
 
-        $data = array(
-            "to" => $receiver,
-            "subject" => $this->theme,
-            "message" => $this->message
-        );
+        $data["to"] = $receiver;
+        $data["theme"] = $this->theme;
+        $data["message"] = $this->message;
+
+        if (isset($this->subject)) {
+            $data["subject"] = $this->subject;
+        }
+
+        if (isset($this->delay)) {
+            $data["delay"] = $this->delay;
+        }
+
         (new QueueController())->addToQueue($data, $device);
     }
 }

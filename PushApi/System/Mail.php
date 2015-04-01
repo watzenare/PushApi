@@ -22,16 +22,23 @@ class Mail implements INotification
 
     public function __construct()
     {
-        // // Create the Transport
-        // $this->transport = Swift_SmtpTransport::newInstance('smtp.gmail.com', 587, 'tls')
-        //   ->setUsername('username')
-        //   ->setPassword('password');
+        // Mail
+        $this->transport = \Swift_MailTransport::newInstance();
 
-        // Create the Transport
-        $this->transport = \Swift_MailTransport::newInstance(MAIL_SERVER, MAIL_SERVER_PORT);
+        // Other ways to create the Transport:
+        // $this->transport = \Swift_MailTransport::newInstance(MAIL_SERVER, MAIL_SERVER_PORT);
+
+        // Sendmail
+        // $this->transport = \Swift_SendmailTransport::newInstance("/usr/sbin/sendmail -t");
+        // $this->transport = \Swift_SendmailTransport::newInstance('/usr/sbin/sendmail -bs');
 
         // Create the Mailer using your created Transport
         $this->mailer = \Swift_Mailer::newInstance($this->transport);
+
+        // Rate limit to 250 emails per-minute
+        $this->mailer->registerPlugin(new \Swift_Plugins_ThrottlerPlugin(
+          250, \Swift_Plugins_ThrottlerPlugin::MESSAGES_PER_MINUTE
+        ));
 
         // Rate limit to 60MB per-minute
         $this->mailer->registerPlugin(new \Swift_Plugins_ThrottlerPlugin(
@@ -39,10 +46,15 @@ class Mail implements INotification
         ));
     }
 
-    public function setMessage($to, $subject, $text, $from = false)
+    public function setMessage($to, $subject, $theme, $text, $from = false)
     {
         if (!$from) {
             $from = MAIL_FROM;
+        }
+
+        // If there isn not set a customized subject, it is displayed a default subject
+        if (!isset($subject)) {
+            $subject = $this->subjectTransformer($theme);
         }
         
         $this->message = \Swift_Message::newInstance();
@@ -56,7 +68,7 @@ class Mail implements INotification
             ->setTo(array(
                 $to => $to
             ))
-            ->setSubject($this->subjectTransformer($subject))
+            ->setSubject($subject)
             ->setBody($text);
 
         if (isset($this->template)) {
