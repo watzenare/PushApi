@@ -41,7 +41,7 @@ class Controller
      */
     protected function cleanParams($data = array()) {
         foreach ($data as $key => $value) {
-            if (is_null($data[$key])) {
+            if (is_null($data[$key]) || empty($data[$key])) {
                 unset($data[$key]);
             }
         }
