@@ -31,7 +31,7 @@ $queue = new QueueController();
 $data = $queue->getFromQueue(QueueController::EMAIL);
 while ($data != null) {
     // Checking if message has got delay time and if it can be sent or if it is not the time yet
-    if (isset($data->delay) && $data->delay > Date("Y-m-d h:i:s a")) {
+    if (isset($data->delay) && (strtotime($data->delay) > strtotime(Date("Y-m-d h:i:s a")))) {
         // Add the notification to the queue again
         $queue->addToQueue($data, QueueController::EMAIL);
         // Get a new notification message
