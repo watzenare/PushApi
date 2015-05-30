@@ -2,6 +2,7 @@
 
 The PushApi is a server side project using PHP. It provides a way to notify users of different kind of events. There is the possibility to send notifications using unicast (target user), multicast (interested group) or broadcast (all users).
 
+> It is being tested in a real system and it is obtaining the goals for which Pushapi was designed for.
 - It is being tested handling a database of more than 400k users.
 - It is sending an average of 50k daily mails.
 - The same values than before with android smartphones.

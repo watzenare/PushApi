@@ -21,6 +21,8 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  */
 class LogController extends Controller
 {
+    const MAX_DELAY = 3600;
+
     private $androidUsers = array();
     private $iosUsers = array();
     private $message = '';
@@ -64,7 +66,7 @@ class LogController extends Controller
         // If delay is set, notification will be send after the delay time.
         // Delay must be in seconds and a message can't be delayed more than 1 hour.
         if (isset($this->requestParams['delay'])) {
-            if ($this->requestParams['delay'] <= 3600) {
+            if ($this->requestParams['delay'] <= self::MAX_DELAY) {
                 $this->delay = Date("Y-m-d h:i:s a", time() + $this->requestParams['delay']);
             } else {
                 throw new PushApiException(PushApiException::INVALID_OPTION, "Max delay value 3600 (1 hour)");
@@ -133,9 +135,9 @@ class LogController extends Controller
         }
 
         // Searching if the user has set preferences for that theme in order to get the option
-        $user = Preference::where('theme_id', $theme->id)->where('user_id', $userId)->first();
+        $user = Preference::with('User')->where('theme_id', $theme->id)->where('user_id', $userId)->first();
 
-        // If we don't find the user, the default preference is to send him through all devices
+        // If we don't find the user, the default preference is to send through all devices
         if (!$user) {
             try {
                 $user = User::findOrFail($userId);
@@ -145,7 +147,7 @@ class LogController extends Controller
             $preference = decbin(Preference::ALL_RANGES);
         } else {
             $user = $user->toArray();
-            $user = $user['option'];
+            $preference = $user['option'];
             $user = $user['user'];
         }
 
