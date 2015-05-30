@@ -36,7 +36,7 @@ class UserController extends Controller
         $email = $this->requestParams['email'];
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new PushApiException(PushApiException::NO_DATA);
+            throw new PushApiException(PushApiException::INVALID_DATA);
         }
 
         // Checking if user already exists

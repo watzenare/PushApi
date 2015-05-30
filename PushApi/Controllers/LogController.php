@@ -21,6 +21,8 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  */
 class LogController extends Controller
 {
+    const MAX_DELAY = 3600;
+
     private $androidUsers = array();
     private $iosUsers = array();
     private $message = '';
@@ -64,15 +66,15 @@ class LogController extends Controller
         // If delay is set, notification will be send after the delay time.
         // Delay must be in seconds and a message can't be delayed more than 1 hour.
         if (isset($this->requestParams['delay'])) {
-            if ($this->requestParams['delay'] <= 3600) {
+            if ($this->requestParams['delay'] <= self::MAX_DELAY) {
                 $this->delay = Date("Y-m-d h:i:s a", time() + $this->requestParams['delay']);
             } else {
                 throw new PushApiException(PushApiException::INVALID_OPTION, "Max delay value 3600 (1 hour)");
             }
         }
 
-        // Search if preference exist and if true, it gets all the users that have set preferences.
-        $theme = Theme::with('preferences.user')->where('name', $this->theme)->first();
+        // Search if preference exist
+        $theme = Theme::where('name', $this->theme)->first();
         if (!$theme) {
             throw new PushApiException(PushApiException::NOT_FOUND, "Theme doesn't exist");
         }
@@ -132,16 +134,10 @@ class LogController extends Controller
             // If no results found there's no problem to send the notification
         }
 
-        $user = false;
-        // Searching user into theme preferences (if the user exist we don't need to find him into database)
-        foreach ($theme->preferences->toArray() as $key => $preferenceUser) {
-            if ($preferenceUser['user']['id'] == $userId) {
-                $user = $preferenceUser['user'];
-                $preference = decbin($preferenceUser['option']);
-            }
-        }
+        // Searching if the user has set preferences for that theme in order to get the option
+        $user = Preference::with('User')->where('theme_id', $theme->id)->where('user_id', $userId)->first();
 
-        // If we don't find the user, the default preference is to send him through all devices
+        // If we don't find the user, the default preference is to send through all devices
         if (!$user) {
             try {
                 $user = User::findOrFail($userId);
@@ -149,6 +145,10 @@ class LogController extends Controller
                 throw new PushApiException(PushApiException::NOT_FOUND);
             }
             $preference = decbin(Preference::ALL_RANGES);
+        } else {
+            $user = $user->toArray();
+            $preference = $user['option'];
+            $user = $user['user'];
         }
 
         $this->preQueuingDecider(
@@ -233,7 +233,7 @@ class LogController extends Controller
             // Search if the user has set broadcast preferences
             $preference = User::findOrFail($user['id'])
                                 ->preferences()
-                                ->where('theme_id', $theme['id'])
+                                ->where('theme_id', $theme->id)
                                 ->first();
             // If user has set, it is used that option but if not set, default is all devices
             if (isset($preference)) {
