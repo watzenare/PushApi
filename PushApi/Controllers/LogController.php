@@ -28,6 +28,8 @@ class LogController extends Controller
     private $message = '';
     private $theme;
     private $subject;
+    private $template;
+    private $redirect;
     private $delay;
 
     /**
@@ -45,8 +47,8 @@ class LogController extends Controller
      * @var "user_id"
      * @var "channel"
      */
-	public function sendMessage()
-	{
+    public function sendMessage()
+    {
         /**
          * The most important first values to check are message and theme because if theme it's
          * multicast we don't need to check the other parameters
@@ -54,13 +56,27 @@ class LogController extends Controller
         if (!isset($this->requestParams['message']) || !isset($this->requestParams['theme'])) {
             throw new PushApiException(PushApiException::NO_DATA, "Expected case param");
         }
-        
+
         $this->message = $this->requestParams['message'];
         $this->theme = $this->requestParams['theme'];
 
         // If user wants, it can be customized the subject of the notification without being default
         if (isset($this->requestParams['subject'])) {
             $this->subject = $this->requestParams['subject'];
+        }
+
+        // Default message to send is set in the "message" value but we can send templates via mail and it is set in "template" value
+        if (isset($this->requestParams['template'])) {
+            $this->template = $this->requestParams['template'];
+        }
+
+        /**
+         * This option could be used if your app is non-native (you are using PhoneGap or another service)
+         * When notification received by the device, we need to redirect the user between the pages. Using
+         * this param you can solve this problem.
+         */
+        if (isset($this->requestParams['redirect'])) {
+            $this->redirect = $this->requestParams['redirect'];
         }
 
         // If delay is set, notification will be send after the delay time.
@@ -98,7 +114,7 @@ class LogController extends Controller
             case Theme::BROADCAST:
                 $this->broadcastChecker($theme, $log);
                 break;
-            
+
             default:
                 throw new PushApiException(PushApiException::INVALID_ACTION);
                 break;
@@ -159,7 +175,6 @@ class LogController extends Controller
                 false
             );
 
-        // Registering message
         $log->theme_id = $theme->id;
         $log->user_id = $userId;
         $log->message = $this->message;
@@ -279,21 +294,21 @@ class LogController extends Controller
         if (!$multiple) {
             // Checking if user wants to recive via smartphone
             if ((Preference::SMARTPHONE & $preference) == Preference::SMARTPHONE) {
-                if ($android_id != 0) {
+                if (isset($android_id) && !empty($android_id)) {
                     // Android receivers requires to be stored into an array structure
                     $this->addToDeviceQueue(array($android_id), QueueController::ANDROID);
                 }
-                if ($ios_id != 0) {
+                if (isset($ios_id) && !empty($ios_id)) {
                     $this->addToDeviceQueue($ios_id, QueueController::IOS);
                 }
             }
         } else {
             // Checking if user wants to recive via smartphone
             if ((Preference::SMARTPHONE & $preference) == Preference::SMARTPHONE) {
-                if ($android_id != 0) {
+                if (isset($android_id) && !empty($android_id)) {
                     array_push($this->androidUsers, $android_id);
                 }
-                if ($ios_id != 0) {
+                if (isset($ios_id) && !empty($ios_id)) {
                     array_push($this->iosUsers, $ios_id);
                 }
 
@@ -335,12 +350,37 @@ class LogController extends Controller
         $data["theme"] = $this->theme;
         $data["message"] = $this->message;
 
-        if (isset($this->subject)) {
-            $data["subject"] = $this->subject;
-        }
+        // Depending of the target device, the standard message can be updated
+        switch ($device) {
+            case QueueController::EMAIL:
+                if (isset($this->subject)) {
+                    $data["subject"] = $this->subject;
+                }
 
-        if (isset($this->delay)) {
-            $data["delay"] = $this->delay;
+                if (isset($this->delay)) {
+                    $data["delay"] = $this->delay;
+                }
+
+                // If template is set, it is prefered to use it instead of the plain message
+                if (isset($this->template)) {
+                    $data["message"] = $this->template;
+                }
+                break;
+
+            case QueueController::IOS:
+            case QueueController::ANDROID:
+                // If set, we can redirect user with non-native apps that are using bowser to display the app
+                if (isset($this->redirect)) {
+                    $data["redirect"] = $this->redirect;
+                } else {
+                    // If redirect is not set, we can't generate the push message (we can remove it when we have native apps)
+                    return false;
+                }
+                break;
+
+            default:
+                throw new PushApiException(PushApiException::INVALID_ACTION);
+                break;
         }
 
         (new QueueController())->addToQueue($data, $device);

@@ -34,12 +34,13 @@ while ($data != null) {
     }
 
     if ($android->setMessage($data->to, $subject, $data->theme, $data->message)) {
+        $android->addRedirect($data->redirect);
         $result = $android->send();
-        error_log("Redis_android_queue: " . json_encode($data) . " GCM_result: " . $result . PHP_EOL, 3, PROD_SEND_LOG);
-		
-		$result = json_decode($result);
+        error_log("Redis_android_queue: " . json_encode($data) . " GCM_result: " . $result . PHP_EOL, 3, ANDROID_SEND_LOG);
+
+        $result = json_decode($result);
         if ($result->failure != 0 || $result->canonical_ids != 0) {
-        	$android->checkResults($data->to, $result->results);
+            $android->checkResults($data->to, $result->results);
         }
     }
 

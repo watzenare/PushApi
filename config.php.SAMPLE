@@ -30,8 +30,10 @@ define('PROD_LOG', "/var/tmp/production-errors.log");
 define('DEV_LOG', "/var/tmp/development-errors.log");
 define('PROD_SEND_LOG', "/var/tmp/production-send-messages.log");
 define('DEV_SEND_LOG', "/var/tmp/development-send-messages.log");
+define('ANDROID_SEND_LOG', "/var/tmp/android-send-messages.log");
 
 /**
  * Defining the Android Auth Key
  */
 define('ANDROID_KEY', "private_android_key");
+define('PUSH_TITLE', "Example");
