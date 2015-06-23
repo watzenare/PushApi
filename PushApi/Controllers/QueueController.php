@@ -11,7 +11,7 @@ use \PushApi\Controllers\Controller;
  * Controlls the various actions that can be done into the queues
  */
 class QueueController extends Controller
- {
+{
     const EMAIL = "email";
     const ANDROID = "android";
     const IOS = "ios";
@@ -41,6 +41,7 @@ class QueueController extends Controller
                 return false;
                 break;
         }
+
         return true;
     }
 
@@ -58,12 +59,12 @@ class QueueController extends Controller
                 break;
 
             case self::ANDROID:
-                $element = $this->redis->lPop(self::ANDROID, 0);
+                $element = $this->redis->blPop(self::ANDROID, 0);
                 return json_decode($element[1]);
                 break;
 
             case self::IOS:
-                $element = $this->redis->lPop(self::IOS, 0);
+                $element = $this->redis->blPop(self::IOS, 0);
                 return json_decode($element[1]);
                 break;
 
@@ -72,4 +73,4 @@ class QueueController extends Controller
                 break;
         }
     }
- }
+}
