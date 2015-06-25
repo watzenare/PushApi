@@ -16,7 +16,8 @@ class Preference extends Eloquent
     CONST NOTHING = 0;
     CONST EMAIL = 1;
     CONST SMARTPHONE = 2;
-    CONST ALL_RANGES = 3;
+    CONST CHROME = 4;
+    CONST ALL_RANGES = 7;
 
     public $timestamps = false;
     protected $fillable = array('user_id', 'theme_id', 'option');

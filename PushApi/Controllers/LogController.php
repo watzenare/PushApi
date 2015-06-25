@@ -171,6 +171,7 @@ class LogController extends Controller
                 $preference,
                 $user['email'],
                 $user['android_id'],
+                $user['chrome_id'],
                 $user['ios_id'],
                 false
             );
@@ -221,10 +222,12 @@ class LogController extends Controller
                     $subscription['user']['email'],
                     $subscription['user']['android_id'],
                     $subscription['user']['ios_id'],
+                    $subscription['user']['chrome_id'],
                     true
                 );
         }
 
+        // Send the users that are stored into the queue when the decider finnish its job
         $this->storeToQueues();
 
         // Registering message
@@ -262,10 +265,12 @@ class LogController extends Controller
                 $user['email'],
                 $user['android_id'],
                 $user['ios_id'],
+                $user['chrome_id'],
                 true
             );
         }
 
+        // Send the users that are stored into the queue when the decider finnish its job
         $this->storeToQueues();
 
         // Registering message
@@ -284,7 +289,7 @@ class LogController extends Controller
      * @param  [string] $ios_id     User ios id
      * @param  [boolean] $multiple  If there will be more calls with the same class instance
      */
-    private function preQueuingDecider($preference, $email, $android_id, $ios_id, $multiple = false)
+    private function preQueuingDecider($preference, $email, $android_id, $ios_id, $chrome_id, $multiple = false)
     {
         // Checking if user wants to recive via email
         if ((Preference::EMAIL & $preference) == Preference::EMAIL) {
@@ -320,6 +325,11 @@ class LogController extends Controller
                 }
             }
         }
+
+        // Checking if user wants to recive via chrome bowser
+        if ((Preference::CHROME & $preference) == Preference::CHROME) {
+            $this->addToDeviceQueue($chrome_id, QueueController::CHROME);
+        }
     }
 
     /**
@@ -350,15 +360,16 @@ class LogController extends Controller
         $data["theme"] = $this->theme;
         $data["message"] = $this->message;
 
+        // All destinations must take into account the delay time
+        if (isset($this->delay)) {
+            $data["delay"] = $this->delay;
+        }
+
         // Depending of the target device, the standard message can be updated
         switch ($device) {
             case QueueController::EMAIL:
                 if (isset($this->subject)) {
                     $data["subject"] = $this->subject;
-                }
-
-                if (isset($this->delay)) {
-                    $data["delay"] = $this->delay;
                 }
 
                 // If template is set, it is prefered to use it instead of the plain message

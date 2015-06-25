@@ -14,6 +14,7 @@ The PushApi is a server side project using PHP. It provides a way to notify user
   - [Targets](#targets)
     - [Email](#email)
     - [Smartphones](#smartphones)
+    - [Chrome](#chrome)
     - [Twitter](#twitter)
   - [Schemes](#schemes)
     - [General view](#general-view)
@@ -21,7 +22,7 @@ The PushApi is a server side project using PHP. It provides a way to notify user
     - [DataBase](#database)
 - [Used tools](#used-tools)
 - [Client](#client)
-- [Keeping workers alive](#keeping-workers-alive)
+- [Workers](#workers)
 - [Comments](#comments)
 - [Wiki](#wiki)
 - [Support](#support)
@@ -58,6 +59,10 @@ The other targets of this project are the most used smartphones (mainly Android 
 
 Both servers let sending notifications to various users with only one message. That is an advantage against the mail service.
 At the beginning it was proposed to send notifications directly to the different smartphones without using the official services but the idea was deprecated because the lack of time and experience were a fisic solid wall.
+
+#### Chrome
+
+With Chrome you can receive notifications from an application or an extension that you have installed. So far, Chrome Push Notifications was available only for PC but recently, it has been introduced for smartphone bowsers. This is a good advantage for companies that doesn't want to use native applications. With smartphones, you can get the same notifications that you could receive with a native application.
 
 
 #### Twitter
@@ -114,10 +119,15 @@ There are also 3 Redis Lists used in order to queue the notifications before sen
 
 ## Used tools
 
++ System requirements
 - MySQL
 - Redis
 - PHP 5.5+ (PHP 5.5 recommended)
-- [Forever](http://github.com/nodejitsu/forever)
+
+- Framework
+- Slim Framework used as squeleton of the API
+- [Eloquent](http://laravel.com/docs/5.0/eloquent) ORM from the Laravel Framework
+- [Forever](http://github.com/nodejitsu/forever) externally of this project in order to test the [Workers](#workers)
 
 [Back to index](#index)
 
@@ -127,35 +137,40 @@ There are also 3 Redis Lists used in order to queue the notifications before sen
 In order to use the API more easily, there are diferent standalone Clients that facilitates the use of the PushApi by using diferent languages. You can find your Client at the following points:
 
 - PHP: [PushApi_Client](https://github.com/watzenare/PushApi_Client)
+- Python: pending...
+- Java: pending...
 
 Currently there is only the PHP Client but soon there will be more. Also you can create your own (i.e. Python Client).
 
 [Back to index](#index)
 
-## Keeping workers alive
+## Workers
 
-It is recommended to install [Forever](http://github.com/nodejitsu/forever) at the server side and run the Workers in as a daemon in background.
+The workers folder contains the scripts that are used to send the notifications to the diferent target devices.
+The job of each worker is:
+ - Checks its target queue in order to get the pending notifications
+ - Retrives the data and prepares the message
+ - Sends the message to the given target
 
-Here is an example:
+When the queue is empty the worker is waiting to a new entry but this can fail while is running and it is recommended to use some service to keep the workers running.
 
-``` bash
-  $ forever start -c php --minUptime 1500 --spinSleepTime 1500 EmailSender.php
-  $ forever start -c php --minUptime 1500 --spinSleepTime 1500 AndroidSender.php
-```
+For example, here are some recommended services that will keep all your workers alive:
+ - [Forever](http://github.com/nodejitsu/forever)
+ - [Supervisor](http://supervisord.org)
 
-For more info you can see the [Forever](http://github.com/nodejitsu/forever) project.
+> It is not recommended to use the crontab to run the workers.
 
 [Back to index](#index)
 
 ## Comments
 
-> It doesn't want to be the best notification system because I haven't got too much experience and the main target is to learn as much as I can, but I am trying to do something that I think that can improve my programing skills. As it says the beginning of the description, this is a degree project and it isn't expected to be the best system (but I am doing all my best).
+> The main target of this project is to learn as much as I can because I haven't got too much experience yet but I think that this API should solve some problems and even if you don't want to pay for a service that can be owned by yourself.
 
 [Back to index](#index)
 
 ## Wiki
 
-To see more information about the PushApi you can check the [wiki](https://github.com/watzenare/PushApi/wiki).
+To see more information about the PushApi you should check the [wiki](https://github.com/watzenare/PushApi/wiki).
 
 [Back to index](#index)
 
@@ -163,7 +178,7 @@ To see more information about the PushApi you can check the [wiki](https://githu
 
 If you want to give your opinion, you can send me an [email](mailto:eloi@tviso.com), comment the project directly (if you want to contribute with information or resources) or fork the project and make a pull request.
 
-Also I will be grateful if you want to make a donation, this project hasn't got a death date and it wants to be improved constantly:
+Also, I will be grateful if you want to make a donation, this project hasn't got a death date and it wants to be improved constantly:
 
 [![Website Button](http://www.rahmenversand.com/images/paypal_logo_klein.gif "Donate!")](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=eloi.ballara%40gmail%2ecom&lc=US&item_name=PushApi%20Developers&no_note=0&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHostedGuest&amount=5 "Contribute to the project")
 
@@ -171,8 +186,9 @@ Also I will be grateful if you want to make a donation, this project hasn't got 
 
 ## Pending
 
-Here are some pending tasks that aren't developed yet.
+Here are some TODO tasks, you are free to help with them:
 
+- Think what to do if user is using more than one device at the same time (i.e. user that is using iPhone and iPad). Currently the PushApi is only storing one id per device, so it will only send to one target device.
 - Unit testing (do mock objects simulating the DB and checking the routes and controllers).
 - To log most of the functionalities.
 - Add multilevel security (One App to rule them all).

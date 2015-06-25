@@ -100,6 +100,10 @@ class UserController extends Controller
             $update['ios_id'] = $this->requestParams['ios_id'];
         }
 
+        if (isset($this->requestParams['chrome_id'])) {
+            $update['chrome_id'] = $this->requestParams['chrome_id'];
+        }
+
         $update = $this->cleanParams($update);
 
         if (empty($update)) {

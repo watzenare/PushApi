@@ -105,6 +105,7 @@ CREATE TABLE `users` (
   `email` varchar(80) NOT NULL,
   `android_id` varchar(255) NOT NULL DEFAULT '0',
   `ios_id` varchar(255) NOT NULL DEFAULT '0',
+  `chrome_id` varchar(255) NOT NULL DEFAULT '0',
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)

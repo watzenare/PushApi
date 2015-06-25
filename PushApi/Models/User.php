@@ -13,7 +13,7 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
 class User extends Eloquent
 {
     public $timestamps = false;
-    protected $fillable = array('email', 'android_id', 'ios_id');
+    protected $fillable = array('email', 'android_id', 'ios_id', 'chrome_id');
     protected $guarded = array('id','created');
     protected $hidden = array('created');
 

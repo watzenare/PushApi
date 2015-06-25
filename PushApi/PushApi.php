@@ -7,6 +7,7 @@ use \Pimple\Container;
 use \PushApi\PushApiException;
 use \PushApi\System\Mail;
 use \PushApi\System\Android;
+use \PushApi\System\Chrome;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -20,6 +21,7 @@ class PushApi
     const REDIS = 'redis';
     const MAIL = 'mail';
     const ANDROID = 'android';
+    const CHROME = 'chrome';
 
     /**
      * HTTP Headers
@@ -131,6 +133,10 @@ class PushApi
 
         $c[PushApi::ANDROID] = function ($c) {
             return new Android();
+        };
+
+        $c[PushApi::CHROME] = function ($c) {
+            return new Chrome();
         };
 
         return $c;

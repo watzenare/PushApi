@@ -15,6 +15,7 @@ class QueueController extends Controller
     const EMAIL = "email";
     const ANDROID = "android";
     const IOS = "ios";
+    const CHROME = "chrome";
 
     /**
      * Adds at the end of the specific queue the data recived
@@ -35,6 +36,10 @@ class QueueController extends Controller
 
             case self::IOS:
                 $this->redis->rPush(self::IOS, json_encode($data));
+                break;
+
+            case self::CHROME:
+                $this->redis->rPush(self::CHROME, json_encode($data));
                 break;
 
             default:
@@ -65,6 +70,11 @@ class QueueController extends Controller
 
             case self::IOS:
                 $element = $this->redis->blPop(self::IOS, 0);
+                return json_decode($element[1]);
+                break;
+
+            case self::CHROME:
+                $element = $this->redis->blPop(self::CHROME, 0);
                 return json_decode($element[1]);
                 break;
 
