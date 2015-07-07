@@ -16,6 +16,8 @@ define('DB_NAME', 'db_name');
 define('MAIL_SERVER', "mail_server");
 define('MAIL_SERVER_PORT', 0);
 define('MAIL_FROM', "mail@you.want");
+// Only applied on Unicast messages (if it is wanted to send only one message per day of the same "theme")
+define('SENDING_LIMITATION', false);
 
 /**
  * Redis configuration

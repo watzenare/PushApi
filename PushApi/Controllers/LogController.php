@@ -136,18 +136,9 @@ class LogController extends Controller
 
         $userId = (int) $this->requestParams['user_id'];
 
-        // Prevention to send twice a day the same notification
-        try {
-            $history = $log->where('theme_id', $theme->id)->where('user_id', $userId)->get()->toArray();
-            $todayDate = date("Y-m-d");
-            foreach ($history as $key => $row) {
-                $date = new \DateTime($row['created']);
-                if ($todayDate == $date->format("Y-m-d")) {
-                    return true;
-                }
-            }
-        } catch (ModelNotFoundException $e) {
-            // If no results found there's no problem to send the notification
+        // Preventing to send twice a day the same notification if it is set a sending limitation
+        if (SENDING_LIMITATION && $this->messageHasBeenSentBefore($theme, $log, $userId)) {
+            return true;
         }
 
         // Searching if the user has set preferences for that theme in order to get the option
@@ -280,6 +271,32 @@ class LogController extends Controller
     }
 
     /**
+     * Checks if a notification has been sent before to the target user on the current day.
+     * It checks the Log model if there is a previous row of the target theme name for that user.
+     * @param  [Theme] $theme A theme model with the theme information
+     * @param  [Log] $log   An instance of the log model
+     * @param  [int] $userId   User identification
+     * @return [boolean]   Final decision if the limitation is applied
+     */
+    private function messageHasBeenSentBefore($theme, $log, $userId)
+    {
+        try {
+            $history = $log->where('theme_id', $theme->id)->where('user_id', $userId)->get()->toArray();
+            $todayDate = date("Y-m-d");
+            foreach ($history as $key => $row) {
+                $date = new \DateTime($row['created']);
+                if ($todayDate == $date->format("Y-m-d")) {
+                    return true;
+                }
+            }
+        } catch (ModelNotFoundException $e) {
+            // If no results found there's no problem to send the notification
+        }
+
+        return false;
+    }
+
+    /**
      * Checks the preferences that user has set foreach device and adds into the right
      * queue, if @param multiple is set, then it will store the smartphone receivers into
      * queues in order to send only one request to the server with all the receivers.
@@ -326,7 +343,7 @@ class LogController extends Controller
             }
         }
 
-        // Checking if user wants to recive via chrome bowser
+        // Checking if user wants to receive via chrome browser
         if ((Preference::CHROME & $preference) == Preference::CHROME) {
             $this->addToDeviceQueue($chrome_id, QueueController::CHROME);
         }
@@ -380,7 +397,7 @@ class LogController extends Controller
 
             case QueueController::IOS:
             case QueueController::ANDROID:
-                // If set, we can redirect user with non-native apps that are using bowser to display the app
+                // If set, we can redirect user with non-native apps that are using browser to display the app
                 if (isset($this->redirect)) {
                     $data["redirect"] = $this->redirect;
                 } else {

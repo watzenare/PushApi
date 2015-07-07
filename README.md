@@ -62,7 +62,7 @@ At the beginning it was proposed to send notifications directly to the different
 
 #### Chrome
 
-With Chrome you can receive notifications from an application or an extension that you have installed. So far, Chrome Push Notifications was available only for PC but recently, it has been introduced for smartphone bowsers. This is a good advantage for companies that doesn't want to use native applications. With smartphones, you can get the same notifications that you could receive with a native application.
+With Chrome you can receive notifications from an application or an extension that you have installed. So far, Chrome Push Notifications was available only for PC but recently, it has been introduced for smartphone browsers. This is a good advantage for companies that doesn't want to use native applications. With smartphones, you can get the same notifications that you could receive with a native application.
 
 
 #### Twitter
@@ -120,14 +120,14 @@ There are also 3 Redis Lists used in order to queue the notifications before sen
 ## Used tools
 
 + System requirements
-- MySQL
-- Redis
-- PHP 5.5+ (PHP 5.5 recommended)
+ - MySQL
+ - Redis
+ - PHP 5.5+ (PHP 5.5 recommended)
 
-- Framework
-- Slim Framework used as squeleton of the API
-- [Eloquent](http://laravel.com/docs/5.0/eloquent) ORM from the Laravel Framework
-- [Forever](http://github.com/nodejitsu/forever) externally of this project in order to test the [Workers](#workers)
++ Framework
+ - Slim Framework used as squeleton of the API
+ - [Eloquent](http://laravel.com/docs/5.0/eloquent) ORM from the Laravel Framework
+ - [Forever](http://github.com/nodejitsu/forever) externally of this project in order to test the [Workers](#workers)
 
 [Back to index](#index)
 
