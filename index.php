@@ -3,7 +3,12 @@
 require 'BootStrap.php';
 
 // Start Slim Framework and PushApi
-$slim = new \Slim\Slim(array('mode' => 'production'));
+$slim = new \Slim\Slim(
+    array(
+        'mode' => (DEBUG ? 'development' : 'production'),
+        'debug' => DEBUG
+    )
+);
 $pushApi = new \PushApi\PushApi($slim);
 
 // Charging the API routes
