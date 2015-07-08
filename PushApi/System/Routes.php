@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use \Slim\Route;
 use \PushApi\PushApiException;
@@ -117,6 +117,10 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
         // Deletes user $id
         $slim->delete('', function($id) {
             (new UserController())->deleteUser($id);
+        });
+        // Gets user $id the devices that has registered
+        $slim->get('/smartphones', function($id) {
+            (new UserController())->getSmartphonesRegistered($id);
         });
         ////////////////////////////////////////
         //         SUBSCRIBE ROUTES           //
