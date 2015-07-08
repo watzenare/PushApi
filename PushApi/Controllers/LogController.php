@@ -162,8 +162,8 @@ class LogController extends Controller
                 $preference,
                 $user['email'],
                 $user['android_id'],
-                $user['chrome_id'],
                 $user['ios_id'],
+                $user['chrome_id'],
                 false
             );
 
