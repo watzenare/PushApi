@@ -44,22 +44,9 @@ class PushApi
         $this->app = $app;
 
         if (isset($app)) {
-            // Only invoked if mode is "production"
-            $this->app->configureMode('production', function () use ($app) {
-                $app->config(array(
-                    'debug' => false,
-                ));
-            });
-
-            // Only invoked if mode is "development"
-            $this->app->configureMode('development', function () use ($app) {
-                $app->config(array(
-                    'debug' => true,
-                ));
-            });
-
             $this->startErrorHandling();
         }
+
         self::$container = $this->fillContainer();
     }
 

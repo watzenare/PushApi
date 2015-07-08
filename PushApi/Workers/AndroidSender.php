@@ -26,6 +26,15 @@ $queue = new QueueController();
  */
 $data = $queue->getFromQueue(QueueController::ANDROID);
 while ($data != null) {
+    // Checking if message has got delay time and if it can be sent or if it is not the time yet
+    if (isset($data->delay) && (strtotime($data->delay) > strtotime(Date("Y-m-d h:i:s a")))) {
+        // Add the notification to the queue again
+        $queue->addToQueue($data, QueueController::ANDROID);
+        // Get a new notification message
+        $data = $queue->getFromQueue(QueueController::ANDROID);
+        continue;
+    }
+
     // Checking if there's set some customized subject
     if (isset($data->subject)) {
         $subject = $data->subject;

@@ -38,6 +38,7 @@ class Android implements INotification
     // registration ID should be removed from the server database because the application was uninstalled from the device
     const NOT_REGISTERED = 'NotRegistered';
 
+    // The GCM server url where the message will be send
     private $url = "https://android.googleapis.com/gcm/send";
     // See documentation in order to get the $apiKey
     private $apiKey = ANDROID_KEY;
@@ -64,7 +65,7 @@ class Android implements INotification
 
         if ($this->debug) {
             // This parameter allows developers to test a request without send a real message
-            $this->message["dry_run"] = $debug;
+            $this->message["dry_run"] = $this->debug;
         }
 
         return isset($this->message);
