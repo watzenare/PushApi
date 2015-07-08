@@ -83,6 +83,7 @@ class UserController extends Controller
      * @var "email" optional
      * @var "android_id" optional
      * @var "ios_id" optional
+     * @var "chrome_id" optional
      */
     public function updateUser($id)
     {
