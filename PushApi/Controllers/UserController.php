@@ -172,4 +172,29 @@ class UserController extends Controller
         }
         $this->send($added);
     }
+
+    /**
+     * Retrives the smartphones that user has registered.
+     * @param [int] $id  User identification
+     */
+    public function getSmartphonesRegistered($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        if (!empty($user->android_id) && !empty($user->ios_id)) {
+            $smartphone = ["Android", "iOs"];
+        } else if (!empty($user->android_id) && empty($user->ios_id)) {
+            $smartphone = ["Android"];
+        } else if (empty($user->android_id) && !empty($user->ios_id)) {
+            $smartphone = ["iOs"];
+        } else if (empty($user->android_id) && empty($user->ios_id)) {
+            $smartphone = [];
+        }
+
+        $this->send($smartphone);
+    }
 }
