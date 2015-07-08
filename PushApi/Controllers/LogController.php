@@ -136,19 +136,10 @@ class LogController extends Controller
 
         $userId = (int) $this->requestParams['user_id'];
 
-        // Prevention to send twice a day the same notification
-        try {
-            $history = $log->where('theme_id', $theme->id)->where('user_id', $userId)->get()->toArray();
-            $todayDate = date("Y-m-d");
-            foreach ($history as $key => $row) {
-                $date = new \DateTime($row['created']);
-                if ($todayDate == $date->format("Y-m-d")) {
-                    return true;
-                }
-            }
-        } catch (ModelNotFoundException $e) {
-            // If no results found there's no problem to send the notification
-        }
+        // Preventing to send twice a day the same notification if it is set a sending limitation
+        if (SENDING_LIMITATION && $this->messageHasBeenSentBefore($theme, $log, $userId)) {
+            return true;
+         }
 
         // Searching if the user has set preferences for that theme in order to get the option
         $user = Preference::with('User')->where('theme_id', $theme->id)->where('user_id', $userId)->first();
@@ -169,9 +160,11 @@ class LogController extends Controller
 
         $this->preQueuingDecider(
                 $preference,
-                $user['email'],
-                $user['android_id'],
-                $user['ios_id'],
+                array(
+                    QueueController::EMAIL => $user['email'],
+                    QueueController::ANDROID => $user['android_id'],
+                    QueueController::IOS => $user['ios_id'],
+                ),
                 false
             );
 
@@ -218,9 +211,11 @@ class LogController extends Controller
 
             $this->preQueuingDecider(
                     $preference,
-                    $subscription['user']['email'],
-                    $subscription['user']['android_id'],
-                    $subscription['user']['ios_id'],
+                    array(
+                        QueueController::EMAIL =>  $subscription['user']['email'],
+                        QueueController::ANDROID =>  $subscription['user']['android_id'],
+                        QueueController::IOS =>  $subscription['user']['ios_id'],
+                    ),
                     true
                 );
         }
@@ -259,9 +254,11 @@ class LogController extends Controller
 
             $this->preQueuingDecider(
                 decbin($preference),
-                $user['email'],
-                $user['android_id'],
-                $user['ios_id'],
+                array(
+                    QueueController::EMAIL => $user['email'],
+                    QueueController::ANDROID => $user['android_id'],
+                    QueueController::IOS => $user['ios_id'],
+                ),
                 true
             );
         }
@@ -275,41 +272,65 @@ class LogController extends Controller
     }
 
     /**
+     * Checks if a notification has been sent before to the target user on the current day.
+     * It checks the Log model if there is a previous row of the target theme name for that user.
+     * @param  [Theme] $theme A theme model with the theme information
+     * @param  [Log] $log   An instance of the log model
+     * @param  [int] $userId   User identification
+     * @return [boolean]   Final decision if the limitation is applied
+     */
+    private function messageHasBeenSentBefore($theme, $log, $userId)
+    {
+        try {
+            $history = $log->where('theme_id', $theme->id)->where('user_id', $userId)->get()->toArray();
+            $todayDate = date("Y-m-d");
+            foreach ($history as $key => $row) {
+                $date = new \DateTime($row['created']);
+                if ($todayDate == $date->format("Y-m-d")) {
+                    return true;
+                }
+            }
+        } catch (ModelNotFoundException $e) {
+            // If no results found there's no problem to send the notification
+        }
+
+        return false;
+    }
+
+    /**
      * Checks the preferences that user has set foreach device and adds into the right
      * queue, if @param multiple is set, then it will store the smartphone receivers into
      * queues in order to send only one request to the server with all the receivers.
      * @param  [string] $preference User preference
-     * @param  [string] $email      User email
-     * @param  [string] $android_id User android id
-     * @param  [string] $ios_id     User ios id
-     * @param  [boolean] $multiple  If there will be more calls with the same class instance
+     * @param  [array] $devicesIds     Array of device keys and its ids as values
+     * @param  [boolean] $multiple  If there will be more calls with the same class instance (multicast && broadcast types)
      */
-    private function preQueuingDecider($preference, $email, $android_id, $ios_id, $multiple = false)
+    private function preQueuingDecider($preference, $devicesIds, $multiple = false)
     {
         // Checking if user wants to recive via email
-        if ((Preference::EMAIL & $preference) == Preference::EMAIL) {
-            $this->addToDeviceQueue($email, QueueController::EMAIL);
+        if ((Preference::EMAIL & $preference) == Preference::EMAIL && isset($devicesIds[QueueController::EMAIL])) {
+            $this->addToDeviceQueue($devicesIds[QueueController::EMAIL], QueueController::EMAIL);
         }
 
         if (!$multiple) {
             // Checking if user wants to recive via smartphone
             if ((Preference::SMARTPHONE & $preference) == Preference::SMARTPHONE) {
-                if (isset($android_id) && !empty($android_id)) {
+                if (isset($devicesIds[QueueController::ANDROID]) && !empty($devicesIds[QueueController::ANDROID])) {
                     // Android receivers requires to be stored into an array structure
-                    $this->addToDeviceQueue(array($android_id), QueueController::ANDROID);
+                    $this->addToDeviceQueue(array($devicesIds[QueueController::ANDROID]), QueueController::ANDROID);
                 }
-                if (isset($ios_id) && !empty($ios_id)) {
-                    $this->addToDeviceQueue($ios_id, QueueController::IOS);
+                if (isset($devicesIds[QueueController::IOS]) && !empty($devicesIds[QueueController::IOS])) {
+                    $this->addToDeviceQueue($devicesIds[QueueController::IOS], QueueController::IOS);
                 }
             }
         } else {
             // Checking if user wants to recive via smartphone
             if ((Preference::SMARTPHONE & $preference) == Preference::SMARTPHONE) {
-                if (isset($android_id) && !empty($android_id)) {
-                    array_push($this->androidUsers, $android_id);
+                if (isset($devicesIds[QueueController::ANDROID]) && !empty($devicesIds[QueueController::ANDROID])) {
+                    array_push($this->androidUsers, $devicesIds[QueueController::ANDROID]);
                 }
-                if (isset($ios_id) && !empty($ios_id)) {
-                    array_push($this->iosUsers, $ios_id);
+                if (isset($devicesIds[QueueController::IOS]) && !empty($devicesIds[QueueController::IOS])) {
+                    array_push($this->iosUsers, $devicesIds[QueueController::IOS]);
                 }
 
                 // Android GMC lets send notifications to 1000 devices with one JSON message,
@@ -350,15 +371,16 @@ class LogController extends Controller
         $data["theme"] = $this->theme;
         $data["message"] = $this->message;
 
+        // All destinations must take into account the delay time
+        if (isset($this->delay)) {
+            $data["delay"] = $this->delay;
+        }
+
         // Depending of the target device, the standard message can be updated
         switch ($device) {
             case QueueController::EMAIL:
                 if (isset($this->subject)) {
                     $data["subject"] = $this->subject;
-                }
-
-                if (isset($this->delay)) {
-                    $data["delay"] = $this->delay;
                 }
 
                 // If template is set, it is prefered to use it instead of the plain message
@@ -369,12 +391,15 @@ class LogController extends Controller
 
             case QueueController::IOS:
             case QueueController::ANDROID:
-                // If set, we can redirect user with non-native apps that are using bowser to display the app
-                if (isset($this->redirect)) {
+                // Restricting to have a redirect param
+                if (REDIRECT_REQUIRED) {
+                    if (isset($this->redirect)) {
+                        $data["redirect"] = $this->redirect;
+                    } else {
+                        return false;
+                    }
+                } else if (isset($this->redirect)) {
                     $data["redirect"] = $this->redirect;
-                } else {
-                    // If redirect is not set, we can't generate the push message (we can remove it when we have native apps)
-                    return false;
                 }
                 break;
 

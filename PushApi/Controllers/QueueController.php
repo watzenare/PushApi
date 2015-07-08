@@ -56,21 +56,17 @@ class QueueController extends Controller
             case self::EMAIL:
                 $element = $this->redis->blPop(self::EMAIL, 0);
                 return json_decode($element[1]);
-                break;
 
             case self::ANDROID:
                 $element = $this->redis->blPop(self::ANDROID, 0);
                 return json_decode($element[1]);
-                break;
 
             case self::IOS:
                 $element = $this->redis->blPop(self::IOS, 0);
                 return json_decode($element[1]);
-                break;
 
             default:
                 return false;
-                break;
         }
     }
 }
