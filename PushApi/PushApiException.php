@@ -12,7 +12,7 @@ use \Exception;
  */
 class PushApiException extends Exception
 {
-    
+
     const LIMIT_EXCEEDED = -2;
     const NOT_AUTHORIZED = -1;
     const DEFAULT_NO_ERRORS = 0;
@@ -27,7 +27,7 @@ class PushApiException extends Exception
     const DB_NOT_UPDATED = 13;
     const INVALID_PARAMS = 14;
     const DUPLICATED_VALUE = 15;
-    
+
     /**
      * Generates the exception given a code and an extra message if is passed
      * @param [int] $code Exception code
@@ -39,7 +39,7 @@ class PushApiException extends Exception
         } else {
             $message = $this->getExceptionMessage($code) . ": " . $message;
         }
-    
+
         // Generates the exception
         parent::__construct($message, $code);
     }
@@ -102,7 +102,7 @@ class PushApiException extends Exception
             case self::DUPLICATED_VALUE:
                 return "This content is already added";
                 break;
-            
+
             default:
                 return "Exception not found";
                 break;

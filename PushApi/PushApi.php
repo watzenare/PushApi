@@ -7,6 +7,7 @@ use \Pimple\Container;
 use \PushApi\PushApiException;
 use \PushApi\System\Mail;
 use \PushApi\System\Android;
+use \PushApi\System\Ios;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -20,6 +21,7 @@ class PushApi
     const REDIS = 'redis';
     const MAIL = 'mail';
     const ANDROID = 'android';
+    const IOS = 'ios';
 
     /**
      * HTTP Headers
@@ -118,6 +120,10 @@ class PushApi
 
         $c[PushApi::ANDROID] = function ($c) {
             return new Android();
+        };
+
+        $c[PushApi::IOS] = function ($c) {
+            return new Ios();
         };
 
         return $c;

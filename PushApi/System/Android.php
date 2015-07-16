@@ -39,33 +39,36 @@ class Android implements INotification
     const NOT_REGISTERED = 'NotRegistered';
 
     // The GCM server url where the message will be send
-    private $url = "https://android.googleapis.com/gcm/send";
+    private $url = GCM_URL;
     // See documentation in order to get the $apiKey
     private $apiKey = ANDROID_KEY;
     private $autorization = "Authorization: key=";
     private $contentType = "Content-type: ";
     private $headers = array();
 
-    private $debug = DEBUG;
-
     private $title = PUSH_TITLE;
     private $message;
 
     public function setMessage($to, $subject, $theme, $message, $from = false)
     {
+        if (isset($subject)) {
+            $this->title = $subject;
+        }
+
         $this->message = array(
             "registration_ids" => $to,
             "collapse_key" => $theme,
             "delay_while_idle" => true,
+            // "time_to_live" => 2419200, // Default time in seconds = 4 weeks
             "data" => array(
                 "title" => $this->title,
                 "message" => $message,
             )
         );
 
-        if ($this->debug) {
+        if (DEBUG) {
             // This parameter allows developers to test a request without send a real message
-            $this->message["dry_run"] = $this->debug;
+            $this->message["dry_run"] = DEBUG;
         }
 
         return isset($this->message);
@@ -80,15 +83,6 @@ class Android implements INotification
     }
 
     /**
-     * Updates the notification title
-     * @param string $title
-     */
-    public function addTitle($title)
-    {
-        $this->title = $title;
-    }
-
-    /**
      * Redirect is used with non-native apps that are using the smartphone browser in order to open
      * the app. The redirect value contains the URL where the user will be taken when the notification
      * is received.
@@ -96,8 +90,12 @@ class Android implements INotification
      */
     public function addRedirect($redirect)
     {
-        if (!isset($redirect)) {
-            return false;
+        if (!isset($redirect) || empty($redirect)) {
+            throw PushApiException(PushApiException::NO_DATA, "Redirect is not set");
+        }
+
+        if (!isset($this->message)) {
+            throw PushApiException(PushApiException::NO_DATA, "Message must be created before adding redirect");
         }
 
         $this->message["data"]["url"] = $redirect;
@@ -106,6 +104,10 @@ class Android implements INotification
 
     public function send()
     {
+        if (!isset($this->message)) {
+            throw PushApiException(PushApiException::NO_DATA, "Can't send without push message created");
+        }
+
         // Preparing HTTP headers
         $this->headers = array(
             $this->autorization . $this->apiKey,

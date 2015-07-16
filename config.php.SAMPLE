@@ -28,17 +28,47 @@ define('REDIS_PORT', 0);
 /**
  * Defining log routes
  */
-define('PROD_LOG', "/var/tmp/production-errors.log");
-define('DEV_LOG', "/var/tmp/development-errors.log");
-define('PROD_SEND_LOG', "/var/tmp/production-send-messages.log");
-define('DEV_SEND_LOG', "/var/tmp/development-send-messages.log");
-define('ANDROID_SEND_LOG', "/var/tmp/android-send-messages.log");
+define('PROD_LOG', "/var/log/pushapi/production-errors.log");
+define('DEV_LOG', "/var/log/pushapi/development-errors.log");
+define('PROD_SEND_LOG', "/var/log/pushapi/production-send-messages.log");
+define('DEV_SEND_LOG', "/var/log/pushapi/development-send-messages.log");
+define('ANDROID_SEND_LOG', "/var/log/pushapi/android-send-messages.log");
+define('IOS_SEND_LOG', "/var/log/pushapi/android-send-messages.log");
 
 /**
- * Defining the Android Auth Key
+ * Defining Android params
+ *
+ * INFO: You should create a project on https://console.developers.google.com and once activate the
+ * Push Notification service, create a "Key for server applications"
  */
 define('ANDROID_KEY', "private_android_key");
+define('GCM_URL', "https://android.googleapis.com/gcm/send");
+
+/**
+ * Defining iOs params
+ *
+ * INFO: You must get separate certificates for the development environment and the production
+ * environment. The certificates are associated with an identifier of the app that is the
+ * recipient of remote notifications; this identifier includes the app’s bundle ID.
+ *
+ * DEVELOP ENVIRONMENT
+ *
+ * INFO: Use the development environment for initial development and testing of the provider app.
+ */
+define('CERTIFICATE_PATH_DEVELOP', '/path/to/dev-certificate.pem');
+define('APNS_URL_DEVELOP', "ssl://gateway.sandbox.push.apple.com:2195");
+define('CERTIFICATE_PASSPHRASE_DEVELOP', 'passphrase');
+/**
+ * PRODUCTION ENVIRONMENT
+ *
+ * INFO: Use the production environment when building the production version of the provider app.
+ */
+define('CERTIFICATE_PATH', '/path/to/certificate.pem');
+define('CERTIFICATE_PASSPHRASE', 'passphrase');
+define('APNS_URL', "ssl://gateway.push.apple.com:2195");
+
 // Title of the Push notification
 define('PUSH_TITLE', "Example");
+
 // When redirect values are required for each push notification, the PushApi will be more restrictive
 define('REDIRECT_REQUIRED', false);

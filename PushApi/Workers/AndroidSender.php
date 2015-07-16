@@ -12,6 +12,7 @@
 require_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'BootStrap.php';
 
 use \PushApi\PushApi;
+use \PushApi\PushApiException;
 use \PushApi\Controllers\QueueController;
 
 // Initializing the PushApi and it's services
@@ -42,15 +43,19 @@ while ($data != null) {
         $subject = null;
     }
 
-    if ($android->setMessage($data->to, $subject, $data->theme, $data->message)) {
-        $android->addRedirect($data->redirect);
-        $result = $android->send();
-        error_log("Redis_android_queue: " . json_encode($data) . " GCM_result: " . $result . PHP_EOL, 3, ANDROID_SEND_LOG);
+    try {
+        if ($android->setMessage($data->to, $subject, $data->theme, $data->message)) {
+            $android->addRedirect($data->redirect);
+            $result = $android->send();
+            error_log("Redis_android_queue: " . json_encode($data) . " GCM_result: " . $result . PHP_EOL, 3, ANDROID_SEND_LOG);
 
-        $result = json_decode($result);
-        if ($result->failure != 0 || $result->canonical_ids != 0) {
-            $android->checkResults($data->to, $result->results);
+            $result = json_decode($result);
+            if ($result->failure != 0 || $result->canonical_ids != 0) {
+                $android->checkResults($data->to, $result->results);
+            }
         }
+    } catch (PushApiException $e) {
+        error_log("Redis_android_queue: " . json_encode($data) . "Error: " . $e->getMessage() . PHP_EOL, 3, ANDROID_SEND_LOG);
     }
 
     $data = $queue->getFromQueue(QueueController::ANDROID);
