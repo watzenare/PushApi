@@ -34,7 +34,7 @@ class Ios implements INotification
 
 
     // Device id of the recipient iOs device
-    private $to;
+    private $recipient;
     // Basic title of the push notification
     private $title = PUSH_TITLE;
     // The push message that will be send to APSN server
@@ -44,7 +44,7 @@ class Ios implements INotification
     {
         // Setting the receiver
         if (isset($to)) {
-            $this->to = $to;
+            $this->recipient = $to;
         }
 
         // Setting the title of the notification
@@ -99,9 +99,10 @@ class Ios implements INotification
             $this->message = json_decode($this->message, true);
             $this->message["data"]["url"] = $redirect;
             $this->message = json_encode($this->message);
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     private function getServerUrl()
@@ -130,7 +131,7 @@ class Ios implements INotification
         stream_context_set_option($ctx, "ssl", "passphrase", CERTIFICATE_PASSPHRASE);
 
         // Open a connection to the APNS server
-        $fp = stream_socket_client($this->getServerUrl, $err, $errstr, 60, STREAM_CLIENT_CONNECT|STREAM_CLIENT_PERSISTENT, $ctx);
+        $fp = stream_socket_client($this->getServerUrl(), $err, $errstr, 60, STREAM_CLIENT_CONNECT|STREAM_CLIENT_PERSISTENT, $ctx);
 
         if (!$fp) {
             die("Failed to connect: $err $errstr" . PHP_EOL);
@@ -141,7 +142,7 @@ class Ios implements INotification
         // Build the binary notification
         // The binary structure:
         // DeviceToken(32bytes) - Payload(<=2kilobytes) - NotificationIdentifier(4bytes) - ExpirationDate(4bytes) - Priority(1byte)
-        $msg = chr(0) . pack("n", 32) . pack("H*", $this->to) . pack("n", strlen($this->message)) . $this->message;
+        $msg = chr(0) . pack("n", 32) . pack("H*", $this->recipient) . pack("n", strlen($this->message)) . $this->message;
 
         /**
          * Sending the message to the server
