@@ -21,7 +21,8 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  */
 class LogController extends Controller
 {
-    const MAX_DELAY = 3600;
+    const MAX_DELAY = 3600; // 1 hour in seconds
+    const TIME_TO_LIVE = 86400; // 1 day in seconds
 
     private $androidUsers = array();
     private $iosUsers = array();
@@ -31,6 +32,7 @@ class LogController extends Controller
     private $template;
     private $redirect;
     private $delay;
+    private $timeToLive;
 
     /**
      * Given the different parameters, it is ordered to check the range of the message and
@@ -79,14 +81,32 @@ class LogController extends Controller
             $this->redirect = $this->requestParams['redirect'];
         }
 
-        // If delay is set, notification will be send after the delay time.
-        // Delay must be in seconds and a message can't be delayed more than 1 hour.
+        /**
+         * If delay is set, notification will be send after the delay time.
+         * Delay must be in seconds and a message can't be delayed more than 1 hour.
+         */
         if (isset($this->requestParams['delay'])) {
             if ($this->requestParams['delay'] <= self::MAX_DELAY) {
                 $this->delay = Date("Y-m-d h:i:s a", time() + $this->requestParams['delay']);
             } else {
-                throw new PushApiException(PushApiException::INVALID_OPTION, "Max delay value 3600 (1 hour)");
+                throw new PushApiException(PushApiException::INVALID_OPTION, "Max 'delay' value 3600 (1 hour)");
             }
+        }
+
+        /**
+         * If the time to live is set, it must be bigger than the default time to live (1 day).
+         * If it is not set, the default value is 1 day and it is always set in order to avoid sending messages
+         * when workers fail and they are reactivated late.
+         * Time to live must be in seconds and a message can't die before 1 day
+         */
+        if (isset($this->requestParams['time_to_live'])) {
+            if ($this->requestParams['time_to_live'] >= self::TIME_TO_LIVE) {
+                $this->timeToLive = Date("Y-m-d h:i:s a", time() + $this->requestParams['time_to_live']);
+            } else {
+                throw new PushApiException(PushApiException::INVALID_OPTION, "Min 'time_to_live' value 86400 (1 day)");
+            }
+        } else {
+            $this->timeToLive = Date("Y-m-d h:i:s a", time() + self::TIME_TO_LIVE);
         }
 
         // Search if preference exist
@@ -103,14 +123,18 @@ class LogController extends Controller
                 $this->unicastChecker($theme, $log);
                 break;
 
-            // If theme has this range, checks all users subscribed and its preferences. Prepare the log and
-            // the messages to be queued
+            /**
+             * If theme has this range, checks all users subscribed and its preferences. Prepare the
+             * log and the messages to be queued
+             */
             case Theme::MULTICAST:
                 $this->multicastChecker($theme, $log);
                 break;
 
-            // If theme has this range, checks the preferences for the target theme and send to
-            // all users who haven't set option none.
+            /**
+             * If theme has this range, checks the preferences for the target theme and send to
+             * all users who haven't set option none.
+             */
             case Theme::BROADCAST:
                 $this->broadcastChecker($theme, $log);
                 break;
@@ -374,6 +398,11 @@ class LogController extends Controller
         // All destinations must take into account the delay time
         if (isset($this->delay)) {
             $data["delay"] = $this->delay;
+        }
+
+        // All destinations must take into account the timeToLive of a message
+        if (isset($this->timeToLive)) {
+            $data["timeToLive"] = $this->timeToLive;
         }
 
         // Depending of the target device, the standard message can be updated
