@@ -31,7 +31,8 @@ $queue = new QueueController();
 $data = $queue->getFromQueue(QueueController::EMAIL);
 while ($data != null) {
     // If message is outdated, it is discard and another one is get
-    if (isset($data->timeToLive) && (strtotime($data->timeToLive) <= strtotime(Date("Y-m-d h:i:s a")))) {
+    if (!isset($data->timeToLive)
+        || isset($data->timeToLive) && (strtotime($data->timeToLive) <= strtotime(Date("Y-m-d h:i:s a")))) {
         $data = $queue->getFromQueue(QueueController::EMAIL);
         continue;
     }
