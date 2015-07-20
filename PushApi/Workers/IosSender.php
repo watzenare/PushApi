@@ -23,6 +23,13 @@ $queue = new QueueController();
  */
 $data = $queue->getFromQueue(QueueController::IOS);
 while ($data != null) {
+    // If message is outdated, it is discard and another one is get
+    if (!isset($data->timeToLive)
+        || isset($data->timeToLive) && (strtotime($data->timeToLive) <= strtotime(Date("Y-m-d h:i:s a")))) {
+        $data = $queue->getFromQueue(QueueController::IOS);
+        continue;
+    }
+
     // Checking if message has got delay time and if it can be sent or if it is not the time yet
     if (isset($data->delay) && (strtotime($data->delay) > strtotime(Date("Y-m-d h:i:s a")))) {
         // Add the notification to the queue again
