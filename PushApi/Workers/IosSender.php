@@ -9,6 +9,7 @@
 require_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'BootStrap.php';
 
 use \PushApi\PushApi;
+use \PushApi\PushApiException;
 use \PushApi\Controllers\QueueController;
 
 // Initializing the PushApi and it's services
