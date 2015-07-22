@@ -21,7 +21,8 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  */
 class LogController extends Controller
 {
-    const MAX_DELAY = 3600;
+    const MAX_DELAY = 3600; // 1 hour in seconds
+    const TIME_TO_LIVE = 86400; // 1 day in seconds
 
     private $androidUsers = array();
     private $iosUsers = array();
@@ -31,6 +32,7 @@ class LogController extends Controller
     private $template;
     private $redirect;
     private $delay;
+    private $timeToLive;
 
     /**
      * Given the different parameters, it is ordered to check the range of the message and
@@ -79,14 +81,32 @@ class LogController extends Controller
             $this->redirect = $this->requestParams['redirect'];
         }
 
-        // If delay is set, notification will be send after the delay time.
-        // Delay must be in seconds and a message can't be delayed more than 1 hour.
+        /**
+         * If delay is set, notification will be send after the delay time.
+         * Delay must be in seconds and a message can't be delayed more than 1 hour.
+         */
         if (isset($this->requestParams['delay'])) {
             if ($this->requestParams['delay'] <= self::MAX_DELAY) {
                 $this->delay = Date("Y-m-d h:i:s a", time() + $this->requestParams['delay']);
             } else {
-                throw new PushApiException(PushApiException::INVALID_OPTION, "Max delay value 3600 (1 hour)");
+                throw new PushApiException(PushApiException::INVALID_OPTION, "Max 'delay' value 3600 (1 hour)");
             }
+        }
+
+        /**
+         * If the time to live is set, it must be bigger than the default time to live (1 day).
+         * If it is not set, the default value is 1 day and it is always set in order to avoid sending messages
+         * when workers fail and they are reactivated late.
+         * Time to live must be in seconds and a message can't die before 1 day
+         */
+        if (isset($this->requestParams['time_to_live'])) {
+            if ($this->requestParams['time_to_live'] >= self::TIME_TO_LIVE) {
+                $this->timeToLive = Date("Y-m-d h:i:s a", time() + $this->requestParams['time_to_live']);
+            } else {
+                throw new PushApiException(PushApiException::INVALID_OPTION, "Min 'time_to_live' value 86400 (1 day)");
+            }
+        } else {
+            $this->timeToLive = Date("Y-m-d h:i:s a", time() + self::TIME_TO_LIVE);
         }
 
         // Search if preference exist
@@ -103,14 +123,18 @@ class LogController extends Controller
                 $this->unicastChecker($theme, $log);
                 break;
 
-            // If theme has this range, checks all users subscribed and its preferences. Prepare the log and
-            // the messages to be queued
+            /**
+             * If theme has this range, checks all users subscribed and its preferences. Prepare the
+             * log and the messages to be queued
+             */
             case Theme::MULTICAST:
                 $this->multicastChecker($theme, $log);
                 break;
 
-            // If theme has this range, checks the preferences for the target theme and send to
-            // all users who haven't set option none.
+            /**
+             * If theme has this range, checks the preferences for the target theme and send to
+             * all users who haven't set option none.
+             */
             case Theme::BROADCAST:
                 $this->broadcastChecker($theme, $log);
                 break;
@@ -160,10 +184,12 @@ class LogController extends Controller
 
         $this->preQueuingDecider(
                 $preference,
-                $user['email'],
-                $user['android_id'],
-                $user['ios_id'],
-                $user['chrome_id'],
+                array(
+                    QueueController::EMAIL => $user['email'],
+                    QueueController::ANDROID => $user['android_id'],
+                    QueueController::IOS => $user['ios_id'],
+                    QueueController::CHROME => $user['chrome_id'],
+                ),
                 false
             );
 
@@ -210,10 +236,12 @@ class LogController extends Controller
 
             $this->preQueuingDecider(
                     $preference,
-                    $subscription['user']['email'],
-                    $subscription['user']['android_id'],
-                    $subscription['user']['ios_id'],
-                    $subscription['user']['chrome_id'],
+                    array(
+                        QueueController::EMAIL =>  $subscription['user']['email'],
+                        QueueController::ANDROID =>  $subscription['user']['android_id'],
+                        QueueController::IOS =>  $subscription['user']['ios_id'],
+                        QueueController::CHROME => $subscription['user']['chrome_id'],
+                    ),
                     true
                 );
         }
@@ -253,10 +281,12 @@ class LogController extends Controller
 
             $this->preQueuingDecider(
                 decbin($preference),
-                $user['email'],
-                $user['android_id'],
-                $user['ios_id'],
-                $user['chrome_id'],
+                array(
+                    QueueController::EMAIL => $user['email'],
+                    QueueController::ANDROID => $user['android_id'],
+                    QueueController::IOS => $user['ios_id'],
+                    QueueController::CHROME => $user['chrome_id'],
+                ),
                 true
             );
         }
@@ -301,37 +331,35 @@ class LogController extends Controller
      * queue, if @param multiple is set, then it will store the smartphone receivers into
      * queues in order to send only one request to the server with all the receivers.
      * @param  [string] $preference User preference
-     * @param  [string] $email      User email
-     * @param  [string] $android_id User android id
-     * @param  [string] $ios_id     User ios id
-     * @param  [boolean] $multiple  If there will be more calls with the same class instance
+     * @param  [array] $devicesIds     Array of device keys and its ids as values
+     * @param  [boolean] $multiple  If there will be more calls with the same class instance (multicast && broadcast types)
      */
-    private function preQueuingDecider($preference, $email, $android_id, $ios_id, $chrome_id, $multiple = false)
+    private function preQueuingDecider($preference, $devicesIds, $multiple = false)
     {
         // Checking if user wants to recive via email
-        if ((Preference::EMAIL & $preference) == Preference::EMAIL) {
-            $this->addToDeviceQueue($email, QueueController::EMAIL);
+        if ((Preference::EMAIL & $preference) == Preference::EMAIL && isset($devicesIds[QueueController::EMAIL])) {
+            $this->addToDeviceQueue($devicesIds[QueueController::EMAIL], QueueController::EMAIL);
         }
 
         if (!$multiple) {
             // Checking if user wants to recive via smartphone
             if ((Preference::SMARTPHONE & $preference) == Preference::SMARTPHONE) {
-                if (isset($android_id) && !empty($android_id)) {
+                if (isset($devicesIds[QueueController::ANDROID]) && !empty($devicesIds[QueueController::ANDROID])) {
                     // Android receivers requires to be stored into an array structure
-                    $this->addToDeviceQueue(array($android_id), QueueController::ANDROID);
+                    $this->addToDeviceQueue(array($devicesIds[QueueController::ANDROID]), QueueController::ANDROID);
                 }
-                if (isset($ios_id) && !empty($ios_id)) {
-                    $this->addToDeviceQueue($ios_id, QueueController::IOS);
+                if (isset($devicesIds[QueueController::IOS]) && !empty($devicesIds[QueueController::IOS])) {
+                    $this->addToDeviceQueue($devicesIds[QueueController::IOS], QueueController::IOS);
                 }
             }
         } else {
             // Checking if user wants to recive via smartphone
             if ((Preference::SMARTPHONE & $preference) == Preference::SMARTPHONE) {
-                if (isset($android_id) && !empty($android_id)) {
-                    array_push($this->androidUsers, $android_id);
+                if (isset($devicesIds[QueueController::ANDROID]) && !empty($devicesIds[QueueController::ANDROID])) {
+                    array_push($this->androidUsers, $devicesIds[QueueController::ANDROID]);
                 }
-                if (isset($ios_id) && !empty($ios_id)) {
-                    array_push($this->iosUsers, $ios_id);
+                if (isset($devicesIds[QueueController::IOS]) && !empty($devicesIds[QueueController::IOS])) {
+                    array_push($this->iosUsers, $devicesIds[QueueController::IOS]);
                 }
 
                 // Android GMC lets send notifications to 1000 devices with one JSON message,
@@ -382,6 +410,11 @@ class LogController extends Controller
             $data["delay"] = $this->delay;
         }
 
+        // All destinations must take into account the timeToLive of a message
+        if (isset($this->timeToLive)) {
+            $data["timeToLive"] = $this->timeToLive;
+        }
+
         // Depending of the target device, the standard message can be updated
         switch ($device) {
             case QueueController::EMAIL:
@@ -397,12 +430,15 @@ class LogController extends Controller
 
             case QueueController::IOS:
             case QueueController::ANDROID:
-                // If set, we can redirect user with non-native apps that are using browser to display the app
-                if (isset($this->redirect)) {
+                // Restricting to have a redirect param
+                if (REDIRECT_REQUIRED) {
+                    if (isset($this->redirect)) {
+                        $data["redirect"] = $this->redirect;
+                    } else {
+                        return false;
+                    }
+                } else if (isset($this->redirect)) {
                     $data["redirect"] = $this->redirect;
-                } else {
-                    // If redirect is not set, we can't generate the push message (we can remove it when we have native apps)
-                    return false;
                 }
                 break;
 

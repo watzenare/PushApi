@@ -38,4 +38,7 @@ define('ANDROID_SEND_LOG', "/var/tmp/android-send-messages.log");
  * Defining the Android Auth Key
  */
 define('ANDROID_KEY', "private_android_key");
+// Title of the Push notification
 define('PUSH_TITLE', "Example");
+// When redirect values are required for each push notification, the PushApi will be more restrictive
+define('REDIRECT_REQUIRED', false);

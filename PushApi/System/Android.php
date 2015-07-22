@@ -65,7 +65,7 @@ class Android implements INotification
 
         if ($this->debug) {
             // This parameter allows developers to test a request without send a real message
-            $this->message["dry_run"] = $debug;
+            $this->message["dry_run"] = $this->debug;
         }
 
         return isset($this->message);
