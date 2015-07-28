@@ -91,11 +91,11 @@ class Android implements INotification
     public function addRedirect($redirect)
     {
         if (!isset($redirect) || empty($redirect)) {
-            throw PushApiException(PushApiException::NO_DATA, "Redirect is not set");
+            throw new PushApiException(PushApiException::NO_DATA, "Redirect is not set");
         }
 
         if (!isset($this->message)) {
-            throw PushApiException(PushApiException::NO_DATA, "Message must be created before adding redirect");
+            throw new PushApiException(PushApiException::NO_DATA, "Message must be created before adding redirect");
         }
 
         $this->message["data"]["url"] = $redirect;
@@ -105,7 +105,7 @@ class Android implements INotification
     public function send()
     {
         if (!isset($this->message)) {
-            throw PushApiException(PushApiException::NO_DATA, "Can't send without push message created");
+            throw new PushApiException(PushApiException::NO_DATA, "Can't send without push message created");
         }
 
         // Preparing HTTP headers
@@ -133,7 +133,7 @@ class Android implements INotification
 
         // Fetching results or failing if doesn't work
         if ($result === false) {
-            die('Problem ocurred while Curl: ' . curl_error($ch));
+            throw new PushApiException(PushApiException::CONNECTION_FAILED, "Android Curl connection failed" . curl_error($ch));
         }
 
         // Closing the HTTP connection

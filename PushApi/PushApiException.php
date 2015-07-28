@@ -12,7 +12,10 @@ use \Exception;
  */
 class PushApiException extends Exception
 {
-
+    /**
+     * The codes for each exception
+     */
+    const CONNECTION_FAILED = -3;
     const LIMIT_EXCEEDED = -2;
     const NOT_AUTHORIZED = -1;
     const DEFAULT_NO_ERRORS = 0;
@@ -51,6 +54,10 @@ class PushApiException extends Exception
      */
     private function getExceptionMessage($code) {
         switch ($code) {
+            case self::CONNECTION_FAILED:
+                return "There have been a trouble during the connection";
+                break;
+
             case self::LIMIT_EXCEEDED:
                 return "The creation limit is reached";
                 break;

@@ -56,7 +56,7 @@ class Mail implements INotification
         if (!isset($subject)) {
             $subject = $this->subjectTransformer($theme);
         }
-        
+
         $this->message = \Swift_Message::newInstance();
         $this->message
             ->setReturnPath($from)
@@ -103,7 +103,7 @@ class Mail implements INotification
     public function send()
     {
         if (!isset($this->message)) {
-            throw PushApiException(PushApiException::NO_DATA, "Can't send without mail message");
+            throw new PushApiException(PushApiException::NO_DATA, "Can't send without mail message");
         }
 
         $numSent = $this->mailer->send($this->message);
