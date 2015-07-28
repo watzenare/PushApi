@@ -52,7 +52,10 @@ while ($data != null) {
 
     try {
         if ($android->setMessage($data->to, $subject, $data->theme, $data->message)) {
-            $android->addRedirect($data->redirect);
+            if (isset($data->redirect)) {
+                $android->addRedirect($data->redirect);
+            }
+
             $result = $android->send();
             error_log("Redis_android_queue: " . json_encode($data) . " GCM_result: " . $result . PHP_EOL, 3, ANDROID_SEND_LOG);
 

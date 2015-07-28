@@ -49,7 +49,9 @@ while ($data != null) {
 
     try {
         if ($ios->setMessage($data->to, $subject, $data->theme, $data->message)) {
-            $ios->addRedirect($data->redirect);
+            if (isset($data->redirect)) {
+                $ios->addRedirect($data->redirect);
+            }
             $result = $ios->send();
             error_log("Redis_ios_queue: " . json_encode($data) . " GCM_result: " . $result . PHP_EOL, 3, IOS_SEND_LOG);
         }
