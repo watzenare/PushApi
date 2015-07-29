@@ -196,7 +196,7 @@ class Ios implements INotification
          * Build the binary notification (see the structure)
          * DeviceToken(32bytes) - Payload(<=2kilobytes) - NotificationIdentifier(4bytes) - ExpirationDate(4bytes) - Priority(1byte)
          */
-        $msg = chr(0) . pack("n", 32) . pack("H*", $this->recipient) . pack("n", strlen($payload)) . $payload;
+        $msg = chr(0) . pack("n", 32) . pack("H*", $this->recipient) . pack("n", strlen($this->message)) . $this->message;
 
         /**
          * Sending the message to the server
