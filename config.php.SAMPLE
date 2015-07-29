@@ -3,6 +3,10 @@
 define('DEBUG', true);
 
 /**
+ **************************************
+ **** GENERAL SERVICES CONFIGURATION **
+ **************************************
+ *
  * Database configuration
  */
 define('DB_USERNAME', 'db_username');
@@ -16,8 +20,6 @@ define('DB_NAME', 'db_name');
 define('MAIL_SERVER', "mail_server");
 define('MAIL_SERVER_PORT', 0);
 define('MAIL_FROM', "mail@you.want");
-// Only applied on Unicast messages (if it is wanted to send only one message per day of the same "theme")
-define('SENDING_LIMITATION', false);
 
 /**
  * Redis configuration
@@ -35,7 +37,12 @@ define('DEV_SEND_LOG', "/var/log/pushapi/development-send-messages.log");
 define('ANDROID_SEND_LOG', "/var/log/pushapi/android-send-messages.log");
 define('IOS_SEND_LOG', "/var/log/pushapi/android-send-messages.log");
 
+
 /**
+ ****************************
+ **** PUSH DEVICES OPTIONS **
+ ****************************
+ *
  * Defining Android params
  *
  * INFO: You should create a project on https://console.developers.google.com and once activate the
@@ -67,8 +74,18 @@ define('CERTIFICATE_PATH', '/path/to/certificate.pem');
 define('CERTIFICATE_PASSPHRASE', 'passphrase');
 define('APNS_URL', "ssl://gateway.push.apple.com:2195");
 
-// Title of the Push notification
+
+/**
+ **********************************
+ **** PUSH NOTIFICATIONS OPTIONS **
+ **********************************
+ *
+ * Title of the Push notification
+ */
 define('PUSH_TITLE', "Example");
 
 // When redirect values are required for each push notification, the PushApi will be more restrictive
 define('REDIRECT_REQUIRED', false);
+
+// Only applied on Unicast messages (if it is wanted to send only one message per day of the same "theme")
+define('SENDING_LIMITATION', false);
