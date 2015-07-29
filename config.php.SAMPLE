@@ -63,8 +63,9 @@ define('GCM_URL', "https://android.googleapis.com/gcm/send");
  * INFO: Use the development environment for initial development and testing of the provider app.
  */
 define('CERTIFICATE_PATH_DEVELOP', '/path/to/dev-certificate.pem');
-define('APNS_URL_DEVELOP', "ssl://gateway.sandbox.push.apple.com:2195");
 define('CERTIFICATE_PASSPHRASE_DEVELOP', 'passphrase');
+define('APNS_URL_DEVELOP', "ssl://gateway.sandbox.push.apple.com:2195");
+define('APNS_URL_FEEDBACK_DEVELOP', "ssl://feedback.sandbox.push.apple.com:2196");
 /**
  * PRODUCTION ENVIRONMENT
  *
@@ -73,6 +74,7 @@ define('CERTIFICATE_PASSPHRASE_DEVELOP', 'passphrase');
 define('CERTIFICATE_PATH', '/path/to/certificate.pem');
 define('CERTIFICATE_PASSPHRASE', 'passphrase');
 define('APNS_URL', "ssl://gateway.push.apple.com:2195");
+define('APNS_URL_FEEDBACK', "ssl://feedback.push.apple.com:2196");
 
 
 /**

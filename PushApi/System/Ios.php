@@ -124,23 +124,43 @@ class Ios implements INotification
      * @param  int  $code  The APNS response code
      * @return string  The description of the response code
      */
-    public function getResponseDescription($code)
+    public function getResponseDescription($result)
     {
-        if (is_integer($code) && isset($this->descriptionByCode[$code])) {
-            return $this->descriptionByCode[$code];
-        }
+        if (!is_integer($result)) {
+            // byte1=always 8, byte2=StatusCode, bytes3,4,5,6=identifier(rowID). Should return nothing if OK.
+            // NOTE: Make sure you set stream_set_blocking($fp, 0) or else fread will pause your script
+            // and wait forever when there is no response to be sent.
+            $apple_error_response = fread($result, 6);
+            // $apple_error_response = fread($fp, 38);
 
+           if ($apple_error_response) {
+                //unpack the error response (first byte 'command" should always be 8)
+                $error_response = unpack('Ccommand/Cstatus_code/Nidentifier', $apple_error_response);
+
+                if (isset($this->descriptionByCode[$error_response['status_code']])) {
+                    return $this->descriptionByCode[$error_response['status_code'];
+                } else {
+                    return "Unexpected APNS error code";
+                }
+            }
+        }
         return false;
     }
 
     /**
      * Obtains the right APNS server Url depending the environment
      */
-    private function getServerUrl()
+    private function getServerUrl($feedBackUrl = false)
     {
         if (DEBUG) {
+            if ($feedBackUrl) {
+                return APNS_URL_FEEDBACK_DEVELOP;
+            }
             return APNS_URL_DEVELOP;
         } else {
+            if ($feedBackUrl) {
+                return APNS_URL_FEEDBACK;
+            }
             return APNS_URL;
         }
     }
@@ -184,6 +204,13 @@ class Ios implements INotification
         $ctx = stream_context_create();
         stream_context_set_option($ctx, "ssl", "local_cert", $this->getCertificate());
         stream_context_set_option($ctx, "ssl", "passphrase", $this->getPrivateKeyPassword());
+        /**
+         * This allows fread() to return right away when there are no errors. But it can also miss errors
+         * during last seconds of sending, as there is a delay before error is returned. Workaround is to
+         * pause briefly AFTER sending last notification, and then do one more fread() to see if anything
+         * else is there.
+         */
+        stream_set_blocking($fp, 0);
 
         // Open a connection to the APNS server
         $fp = stream_socket_client($this->getServerUrl(), $err, $errstr, 60, STREAM_CLIENT_PERSISTENT, $ctx);
@@ -194,8 +221,12 @@ class Ios implements INotification
 
         /**
          * Build the binary notification (see the structure)
+         * @link https://developer.apple.com/library/ios/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/Chapters/CommunicatingWIthAPS.html#//apple_ref/doc/uid/TP40008194-CH101-SW6
          * DeviceToken(32bytes) - Payload(<=2kilobytes) - NotificationIdentifier(4bytes) - ExpirationDate(4bytes) - Priority(1byte)
          */
+        // $apple_identifier = 1;
+        // $apple_expiry = time() + (90 * 24 * 60 * 60);
+        // $msg = pack("C", 1) . pack("N", $apple_identifier) . pack("N", $apple_expiry) . pack("n", 32) . pack("H*", str_replace(' ', '', $this->recipient)) . pack("n", strlen($this->message)) . $this->message;
         $msg = chr(0) . pack("n", 32) . pack("H*", $this->recipient) . pack("n", strlen($this->message)) . $this->message;
 
         /**
@@ -207,6 +238,7 @@ class Ios implements INotification
          * response packet and closes the connection. Any notifications that you sent after the
          * malformed notification using the same connection are discarded, and must be resent.
          */
+        // $result = fwrite($fp, $msg);
         $result = fwrite($fp, $msg, strlen($msg));
 
         // Close the connection to the server
