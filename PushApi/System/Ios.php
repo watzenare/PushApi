@@ -76,7 +76,7 @@ class Ios implements INotification
                     "title" => $this->title,
                     "body" => $message,
                 ),
-                "sound" => "default"
+                "sound" => "default",
             ),
         );
 
@@ -114,7 +114,7 @@ class Ios implements INotification
         // If message is set, it should be a JSON string
         if (is_string($this->message) && is_object(json_decode($this->message))) {
             $this->message = json_decode($this->message, true);
-            $this->message["apns"]["payload"]["url"] = $redirect;
+            $this->message["aps"]["payload"]["url"] = $redirect;
             $this->message = json_encode($this->message);
             return true;
         }
@@ -266,6 +266,7 @@ class Ios implements INotification
                 $apnsMessage = $this->generateBinaryMessage($deviceToken, $this->message);
                 $response = $this->sendToApns($apns, $apnsMessage);
                 if ($response['code'] != self::SUCCESS) {
+                    $response['deviceToken'] = $deviceToken;
                     $result[] = $response;
                 }
             }
@@ -273,6 +274,7 @@ class Ios implements INotification
             $apnsMessage = $this->generateBinaryMessage($this->recipient, $this->message);
             $response = $this->sendToApns($apns, $apnsMessage);
             if ($response['code'] != self::SUCCESS) {
+                $response['deviceToken'] = $deviceToken;
                 $result[] = $response;
             }
         }
@@ -288,7 +290,7 @@ class Ios implements INotification
      * @param  int  $response  The APNS response code
      * @return string  The description of the response code
      */
-    public function getResponseDescription($response)
+    private function getResponseDescription($response)
     {
         // byte1=always 8, byte2=StatusCode, bytes3,4,5,6=identifier(rowID). Should return nothing if OK.
         // NOTE: Make sure you set stream_set_blocking($apns, 0) or else fread will pause your script
@@ -317,5 +319,29 @@ class Ios implements INotification
         return array(
             'code' => (int) $response
         );
+    }
+
+    /**
+     * Review the errors with the feedback of APNS
+     * @param  array $result The array of the errors that APNS has warned
+     * @return boolean         The result of the validation
+     */
+    public function checkResults($result)
+    {
+        if (!is_array($result)) {
+            return false;
+        }
+
+        foreach ($result as $target) {
+            if ($target['code'] == self::INVALID_TOKEN || $target['code'] == self::INVALID_TOKEN_SIZE) {
+                // Deleting the user token
+                $user = new User;
+                $user = User::where('ios_id', $target['deviceToken'])->first();
+                if (isset($user)) {
+                    $user->ios_id = "0";
+                    $user->update();
+                }
+            }
+        }
     }
 }
