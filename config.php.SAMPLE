@@ -1,6 +1,7 @@
 <?php
 
 define('DEBUG', true);
+define('ROOT_DIR', dirname(__FILE__));
 
 /**
  **************************************
@@ -35,7 +36,7 @@ define('DEV_LOG', "/var/log/pushapi/development-errors.log");
 define('PROD_SEND_LOG', "/var/log/pushapi/production-send-messages.log");
 define('DEV_SEND_LOG', "/var/log/pushapi/development-send-messages.log");
 define('ANDROID_SEND_LOG', "/var/log/pushapi/android-send-messages.log");
-define('IOS_SEND_LOG', "/var/log/pushapi/android-send-messages.log");
+define('IOS_SEND_LOG', "/var/log/pushapi/ios-send-messages.log");
 
 
 /**

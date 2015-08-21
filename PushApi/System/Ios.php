@@ -4,6 +4,7 @@ namespace PushApi\System;
 
 use \PushApi\PushApiException;
 use \PushApi\System\INotification;
+use \PushApi\Models\User;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -53,6 +54,8 @@ class Ios implements INotification
     private $title = PUSH_TITLE;
     // The push message that will be send to APSN server
     private $message;
+    private $appleExpiry;
+    private $appleIdentifiersList = [];
 
     public function setMessage($to, $subject, $theme, $message, $from = false)
     {
@@ -111,7 +114,7 @@ class Ios implements INotification
         // If message is set, it should be a JSON string
         if (is_string($this->message) && is_object(json_decode($this->message))) {
             $this->message = json_decode($this->message, true);
-            $this->message["data"]["url"] = $redirect;
+            $this->message["apns"]["payload"]["url"] = $redirect;
             $this->message = json_encode($this->message);
             return true;
         }
@@ -119,32 +122,36 @@ class Ios implements INotification
         return false;
     }
 
+
     /**
-     * Transforms the APNS response code into an improved description of the response (string description)
-     * @param  int  $code  The APNS response code
-     * @return string  The description of the response code
+     * Obtains the user id from the DB and caches it into a local array variable
+     * @param  string $deviceToken The target device token
+     * @return int              The push user id
      */
-    public function getResponseDescription($result)
+    private function getIdentifier($deviceToken)
     {
-        if (!is_integer($result)) {
-            // byte1=always 8, byte2=StatusCode, bytes3,4,5,6=identifier(rowID). Should return nothing if OK.
-            // NOTE: Make sure you set stream_set_blocking($fp, 0) or else fread will pause your script
-            // and wait forever when there is no response to be sent.
-            $apple_error_response = fread($result, 6);
-            // $apple_error_response = fread($fp, 38);
-
-           if ($apple_error_response) {
-                //unpack the error response (first byte 'command" should always be 8)
-                $error_response = unpack('Ccommand/Cstatus_code/Nidentifier', $apple_error_response);
-
-                if (isset($this->descriptionByCode[$error_response['status_code']])) {
-                    return $this->descriptionByCode[$error_response['status_code'];
-                } else {
-                    return "Unexpected APNS error code";
-                }
-            }
+        if (!isset($this->appleIdentifiersList[$deviceToken])) {
+            $user = new User;
+            $user = User::where('ios_id', $deviceToken)->first();
+            $this->appleIdentifiersList[$deviceToken] = (int) $user->id;
         }
-        return false;
+
+        return $this->appleIdentifiersList[$deviceToken];
+    }
+
+    /**
+     * Returns the expiry time of the message which can be alive
+     * @return integer The expiry time of the message
+     */
+    private function getExpiry()
+    {
+        if (isset($this->appleExpiry)) {
+            return $this->appleExpiry;
+        } else {
+            $this->appleExpiry = time() + (90 * 24 * 60 * 60);
+        }
+
+        return $this->appleExpiry;
     }
 
     /**
@@ -168,12 +175,12 @@ class Ios implements INotification
     /**
      * Obtains the right certificate depending the environment
      */
-    private function getCertificate()
+    private function getCertificateFile()
     {
         if (DEBUG) {
-            return CERTIFICATE_PATH_DEVELOP;
+            return ROOT_DIR . DIRECTORY_SEPARATOR . CERTIFICATE_PATH_DEVELOP;
         } else {
-            return CERTIFICATE_PATH;
+            return ROOT_DIR . DIRECTORY_SEPARATOR . CERTIFICATE_PATH;
         }
     }
 
@@ -189,12 +196,46 @@ class Ios implements INotification
         }
     }
 
+    /**
+     * Building the binary notification (see the structure) and sending to its receiver/s
+     * @link https://developer.apple.com/library/ios/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/Chapters/CommunicatingWIthAPS.html#//apple_ref/doc/uid/TP40008194-CH101-SW6
+     * DeviceToken(32bytes) - Payload(<=2kilobytes) - NotificationIdentifier(4bytes) - ExpirationDate(4bytes) - Priority(1byte)
+     * @param  stirng $deviceToken The target device token that will receive the message
+     * @param  string $payload     A json with the message that will be send to APNS
+     * @return string              The apple message constructed
+     */
+    private function generateBinaryMessage($deviceToken, $payload)
+    {
+        if (!isset($deviceToken) || !isset($payload)) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
+
+        return pack("C", 1) . pack("N", $this->getIdentifier($deviceToken)) . pack("N", $this->getExpiry()) . pack("n", 32) . pack('H*', str_replace(' ', '', $deviceToken)) . pack("n", strlen($payload)) . $payload;
+    }
+
+    /**
+     * Sending the message to the server
+     *
+     * INFO:
+     * When you send a notification that is accepted by APNs, nothing is returned. When you
+     * send a notification that is malformed or otherwise unintelligible, APNs returns an error-
+     * response packet and closes the connection. Any notifications that you sent after the
+     * malformed notification using the same connection are discarded, and must be resent.
+     * @param  Socket $apns        The connection to APNS
+     * @param  ApnsMessage $apnsMessage The Binary APNS message
+     * @return Array              An array with the response after sending the message
+     */
+    private function sendToApns($apns, $apnsMessage)
+    {
+        fwrite($apns, $apnsMessage, strlen($apnsMessage));
+        return $this->getResponseDescription($apns);
+    }
+
     public function send()
     {
         if (!isset($this->message)) {
             throw new PushApiException(PushApiException::NO_DATA, "Can't send without push message created");
         }
-
         /**
          * General Provider Requirements:
          * As a provider you communicate with Apple Push Notification Service over a binary interface.
@@ -202,48 +243,79 @@ class Ios implements INotification
          * TCP socket design in conjunction with binary content. The binary interface is asynchronous.
          */
         $ctx = stream_context_create();
-        stream_context_set_option($ctx, "ssl", "local_cert", $this->getCertificate());
-        stream_context_set_option($ctx, "ssl", "passphrase", $this->getPrivateKeyPassword());
+        stream_context_set_option($ctx, 'ssl', 'local_cert', $this->getCertificateFile());
+        stream_context_set_option($ctx, 'ssl', 'passphrase', $this->getPrivateKeyPassword());
+
+        // Open a connection to the APNS server
+        $apns = stream_socket_client($this->getServerUrl(), $error, $errorString, 2, STREAM_CLIENT_CONNECT|STREAM_CLIENT_PERSISTENT, $ctx);
+
         /**
          * This allows fread() to return right away when there are no errors. But it can also miss errors
          * during last seconds of sending, as there is a delay before error is returned. Workaround is to
          * pause briefly AFTER sending last notification, and then do one more fread() to see if anything
          * else is there.
          */
-        stream_set_blocking($fp, 0);
+        stream_set_blocking($apns, 0);
 
-        // Open a connection to the APNS server
-        $fp = stream_socket_client($this->getServerUrl(), $err, $errstr, 60, STREAM_CLIENT_PERSISTENT, $ctx);
-
-        if (!$fp) {
-            throw new PushApiException(PushApiException::CONNECTION_FAILED, "iOs SSL connection failed: $err $errstr");
+        if (!$apns) {
+            throw new PushApiException(PushApiException::CONNECTION_FAILED, "iOs SSL connection failed: $error $errorString");
+        }
+        // Checking receiver/s && sending the message && check the response
+        if (is_array($this->recipient)) {
+            foreach($this->recipient as $deviceToken) {
+                $apnsMessage = $this->generateBinaryMessage($deviceToken, $this->message);
+                $response = $this->sendToApns($apns, $apnsMessage);
+                if ($response['code'] != self::SUCCESS) {
+                    $result[] = $response;
+                }
+            }
+        } else {
+            $apnsMessage = $this->generateBinaryMessage($this->recipient, $this->message);
+            $response = $this->sendToApns($apns, $apnsMessage);
+            if ($response['code'] != self::SUCCESS) {
+                $result[] = $response;
+            }
         }
 
-        /**
-         * Build the binary notification (see the structure)
-         * @link https://developer.apple.com/library/ios/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/Chapters/CommunicatingWIthAPS.html#//apple_ref/doc/uid/TP40008194-CH101-SW6
-         * DeviceToken(32bytes) - Payload(<=2kilobytes) - NotificationIdentifier(4bytes) - ExpirationDate(4bytes) - Priority(1byte)
-         */
-        // $apple_identifier = 1;
-        // $apple_expiry = time() + (90 * 24 * 60 * 60);
-        // $msg = pack("C", 1) . pack("N", $apple_identifier) . pack("N", $apple_expiry) . pack("n", 32) . pack("H*", str_replace(' ', '', $this->recipient)) . pack("n", strlen($this->message)) . $this->message;
-        $msg = chr(0) . pack("n", 32) . pack("H*", $this->recipient) . pack("n", strlen($this->message)) . $this->message;
-
-        /**
-         * Sending the message to the server
-         *
-         * INFO:
-         * When you send a notification that is accepted by APNs, nothing is returned. When you
-         * send a notification that is malformed or otherwise unintelligible, APNs returns an error-
-         * response packet and closes the connection. Any notifications that you sent after the
-         * malformed notification using the same connection are discarded, and must be resent.
-         */
-        // $result = fwrite($fp, $msg);
-        $result = fwrite($fp, $msg, strlen($msg));
-
         // Close the connection to the server
-        fclose($fp);
+        fclose($apns);
 
-        return $result;
+        return (isset($result) ? $result : true);
+    }
+
+    /**
+     * Transforms the APNS response code into an improved description of the response (string description)
+     * @param  int  $response  The APNS response code
+     * @return string  The description of the response code
+     */
+    public function getResponseDescription($response)
+    {
+        // byte1=always 8, byte2=StatusCode, bytes3,4,5,6=identifier(rowID). Should return nothing if OK.
+        // NOTE: Make sure you set stream_set_blocking($apns, 0) or else fread will pause your script
+        // and wait forever when there is no response to be sent.
+        $response = fread($response, 6);
+
+        if ($response) {
+            //unpack the error response (first byte 'command" should always be 8)
+            $errorResponse = unpack('Ccommand/Cstatus_code/Nidentifier', $response);
+
+            $error = array(
+                'command' => $errorResponse['command'],
+                'id' => $errorResponse['identifier'],
+                'code' => $errorResponse['status_code'],
+            );
+
+            if (isset($this->descriptionByCode[$errorResponse['status_code']])) {
+                    $error['message'] = $this->descriptionByCode[$errorResponse['status_code']];
+                } else {
+                    $error['message'] = "Unexpected APNS error code";
+                }
+
+            return $error;
+        }
+
+        return array(
+            'code' => (int) $response
+        );
     }
 }

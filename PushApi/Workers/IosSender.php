@@ -53,7 +53,7 @@ while ($data != null) {
                 $ios->addRedirect($data->redirect);
             }
             $result = $ios->send();
-            error_log("Redis_ios_queue: " . json_encode($data) . " APNS_result: " . $ios->getResponseDescription($result) . PHP_EOL, 3, IOS_SEND_LOG);
+            error_log("Redis_ios_queue: " . json_encode($data) . " APNS_result: " . $result . PHP_EOL, 3, IOS_SEND_LOG);
         }
     } catch (PushApiException $e) {
         error_log("Redis_ios_queue: " . json_encode($data) . "Error: " . $e->getMessage() . PHP_EOL, 3, IOS_SEND_LOG);
