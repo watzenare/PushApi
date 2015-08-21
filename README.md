@@ -184,11 +184,15 @@ Also, I will be grateful if you want to make a donation, this project hasn't got
 
 [Back to index](#index)
 
-## Pending
+## What's next?
 
 Here are some TODO tasks, you are free to help with them:
 
-- Think what to do if user is using more than one device at the same time (i.e. user that is using iPhone and iPad). Currently the PushApi is only storing one id per device, so it will only send to one target device.
+- Avoid to store the same smartphone token to more than one user (an user can use the same device that another user, it must be controlled).
+- Be able to store more than one smartphone token per user (an user can use more than one android/ios device and it is only stored one token per user).
+- Add a new call for preferences to let the user to enable/disable all preferences or all preferences of the same device (i.e. user doesn't want to receive anything by smartphone).
+- Add 'collapse_key' param when sending a notification in order that pushapi sends more than one of that theme.
+- Create a *plugin system* that would interact with the sending system and depending of the plugin would able to filter messages or whatever the plugin does. Developers will be able to create plugins. The target of this system is to avoid modify the base structure of the PushApi.
 - Unit testing (do mock objects simulating the DB and checking the routes and controllers).
 - To log most of the functionalities.
 - Add multilevel security (One App to rule them all).
