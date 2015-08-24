@@ -7,6 +7,7 @@ use \Pimple\Container;
 use \PushApi\PushApiException;
 use \PushApi\System\Mail;
 use \PushApi\System\Android;
+use \PushApi\System\Ios;
 use \PushApi\System\Chrome;
 
 /**
@@ -21,6 +22,7 @@ class PushApi
     const REDIS = 'redis';
     const MAIL = 'mail';
     const ANDROID = 'android';
+    const IOS = 'ios';
     const CHROME = 'chrome';
 
     /**
@@ -120,6 +122,10 @@ class PushApi
 
         $c[PushApi::ANDROID] = function ($c) {
             return new Android();
+        };
+
+        $c[PushApi::IOS] = function ($c) {
+            return new Ios();
         };
 
         $c[PushApi::CHROME] = function ($c) {
