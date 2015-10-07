@@ -111,17 +111,33 @@ class UserController extends Controller
         }
 
         try {
-            $user = User::findOrFail($id);
+            $userToUpdate = User::findOrFail($id);
+            // Prevent that two users have the same device id
+            foreach ($update as $key => $value) {
+                if ($key == 'email') {
+                    $user = User::where($key, $update[$key])->first();
+                    // If user wants to set the same email of another user, this can't be changed
+                    if ($user) {
+                        $this->send($userToUpdate->toArray());
+                    }
+                } else {
+                    $user = User::where($key, $update[$key])->first();
+                    if ($user && ($user != $userToUpdate)) {
+                        $user->$key = 0;
+                        $user->update();
+                    }
+                }
+            }
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
 
         foreach ($update as $key => $value) {
-            $user->$key = $value;
+            $userToUpdate->$key = $value;
         }
 
-        $user->update();
-        $this->send($user->toArray());
+        $userToUpdate->update();
+        $this->send($userToUpdate->toArray());
     }
 
     /**
