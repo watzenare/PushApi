@@ -23,7 +23,7 @@ class Controller
 
     /**
      * Prepares an HTML response, it modifies some response headers and prepares the
-     * resulting data encoding it into json and sends it to the client 
+     * resulting data encoding it into json and sends it to the client
      * @param  [array] $result Array with resulting values
      */
     protected function send($result)
@@ -41,7 +41,7 @@ class Controller
      */
     protected function cleanParams($data = array()) {
         foreach ($data as $key => $value) {
-            if (is_null($data[$key]) || empty($data[$key])) {
+            if ((is_null($data[$key]) || empty($data[$key])) && $data[$key] != "0") {
                 unset($data[$key]);
             }
         }
