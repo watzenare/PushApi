@@ -26,7 +26,7 @@ The PushApi is a server side project using PHP. It provides a way to notify user
 - [Comments](#comments)
 - [Wiki](#wiki)
 - [Support](#support)
-- [Pending](#pending)
+- [TODOs](#todos)
 
 
 
@@ -162,12 +162,6 @@ For example, here are some recommended services that will keep all your workers 
 
 [Back to index](#index)
 
-## Comments
-
-> The main target of this project is to learn as much as I can because I haven't got too much experience yet but I think that this API should solve some problems and even if you don't want to pay for a service that can be owned by yourself.
-
-[Back to index](#index)
-
 ## Wiki
 
 To see more information about the PushApi you should check the [wiki](https://github.com/watzenare/PushApi/wiki).
@@ -184,13 +178,11 @@ Also, I will be grateful if you want to make a donation, this project hasn't got
 
 [Back to index](#index)
 
-## What's next?
+## TODOs
 
-Here are some TODO tasks, you are free to help with them:
+You are free to help with them:
 
-- Avoid to store the same smartphone token to more than one user (an user can use the same device that another user, it must be controlled).
 - Be able to store more than one smartphone token per user (an user can use more than one android/ios device and it is only stored one token per user).
-- Add a new call for preferences to let the user to enable/disable all preferences or all preferences of the same device (i.e. user doesn't want to receive anything by smartphone).
 - Add 'collapse_key' param when sending a notification in order that pushapi sends more than one of that theme.
 - Create a *plugin system* that would interact with the sending system and depending of the plugin would able to filter messages or whatever the plugin does. Developers will be able to create plugins. The target of this system is to avoid modify the base structure of the PushApi.
 - Unit testing (do mock objects simulating the DB and checking the routes and controllers).
