@@ -146,9 +146,15 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
         //////////////////////////////////////////
         //         PREFERENCES ROUTES           //
         //////////////////////////////////////////
-        // Gets user preferences
-        $slim->get('/preferences', function($id) {
-            (new PreferenceController())->getPreference($id);
+        $slim->group('/preferences', function() use ($slim, $params) {
+            // Gets user preferences
+            $slim->get('', function($id) {
+                (new PreferenceController())->getPreference($id);
+            });
+            // Updates all user preferences
+            $slim->put('', function($id) use ($params) {
+                (new PreferenceController($params))->updateAllPreferences($id);
+            });
         });
         $slim->group('/preference', function() use ($slim, $params) {
             // Adds a preference to a user

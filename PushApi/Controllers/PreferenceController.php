@@ -35,8 +35,8 @@ class PreferenceController extends Controller
 
         $option = (int) $this->requestParams['option'];
 
-        if ($option > Preference::ALL_RANGES) {
-            throw new PushApiException(PushApiException::INVALID_OPTION);
+        if ($option > Preference::ALL_RANGES || $option < Preference::NOTHING) {
+            throw new PushApiException(PushApiException::INVALID_RANGE);
         }
 
         // Checking if preference already exists
@@ -107,8 +107,8 @@ class PreferenceController extends Controller
 
         $update['option'] = (int) $this->requestParams['option'];
 
-        if ($update['option'] > Preference::ALL_RANGES) {
-            throw new PushApiException(PushApiException::INVALID_OPTION);
+        if ($update['option'] > Preference::ALL_RANGES || $update['option'] < Preference::NOTHING) {
+            throw new PushApiException(PushApiException::INVALID_RANGE);
         }
 
         try {
@@ -138,5 +138,67 @@ class PreferenceController extends Controller
         } else {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
+    }
+
+    /**
+     * Updates the value of all the user preferences with the option set
+     * @param [int] $idUser User identification
+     *
+     * Call params:
+     * @var "option" required
+     */
+    public function updateAllPreferences($idUser)
+    {
+        $update = array();
+        $totalThemes = 0;
+
+        if (!isset($this->requestParams['option'])) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
+
+        $update['option'] = $this->requestParams['option'];
+
+        if ($update['option'] > Preference::ALL_RANGES || $update['option'] < Preference::NOTHING) {
+            throw new PushApiException(PushApiException::INVALID_RANGE);
+        }
+
+        try {
+            // Obtaining all themes
+            $themes = Theme::get()->toArray();
+            $totalThemes = sizeof($themes);
+            $count = 0;
+            foreach ($themes as $theme) {
+                try {
+                    // Checking if exists the preference in order to create or update the value
+                    $preference = User::findOrFail($idUser)->preferences()->where('theme_id', $theme['id'])->first();
+                    if ($preference && $preference->option != $update['option']) {
+                        // Updating user preference option
+                        $preference = Preference::where('theme_id', $theme['id'])->where('user_id', $idUser)->update($update);
+                    } else if (!$preference) {
+                        // Creating user preference option
+                        $preference = new Preference;
+                        $preference->user_id = $idUser;
+                        $preference->theme_id = $theme['id'];
+                        $preference->option = $update['option'];
+                        $preference->save();
+                    }
+
+                    if ($preference) {
+                        $count++;
+                    }
+                } catch (ModelNotFoundException $e) {
+                    throw new PushApiException(PushApiException::NOT_FOUND);
+                }
+            }
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        // Checking if all preferences have been set correctly
+        if ($totalThemes == $count) {
+            $this->send(true);
+        }
+
+        $this->send(false);
     }
 }
