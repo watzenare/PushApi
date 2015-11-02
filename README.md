@@ -17,7 +17,7 @@ The PushApi is a server side project using PHP. It provides a way to notify user
 
 ## Documentation
 
-See the documentation [here](https://push-api.readme.io/) all the information.
+Read the documentation [here](https://push-api.readme.io/).
 
 [Back to index](#index)
 
