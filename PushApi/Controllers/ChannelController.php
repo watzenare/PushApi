@@ -9,6 +9,8 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  *
  * Contains the basic and general actions that can be done with a channel.
  */
@@ -125,6 +127,7 @@ class ChannelController extends Controller
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
         $channel->delete();
-        $this->send($channel->toArray());
+        // Inverse of the exitsts value, if it doesn't exists result should true
+        $this->send(!$channel->exists);
     }
 }

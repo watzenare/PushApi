@@ -110,10 +110,6 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
         $slim->get('', function($id) {
             (new UserController())->getUser($id);
         });
-        // Updates user $id given put params
-        $slim->put('', function($id) use ($params) {
-            (new UserController($params))->updateUser($id);
-        });
         // Deletes user $id
         $slim->delete('', function($id) {
             (new UserController())->deleteUser($id);
@@ -121,6 +117,22 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
         // Gets user $id the devices that has registered
         $slim->get('/smartphones', function($id) {
             (new UserController())->getSmartphonesRegistered($id);
+        });
+        // Adds new new devices ids to user
+        $slim->post('/device', function($id) use ($params) {
+            (new UserController($params))->addUserDevice($id);
+        });
+        // Gets device information given some params
+        $slim->get('/device', function($id) use ($params) {
+            (new UserController($params))->getUserDeviceInfoByParams($id);
+        });
+        // Gets device information given the id
+        $slim->get('/device/:iddevice', function($id, $iddevice) {
+            (new UserController())->getUserDeviceInfo($id, $iddevice);
+        });
+        // Removes a device form user
+        $slim->delete('/device/:iddevice', function($id, $iddevice) {
+            (new UserController())->removeUserDevice($id, $iddevice);
         });
         ////////////////////////////////////////
         //         SUBSCRIBE ROUTES           //
@@ -183,8 +195,8 @@ $slim->group('/users', $authChecker, function() use ($slim, $params) {
         (new UserController($params))->setUsers();
     });
     // Geting all users
-    $slim->get('', function() {
-        (new UserController())->getUser();
+    $slim->get('', function() use ($params) {
+        (new UserController($params))->getUsers();
     });
 });
 

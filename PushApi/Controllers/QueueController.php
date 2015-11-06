@@ -7,6 +7,8 @@ use \PushApi\Controllers\Controller;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  *
  * Controlls the various actions that can be done into the queues
  */

@@ -6,6 +6,8 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  *
  * A subject is the description of the theme->name and it is used for example as
  * a mail subject. An example is that you have a theme name like:

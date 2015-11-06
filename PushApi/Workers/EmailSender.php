@@ -4,6 +4,10 @@
  * Worker that retrives data from the mail queue, transforms that information into a mail
  * message and sends the message to its receiver. It is stored the data and the result of
  * sending the message.
+ *
+ * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  */
 
 // Include configurations and global PushApi constants

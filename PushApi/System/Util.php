@@ -4,6 +4,8 @@ namespace PushApi\System;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  *
  * Container class used to store diferent useful functions
  */
@@ -15,16 +17,16 @@ class Util
     public static function p()
     {
         $consolePrint = false;
-        
+
         if ($_SERVER['HTTP_HOST'] == null) {
             $consolePrint = true;
         }
-        
+
         if (!$consolePrint) {
             echo '<pre>';
         }
         $args = func_get_args();
-  
+
         foreach ($args as $var)
         {
             if ($var == null || $var == '') {

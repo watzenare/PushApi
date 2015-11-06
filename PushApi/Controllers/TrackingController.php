@@ -9,6 +9,8 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  *
  * Contains the basic and general actions for the API validation.
  */
