@@ -24,6 +24,7 @@ class UserController extends Controller
      *
      * Request params:
      * @var "email" required
+     * @throws PushApiException
      */
     public function setUser()
     {
@@ -38,48 +39,51 @@ class UserController extends Controller
         }
 
         try {
-            $this->send(User::create(['email' => $email]));
+            $this->send(User::createUser($email));
         } catch (PushApiException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            throw new PushApiException($e->getCode());
         }
     }
 
     /**
-     * Retrives the user information if it is registered
-     * @param [int] $id  User identification
+     * Retrives the user information if it is registered.
+     * @param int $id  User identification
+     * @throws PushApiException
      */
     public function getUser($id)
     {
         try {
             $this->send(User::get($id));
         } catch (PushApiException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            throw new PushApiException($e->getCode());
         }
     }
 
     /**
      * Deletes a user given its identification
-     * @param [int] $id  User identification
+     * @param int $id  User identification
+     * @throws PushApiException
      */
     public function deleteUser($id)
     {
         try {
             $deleted = User::remove($id);
         } catch (PushApiException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            throw new PushApiException($e->getCode());
         }
 
         $this->send($deleted);
     }
 
     /**
-     * Updates user infomation given its identification and params to update
-     * @param [int] $id  User identification
+     * Updates user infomation given its identification and params to update.
+     * @param int $id  User identification
      *
      * Request params:
      * @var "email" optional
      * @var "android" optional
      * @var "ios" optional
+     * @throws PushApiException
      */
     public function addUserDevice($id)
     {
@@ -114,30 +118,32 @@ class UserController extends Controller
         try {
             $this->send(User::get($id));
         } catch (PushApiException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            throw new PushApiException($e->getCode());
         }
     }
 
     /**
      * Gets device information given its device id.
-     * @param  [int] $id  User identification
-     * @param  [int] $idDevice Device identification
+     * @param  int $id  User identification
+     * @param  int $idDevice Device identification
+     * @throws PushApiException
      */
     public function getUserDeviceInfo($id, $idDevice)
     {
         try {
             $this->send(Device::get($id, $idDevice));
         } catch (PushApiException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            throw new PushApiException($e->getCode());
         }
     }
 
     /**
      * Gets device information without knowing its id but knowing its reference identification.
-     * @param  [int] $id  User identification
+     * @param  int $id  User identification
      *
      * Request params:
      * @var "reference" required
+     * @throws PushApiException
      */
     public function getUserDeviceInfoByParams($id)
     {
@@ -150,14 +156,15 @@ class UserController extends Controller
         try {
             $this->send(Device::getIdByReference($id, $reference));
         } catch (PushApiException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            throw new PushApiException($e->getCode());
         }
     }
 
     /**
-     * Removes a device form user
-     * @param  [int] $id  User identification
-     * @param  [int] $idDevice Device identification
+     * Removes a device form user.
+     * @param  int $id  User identification
+     * @param  int $idDevice Device identification
+     * @throws PushApiException
      */
     public function removeUserDevice($id, $idDevice)
     {
@@ -166,18 +173,19 @@ class UserController extends Controller
         try {
             $this->send(User::get($id));
         } catch (PushApiException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            throw new PushApiException($e->getCode());
         }
     }
 
     /**
-     * Retrives all users registred
+     * Retrives all users registred.
      * @var "limit" optional
      * @var "page" optional
+     * @throws PushApiException
      */
     public function getUsers()
     {
-        $limit = (isset($this->requestParams['limit']) ? $this->requestParams['limit'] : 50);
+        $limit = (isset($this->requestParams['limit']) ? $this->requestParams['limit'] : 10);
         $page = (isset($this->requestParams['page']) ? $this->requestParams['page'] : 1);
 
         if (isset($limit) && $limit < 0) {
@@ -191,7 +199,7 @@ class UserController extends Controller
         try {
             $this->send(User::getUsers($limit, $page));
         } catch (PushApiException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            throw new PushApiException($e->getCode());
         }
     }
 
@@ -202,46 +210,46 @@ class UserController extends Controller
      *
      * Request params:
      * @var "emails" required
+     * @throws PushApiException
      */
     public function setUsers()
     {
-        // $added = array();
+        $added = [];
 
-        // if (!isset($this->requestParams['emails'])) {
-        //     throw new PushApiException(PushApiException::NO_DATA);
-        // }
+        if (!isset($this->requestParams['emails'])) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
 
-        // $emails = preg_replace('/\s+/', '', $this->requestParams['emails']);
-        // $emails = explode(",", $emails);
+        $emails = json_decode($this->requestParams['emails']);
 
-        // foreach ($emails as $key => $email) {
-        //     if (!empty($email) || filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        //         $user = User::where('email', $email)->first();
+        foreach ($emails as $email) {
+            if (!empty($email) || filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $user = User::createUser($email);
+                if ($user) {
+                    array_push($added, $user);
+                }
+            }
+        }
 
-        //         if (!isset($user->email)) {
-        //             $user = new User;
-        //             $user->email = $email;
-        //             $user->save();
-        //             array_push($added, $user);
-        //         }
-        //     }
-        // }
-        // $this->send($added);
+        try {
+            $this->send($added);
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
+        }
     }
 
     /**
      * Retrives the smartphones that user has registered.
-     * @param [int] $id  User identification
+     * @param int $id  User identification
+     * @throws PushApiException
      */
     public function getSmartphonesRegistered($id)
     {
-        try {
-            $user = User::findOrFail($id);
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
-        }
-
         $smartphones = [];
+
+        if (!$user = User::checkExists($id)) {
+            $this->send($smartphones);
+        }
 
         if ($user->android != 0) {
             $smartphones[] = "Android";
@@ -251,6 +259,10 @@ class UserController extends Controller
             $smartphones[] = "iOs";
         }
 
-        $this->send($smartphones);
+        try {
+            $this->send($smartphones);
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
+        }
     }
 }

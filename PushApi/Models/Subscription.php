@@ -2,6 +2,8 @@
 
 namespace PushApi\Models;
 
+use \PushApi\System\IModel;
+use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
 
 /**
@@ -34,5 +36,27 @@ class Subscription extends Eloquent
     public function channel()
     {
         return $this->belongsTo('\PushApi\Models\Channel');
+    }
+
+    public static function deleteAllChannelSubscriptions($id)
+    {
+        $subscriptions = Subscription::where('channel_id', $id)->get();
+
+        foreach ($subscriptions as $subscription) {
+            $subscription->delete();
+        }
+
+        return true;
+    }
+
+    public static function deleteAllUserSubscriptions($id)
+    {
+        $subscriptions = Subscription::where('user_id', $id)->get();
+
+        foreach ($subscriptions as $subscription) {
+            $subscription->delete();
+        }
+
+        return true;
     }
 }

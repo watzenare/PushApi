@@ -2,6 +2,7 @@
 
 namespace PushApi\Models;
 
+use \PushApi\System\IModel;
 use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
 use \Illuminate\Database\QueryException;
@@ -15,7 +16,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  * Model of the devices table, manages all the relationships and dependencies
  * that can be done on these table
  */
-class Device extends Eloquent
+class Device extends Eloquent implements IModel
 {
     const TYPE_EMAIL = 1;
     const TYPE_ANDROID = 2;
@@ -38,7 +39,7 @@ class Device extends Eloquent
     protected $guarded = array('id', 'created');
     protected $hidden = array('created');
 
-    private static function getEmptyDataModel()
+    public static function getEmptyDataModel()
     {
         return [
             "id" => 0,
@@ -48,8 +49,8 @@ class Device extends Eloquent
     }
 
     /**
-     * Relationship 1-n to get an instance of the users table
-     * @return [User] Instance of User model
+     * Relationship 1-n to get an instance of the users table.
+     * @return User Instance of User model
      */
     public function user()
     {
@@ -57,8 +58,8 @@ class Device extends Eloquent
     }
 
     /**
-     * [checkExists description]
-     * @param  [type] $id [description]
+     * Checks if device exists and returns it if true.
+     * @param  int $id Device id
      * @return Device/false
      */
     public static function checkExists($id)
@@ -72,10 +73,26 @@ class Device extends Eloquent
         return $device;
     }
 
+    public static function generateFromModel($device)
+    {
+        $result = self::getEmptyDataModel();
+        try {
+            $result['id'] = $device->id;
+            $result['type'] = $device->type;
+            $result['user_id'] = $device->user_id;
+            $result['reference'] = $device->reference;
+
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        return $result;
+    }
+
     /**
-     * [getIdByReference description]
-     * @param  [string] $userId
-     * @param  [string] $reference
+     * Obtains device information given its reference with user id.
+     * @param  int $userId  User identification
+     * @param  string $reference
      * @return int/boolean  If user is found returns id, if not, returns false
      */
     public static function getIdByReference($userId, $reference)
@@ -94,9 +111,9 @@ class Device extends Eloquent
     }
 
     /**
-     * [getDeviceByReference description]
-     * @param  [string] $userId
-     * @param  [string] $reference
+     * Obtains all device information (even the non displayable) given its device reference.
+     * @param  int $userId  User identification
+     * @param  string $reference
      * @return int/boolean  If user is found returns id, if not, returns false
      */
     public static function getFullDeviceInfoByReference($reference)
@@ -116,9 +133,9 @@ class Device extends Eloquent
     }
 
     /**
-     * [getIdByReference description]
-     * @param  [string] $userId
-     * @param  [string] $reference
+     * Basic get device. Given its id and user id obtains device data if exists.
+     * @param  int $userId  User identification
+     * @param  string $reference
      * @return int/boolean  If user is found returns id, if not, returns false
      */
     public static function get($userId, $deviceId)
@@ -139,11 +156,11 @@ class Device extends Eloquent
 
     /**
      * Adds a new device refering the user and increases its devices counter.
-     * It prevents to add duplicated values and updates smartphones device ids when a new user
+     * It prevents to add duplicate values and updates smartphones device ids when a new user
      * is using the same smartphone.
-     * @param  int $userId
+     * @param  int $userId  User identification
      * @param  int/string $deviceType
-     * @param string $reference
+     * @param  string $reference
      * @return boolean
      */
     public static function addDevice($userId, $deviceType, $reference)
@@ -259,7 +276,7 @@ class Device extends Eloquent
      /**
      * Deletes all devices of the target user id.
      * @
-     * @param  [type] $userId [description]
+     * @param  int $userId User identification
      * @return boolean
      */
     public static function deleteAllDevices($userId)

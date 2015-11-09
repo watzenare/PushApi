@@ -2,6 +2,8 @@
 
 namespace PushApi\Models;
 
+use \PushApi\System\IModel;
+use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
 
 /**
@@ -40,5 +42,27 @@ class Preference extends Eloquent
     public function theme()
     {
         return $this->belongsTo('\PushApi\Models\Theme');
+    }
+
+    public static function deleteAllThemePreferences($id)
+    {
+        $preferences = Preference::where('theme_id', $id)->get();
+
+        foreach ($preferences as $preference) {
+            $preference->delete();
+        }
+
+        return true;
+    }
+
+    public static function deleteAllUserPreferences($id)
+    {
+        $preferences = Preference::where('user_id', $id)->get();
+
+        foreach ($preferences as $preference) {
+            $preference->delete();
+        }
+
+        return true;
     }
 }

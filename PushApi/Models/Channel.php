@@ -2,6 +2,8 @@
 
 namespace PushApi\Models;
 
+use \PushApi\System\IModel;
+use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
 
 /**

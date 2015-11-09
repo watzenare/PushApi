@@ -2,6 +2,7 @@
 
 namespace PushApi\Models;
 
+use \PushApi\System\IModel;
 use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -18,16 +19,14 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  * the user model in order to avoid to remember the management of the two tables outside the
  * User model.
  */
-class User extends Eloquent
+class User extends Eloquent implements IModel
 {
     public $timestamps = false;
     protected $fillable = array('email', 'android', 'ios');
     protected $guarded = array('id','created');
     protected $hidden = array('created');
 
-    protected $appends = ['devices'];
-
-    private static function getEmptyDataModel()
+    public static function getEmptyDataModel()
     {
         return [
             "id" => 0,
@@ -38,8 +37,8 @@ class User extends Eloquent
     }
 
     /**
-     * Relationship n-1 to get an instance of the subscribed table
-     * @return [Subscription] Instance of Subscription model
+     * Relationship n-1 to get an instance of the subscribed table.
+     * @return Subscription Instance of Subscription model
      */
     public function subscriptions()
     {
@@ -47,8 +46,8 @@ class User extends Eloquent
     }
 
     /**
-     * Relationship n-1 to get an instance of the preferences table
-     * @return [Preferences] Instance of Preferences model
+     * Relationship n-1 to get an instance of the preferences table.
+     * @return Preferences Instance of Preferences model
      */
     public function preferences()
     {
@@ -56,8 +55,8 @@ class User extends Eloquent
     }
 
     /**
-     * Relationship n-1 to get an instance of the logs table
-     * @return [Log] Instance of Log model
+     * Relationship n-1 to get an instance of the logs table.
+     * @return Log Instance of Log model
      */
     public function logs()
     {
@@ -65,8 +64,8 @@ class User extends Eloquent
     }
 
     /**
-     * Relationship n-1 to get an instance of the devices table
-     * @return [Device] Instance of Device model
+     * Relationship n-1 to get an instance of the devices table.
+     * @return Device Instance of Device model
      */
     public function devices()
     {
@@ -74,8 +73,8 @@ class User extends Eloquent
     }
 
     /**
-     * [checkExists description]
-     * @param  [type] $id [description]
+     * Checks if user exists and returns it if true.
+     * @param  int $id User id
      * @return User/false
      */
     public static function checkExists($id)
@@ -90,27 +89,11 @@ class User extends Eloquent
     }
 
     /**
-     * [getIdByEmail description]
-     * @param  [string] $email
-     * @return int/boolean  If user is found returns id, if not, returns false
-     */
-    public static function getIdByEmail($email)
-    {
-        $device = Device::where('type', Device::TYPE_EMAIL)->where('reference', $email)->first();
-
-        if ($device) {
-            return $device->user_id;
-        }
-
-        return false;
-    }
-
-    /**
-     * [generateUser description]
-     * @param  [User] $user User object model
+     * Generates an user given its object data merging it with the devices that its owning.
+     * @param  User $user User object model
      * @return array
      */
-    public static function generateUser($user)
+    public static function generateFromModel($user)
     {
         $result = self::getEmptyDataModel();
         try {
@@ -139,9 +122,25 @@ class User extends Eloquent
     }
 
     /**
-     * [get description]
-     * @param  [type] $id [description]
-     * @return [type]     [description]
+     * Obtains the user identification given its email reference.
+     * @param  string $email
+     * @return int/boolean  If user is found returns id, if not, returns false
+     */
+    public static function getIdByEmail($email)
+    {
+        $device = Device::where('type', Device::TYPE_EMAIL)->where('reference', $email)->first();
+
+        if ($device) {
+            return $device->user_id;
+        }
+
+        return false;
+    }
+
+    /**
+     * Obtains all information about target user given its id.
+     * @param  int $id User identification
+     * @return array
      */
     public static function get($id)
     {
@@ -167,14 +166,14 @@ class User extends Eloquent
     }
 
     /**
-     * [create description]
-     * @param  array  $attr [description]
-     * @return [type]       [description]
+     * Creates a new user given its email reference.
+     * @param  string  $email User email reference
+     * @return User/boolean
      */
-    public static function create(array $attr = array())
+    public static function createUser($email)
     {
         // Checking if user already exists
-        $userId = self::getIdByEmail($attr['email']);
+        $userId = self::getIdByEmail($email);
 
         if ($userId) {
             return self::get($userId);
@@ -188,28 +187,33 @@ class User extends Eloquent
             return false;
         }
 
-        $added = Device::addDevice($user->id, Device::TYPE_EMAIL, $attr['email']);
+        $added = Device::addDevice($user->id, Device::TYPE_EMAIL, $email);
 
         $model = self::getEmptyDataModel();
         $model['id'] = $user->id;
 
         if ($added) {
-            array_push($model['email'], $attr['email']);
+            array_push($model['email'], $email);
+            return $model;
         }
 
-        return $model;
+        return false;
     }
 
     /**
      * Increases the device type counter of the target user.
-     * @param  [int] $userId
-     * @param  [int] $deviceType
+     * @param  int $userId
+     * @param  int $deviceType
      * @return boolean
      */
     public static function incrementDevice($userId, $deviceType)
     {
         // Updating user device counter
-        $user = User::findOrFail($userId);
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            return false;
+        }
         $user->increment(Device::$typeToString[$deviceType]);
         $user->update();
 
@@ -218,14 +222,18 @@ class User extends Eloquent
 
     /**
      * Decreases the device type counter of the target user.
-     * @param  [int] $userId
-     * @param  [int] $deviceType
+     * @param  int $userId
+     * @param  int $deviceType
      * @return boolean
      */
     public static function decrementDevice($userId, $deviceType)
     {
         // Updating user device counter
-        $user = User::findOrFail($userId);
+        try {
+            $user = User::findOrFail($userId);
+        } catch (ModelNotFoundException $e) {
+            return false;
+        }
         $user->decrement(Device::$typeToString[$deviceType]);
         $user->update();
 
@@ -233,8 +241,8 @@ class User extends Eloquent
     }
 
     /**
-     * [remove description]
-     * @param  [int] $id
+     * Deletes the target user given its id and all DB relationships that it has (devices owning, preferences...).
+     * @param  int $id
      * @return boolean
      * @throws PushApiException
      */
@@ -242,6 +250,16 @@ class User extends Eloquent
     {
         // It must be deleted all devices first in order to destroy the DB relationship
         if (!Device::deleteAllDevices($id)) {
+            return false;
+        }
+
+        // It must be deleted all preferences related with target user
+        if (!Preference::deleteAllUserPreferences($id)) {
+            return false;
+        }
+
+        // It must be deleted all subscriptions related with target user
+        if (!Subscription::deleteAllUserSubscriptions($id)) {
             return false;
         }
 
@@ -255,7 +273,14 @@ class User extends Eloquent
         return true;
     }
 
-    public static function getUsers($limit = 50, $page = 1)
+    /**
+     * Obtains all users registered in Push API with all its devices registered. It can be searched
+     * giving limit and page values.
+     * @param  int $limit Max results per page
+     * @param  int $page  Page to display
+     * @return array
+     */
+    public static function getUsers($limit = 10, $page = 1)
     {
         $result = [
             'users' => []
@@ -272,7 +297,7 @@ class User extends Eloquent
         try {
             $users = User::orderBy('id', 'asc')->take($limit)->offset($skip)->get();
             foreach ($users as $user) {
-                $result['users'][] = self::generateUser($user);
+                $result['users'][] = self::generateFromModel($user);
             }
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);

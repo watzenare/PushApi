@@ -256,11 +256,11 @@ $slim->group('/theme', $authChecker, function() use ($slim, $params) {
 $slim->group('/themes', $authChecker, function() use ($slim) {
     // Geting all themes
     $slim->get('', function() {
-        (new ThemeController())->getTheme();
+        (new ThemeController())->getThemes();
     });
     // Get all themes by $range
     $slim->get('/range/:range', function($range) {
-        (new ThemeController())->getByRange($range);
+        (new ThemeController())->getThemesByRange($range);
     });
 });
 // Gets theme information given its name
