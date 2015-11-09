@@ -41,27 +41,10 @@ class PreferenceController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE);
         }
 
-        // Checking if preference already exists
         try {
-            $preference = User::findOrFail($idUser)->preferences()->where('theme_id', $idTheme)->first();
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
-        }
-
-        if (!isset($preference) || empty($preference)) {
-            if (!empty(Theme::find($idTheme))) {
-                $preference = new Preference;
-                $preference->user_id = $idUser;
-                $preference->theme_id = $idTheme;
-                $preference->option = $option;
-                $preference->save();
-            }
-        }
-
-        if (!empty($preference)) {
-            $this->send($preference->toArray());
-        } else {
-            $this->send(array());
+            $this->send(Preference::createPreference($idUser, $idTheme, $option));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
         }
     }
 
@@ -72,22 +55,12 @@ class PreferenceController extends Controller
      * @param [int] $idUser User identification
      * @param [int] $idTheme Theme identification
      */
-    public function getPreference($idUser, $idTheme = false)
+    public function getPreference($idUser, $idTheme)
     {
         try {
-            if ($idTheme) {
-                $preferences = User::findOrFail($idUser)->preferences()->where('theme_id', $idTheme)->orderBy('id', 'asc')->first();
-            } else {
-                $preferences = User::findOrFail($idUser)->preferences()->orderBy('id', 'asc')->get();
-            }
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
-        }
-
-        if (!empty($preferences)) {
-            $this->send($preferences->toArray());
-        } else {
-            $this->send(array());
+            $this->send(Preference::getPreference($idUser, $idTheme));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
         }
     }
 
@@ -114,11 +87,10 @@ class PreferenceController extends Controller
         }
 
         try {
-            $user = Preference::where('theme_id', $idTheme)->where('user_id', $idUser)->update($update);
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            $this->send(Preference::updatePreference($idUser, $idTheme, $update));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
         }
-        $this->send($this->boolinize($user));
     }
 
     /**
@@ -129,17 +101,29 @@ class PreferenceController extends Controller
     public function deletePreference($idUser, $idTheme)
     {
         try {
-            $preference = User::findOrFail($idUser)->preferences()->where('theme_id', $idTheme)->first();
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            $this->send(Preference::remove($idUser, $idTheme));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
+        }
+    }
+
+    public function getPreferences($idUser)
+    {
+        $limit = (isset($this->requestParams['limit']) ? $this->requestParams['limit'] : 10);
+        $page = (isset($this->requestParams['page']) ? $this->requestParams['page'] : 1);
+
+        if ($limit < 0) {
+            throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid limit value");
         }
 
-        if (!empty($preference)) {
-            $preference->delete();
-            // Inverse of the exitsts value, if it doesn't exists result should true
-            $this->send(!$preference->exists);
-        } else {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+        if ($page < 1) {
+            throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
+        }
+
+        try {
+            $this->send(Preference::getAllPreferences($idUser, $limit, $page));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
         }
     }
 
@@ -153,7 +137,6 @@ class PreferenceController extends Controller
     public function updateAllPreferences($idUser)
     {
         $update = array();
-        $totalThemes = 0;
 
         if (!isset($this->requestParams['option'])) {
             throw new PushApiException(PushApiException::NO_DATA);
@@ -166,42 +149,9 @@ class PreferenceController extends Controller
         }
 
         try {
-            // Obtaining all themes
-            $themes = Theme::get()->toArray();
-            $totalThemes = sizeof($themes);
-            $count = 0;
-            foreach ($themes as $theme) {
-                try {
-                    // Checking if exists the preference in order to create or update the value
-                    $preference = User::findOrFail($idUser)->preferences()->where('theme_id', $theme['id'])->first();
-                    if ($preference && $preference->option != $update['option']) {
-                        // Updating user preference option
-                        $preference = Preference::where('theme_id', $theme['id'])->where('user_id', $idUser)->update($update);
-                    } else if (!$preference) {
-                        // Creating user preference option
-                        $preference = new Preference;
-                        $preference->user_id = $idUser;
-                        $preference->theme_id = $theme['id'];
-                        $preference->option = $update['option'];
-                        $preference->save();
-                    }
-
-                    if ($preference) {
-                        $count++;
-                    }
-                } catch (ModelNotFoundException $e) {
-                    throw new PushApiException(PushApiException::NOT_FOUND);
-                }
-            }
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            $this->send(Preference::updateAllPreferences($idUser, $update));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
         }
-
-        // Checking if all preferences have been set correctly
-        if ($totalThemes == $count) {
-            $this->send(true);
-        }
-
-        $this->send(false);
     }
 }

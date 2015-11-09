@@ -38,9 +38,14 @@ class Subscription extends Eloquent
         return $this->belongsTo('\PushApi\Models\Channel');
     }
 
-    public static function deleteAllChannelSubscriptions($id)
+    /**
+     * Deletes all preferences related with the target channel.
+     * @param  int $idChannel
+     * @return boolean
+     */
+    public static function deleteAllChannelSubscriptions($idChannel)
     {
-        $subscriptions = Subscription::where('channel_id', $id)->get();
+        $subscriptions = Subscription::where('channel_id', $idChannel)->get();
 
         foreach ($subscriptions as $subscription) {
             $subscription->delete();
@@ -49,9 +54,14 @@ class Subscription extends Eloquent
         return true;
     }
 
-    public static function deleteAllUserSubscriptions($id)
+    /**
+     * Deletes all preferences related with the target user.
+     * @param  int $idUser
+     * @return boolean
+     */
+    public static function deleteAllUserSubscriptions($idUser)
     {
-        $subscriptions = Subscription::where('user_id', $id)->get();
+        $subscriptions = Subscription::where('user_id', $idUser)->get();
 
         foreach ($subscriptions as $subscription) {
             $subscription->delete();

@@ -81,7 +81,6 @@ class Device extends Eloquent implements IModel
             $result['type'] = $device->type;
             $result['user_id'] = $device->user_id;
             $result['reference'] = $device->reference;
-
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }

@@ -50,7 +50,7 @@ class ThemeController extends Controller
     public function getTheme($id)
     {
         try {
-            $this->send(Theme::get($id));
+            $this->send(Theme::getTheme($id));
         } catch (PushApiException $e) {
             throw new PushApiException($e->getCode());
         }
@@ -117,11 +117,11 @@ class ThemeController extends Controller
         $limit = (isset($this->requestParams['limit']) ? $this->requestParams['limit'] : 10);
         $page = (isset($this->requestParams['page']) ? $this->requestParams['page'] : 1);
 
-        if (isset($limit) && $limit < 0) {
+        if ($limit < 0) {
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid limit value");
         }
 
-        if (isset($page) && $page < 1) {
+        if ($page < 1) {
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
         }
 

@@ -161,7 +161,7 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
         $slim->group('/preferences', function() use ($slim, $params) {
             // Gets user preferences
             $slim->get('', function($id) {
-                (new PreferenceController())->getPreference($id);
+                (new PreferenceController())->getPreferences($id);
             });
             // Updates all user preferences
             $slim->put('', function($id) use ($params) {

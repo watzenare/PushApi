@@ -83,19 +83,19 @@ class Theme extends Eloquent implements IModel
     }
 
     /**
-     * Checks if user exists and returns it if true.
+     * Checks if theme exists and returns it if true.
      * @param  int $id User id
-     * @return User/false
+     * @return Theme/false
      */
     public static function checkExists($id)
     {
         try {
-            $user = Theme::findOrFail($id);
+            $theme = Theme::findOrFail($id);
         } catch (ModelNotFoundException $e) {
             return false;
         }
 
-        return $user;
+        return $theme;
     }
 
     public static function generateFromModel($theme)
@@ -105,7 +105,6 @@ class Theme extends Eloquent implements IModel
             $result['id'] = $theme->id;
             $result['name'] = $theme->name;
             $result['range'] = $theme->range;
-
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
@@ -126,9 +125,7 @@ class Theme extends Eloquent implements IModel
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
 
-        $theme = self::generateFromModel($theme);
-
-        return $theme;
+        return self::generateFromModel($theme);
     }
 
     /**
@@ -184,7 +181,7 @@ class Theme extends Eloquent implements IModel
      * @param  int $id Theme identification
      * @return array
      */
-    public static function get($id)
+    public static function getTheme($id)
     {
         try {
             $theme = Theme::findOrFail($id);
@@ -192,9 +189,7 @@ class Theme extends Eloquent implements IModel
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
 
-        $result = self::generateFromModel($theme);
-
-        return $result;
+        return self::generateFromModel($theme);
     }
 
     /**
