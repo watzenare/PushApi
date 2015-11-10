@@ -11,6 +11,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Contains the basic and general actions that can be done with a theme.
  */
@@ -108,9 +109,11 @@ class ThemeController extends Controller
 
     /**
      * Retrives all themes registred.
+     * @throws PushApiException
+     *
+     * Call params:
      * @var "limit" optional
      * @var "page" optional
-     * @throws PushApiException
      */
     public function getThemes()
     {
@@ -134,6 +137,9 @@ class ThemeController extends Controller
 
     /**
      * Retrives the theme information given its name.
+     * @throws PushApiException
+     *
+     * Call params:
      * @var "name" required
      */
     public function getThemeByName()
@@ -153,17 +159,22 @@ class ThemeController extends Controller
     /**
      * Retrives all themes registered given a range.
      * @param  string $range Value refering the range of the theme.
+     * @throws PushApiException
+     *
+     * Call params:
+     * @var "limit" optional
+     * @var "page" optional
      */
     public function getThemesByRange($range)
     {
         $limit = (isset($this->requestParams['limit']) ? $this->requestParams['limit'] : 10);
         $page = (isset($this->requestParams['page']) ? $this->requestParams['page'] : 1);
 
-        if (isset($limit) && $limit < 0) {
+        if ($limit < 0) {
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid limit value");
         }
 
-        if (isset($page) && $page < 1) {
+        if ($page < 1) {
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
         }
 
@@ -172,7 +183,7 @@ class ThemeController extends Controller
         }
 
         try {
-            $this->send(Theme::getInfoByRange($range, $limit, $page));
+            $this->send(Theme::getThemes($limit, $page, $range));
         } catch (PushApiException $e) {
             throw new PushApiException($e->getCode());
         }

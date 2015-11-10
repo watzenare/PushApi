@@ -12,6 +12,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Model of the devices table, manages all the relationships and dependencies
  * that can be done on these table
@@ -50,7 +51,7 @@ class Device extends Eloquent implements IModel
 
     /**
      * Relationship 1-n to get an instance of the users table.
-     * @return User Instance of User model
+     * @return User Instance of User model.
      */
     public function user()
     {
@@ -59,7 +60,7 @@ class Device extends Eloquent implements IModel
 
     /**
      * Checks if device exists and returns it if true.
-     * @param  int $id Device id
+     * @param  int $id Device id.
      * @return Device/false
      */
     public static function checkExists($id)
@@ -71,6 +72,21 @@ class Device extends Eloquent implements IModel
         }
 
         return $device;
+    }
+
+    public static function checkDeviceOwnership($idUser, $idDevice)
+    {
+        try {
+            $device = Device::where('id', $idDevice)->where('user_id', $idUser)->first();
+        } catch (ModelNotFoundException $e) {
+            return false;
+        }
+
+        if ($device) {
+            return $device;
+        }
+
+        return false;
     }
 
     public static function generateFromModel($device)
@@ -90,14 +106,14 @@ class Device extends Eloquent implements IModel
 
     /**
      * Obtains device information given its reference with user id.
-     * @param  int $userId  User identification
+     * @param  int $idUser  User identification.
      * @param  string $reference
-     * @return int/boolean  If user is found returns id, if not, returns false
+     * @return int/boolean  If user is found returns id, if not, returns false.
      */
-    public static function getIdByReference($userId, $reference)
+    public static function getIdByReference($idUser, $reference)
     {
         $model = self::getEmptyDataModel();
-        $device = Device::where('user_id', $userId)->where('reference', $reference)->first();
+        $device = Device::where('user_id', $idUser)->where('reference', $reference)->first();
 
         if ($device) {
             $model['id'] = $device->id;
@@ -111,9 +127,8 @@ class Device extends Eloquent implements IModel
 
     /**
      * Obtains all device information (even the non displayable) given its device reference.
-     * @param  int $userId  User identification
      * @param  string $reference
-     * @return int/boolean  If user is found returns id, if not, returns false
+     * @return int/boolean  If user is found returns id, if not, returns false.
      */
     public static function getFullDeviceInfoByReference($reference)
     {
@@ -133,15 +148,15 @@ class Device extends Eloquent implements IModel
 
     /**
      * Basic get device. Given its id and user id obtains device data if exists.
-     * @param  int $userId  User identification
+     * @param  int $idUser  User identification.
      * @param  string $reference
-     * @return int/boolean  If user is found returns id, if not, returns false
+     * @return int/boolean  If user is found returns id, if not, returns false.
      */
-    public static function getDevice($userId, $deviceId)
+    public static function getDevice($idUser, $idDevice)
     {
         $model = self::getEmptyDataModel();
 
-        $device = Device::where('id', $deviceId)->where('user_id', $userId)->first();
+        $device = self::checkDeviceOwnership($idUser, $idDevice);
 
         if ($device) {
             $model['id'] = $device->id;
@@ -157,25 +172,29 @@ class Device extends Eloquent implements IModel
      * Adds a new device refering the user and increases its devices counter.
      * It prevents to add duplicate values and updates smartphones device ids when a new user
      * is using the same smartphone.
-     * @param  int $userId  User identification
+     * @param  int $idUser  User identification.
      * @param  int/string $deviceType
      * @param  string $reference
      * @return boolean
+     * @throws PushApiException
      */
-    public static function addDevice($userId, $deviceType, $reference)
+    public static function addDevice($idUser, $deviceType, $reference)
     {
         if (gettype($deviceType) == 'string' && isset(self::$stringToType[$deviceType])) {
             $deviceType = self::$stringToType[$deviceType];
         }
 
-        if (!User::checkExists($userId)) {
+        if (!User::checkExists($idUser)) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
 
-        // If device is a smartphone, it can be used by more than one user. If it has not removed
-        // its notification after letting another user use its smartphone, it should be prevented
-        // to send notifications of the previous user.
-        if (($device = self::getFullDeviceInfoByReference($reference)) && ($device != self::TYPE_EMAIL)) {
+        /*
+         * If device is a smartphone, it can be used by more than one user. If it has not removed
+         * its notification after letting another user use its smartphone, it should be prevented
+         * to send notifications of the previous user.
+         */
+        $device = self::getFullDeviceInfoByReference($reference);
+        if ($device && ($deviceType != self::TYPE_EMAIL)) {
             // Removing data from the previous user
             self::removeDeviceById($device['user_id'], $device['id']);
         }
@@ -183,7 +202,7 @@ class Device extends Eloquent implements IModel
         // Adding device to user
         $device = new Device();
         $device->type = $deviceType;
-        $device->user_id = $userId;
+        $device->user_id = $idUser;
         $device->reference = $reference;
 
         // Saving the device and preventing exception if it is duplicated
@@ -193,7 +212,7 @@ class Device extends Eloquent implements IModel
             return false;
         }
 
-        if (User::incrementDevice($userId, $deviceType)) {
+        if (User::incrementDevice($idUser, $deviceType)) {
             return true;
         }
 
@@ -203,18 +222,19 @@ class Device extends Eloquent implements IModel
     /**
      * Deletes a device given that fits with all the params and decreases user devices counter.
      * Prevents to delete the last email address because user should hava at least 1 email registered.
-     * @param  int $userId
+     * @param  int $idUser
      * @param  int/string $deviceType
      * @param  string $reference
      * @return boolean
+     * @throws PushApiException
      */
-    public static function removeDeviceByParams($userId, $deviceType, $reference)
+    public static function removeDeviceByParams($idUser, $deviceType, $reference)
     {
         if (gettype($deviceType) == 'string' && isset(self::$stringToType[$deviceType])) {
             $deviceType = self::$stringToType[$deviceType];
         }
 
-        if (!$user = User::checkExists($userId)) {
+        if (!$user = User::checkExists($idUser)) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
 
@@ -226,11 +246,11 @@ class Device extends Eloquent implements IModel
         }
 
         // Searching if device exists and remove it (decrementing user counter value)
-        $device = Device::where('user_id', $userId)->where('type', $deviceType)->where('reference', $reference)->first();
+        $device = Device::where('user_id', $idUser)->where('type', $deviceType)->where('reference', $reference)->first();
         if ($device) {
             $device->delete();
 
-            if (User::decrementDevice($userId, $deviceType)) {
+            if (User::decrementDevice($idUser, $deviceType)) {
                 return true;
             }
         }
@@ -241,18 +261,23 @@ class Device extends Eloquent implements IModel
     /**
      * Deletes a device using reference ids and decreases user devices counter.
      * Prevents to delete the last email address because user should hava at least 1 email registered.
-     * @param  int $userId
-     * @param  int $deviceId
+     * @param  int $idUser
+     * @param  int $idDevice
      * @return boolean
+     * @throws PushApiException
      */
-    public static function removeDeviceById($userId, $deviceId)
+    public static function removeDeviceById($idUser, $idDevice)
     {
-        if (!$user = User::checkExists($userId)) {
+        if (!$user = User::checkExists($idUser)) {
             throw new PushApiException(PushApiException::NOT_FOUND, "User not found.");
         }
 
-        if (!$device = Device::checkExists($deviceId)) {
+        if (!$device = Device::checkExists($idDevice)) {
             throw new PushApiException(PushApiException::NOT_FOUND, "Device not found.");
+        }
+
+        if (!self::checkDeviceOwnership($idUser, $idDevice)) {
+            throw new PushApiException(PushApiException::INVALID_ACTION, "Cannot use device of another user.");
         }
 
         // Preventing to delete the last email
@@ -265,7 +290,7 @@ class Device extends Eloquent implements IModel
         // Removing the device and decrementing user counter value
         $device->delete();
 
-        if (User::decrementDevice($userId, $device->type)) {
+        if (User::decrementDevice($idUser, $device->type)) {
             return true;
         }
 
@@ -274,13 +299,13 @@ class Device extends Eloquent implements IModel
 
      /**
      * Deletes all devices of the target user id.
-     * @
-     * @param  int $userId User identification
+     * @param  int $idUser User identification.
      * @return boolean
+     * @throws PushApiException
      */
-    public static function deleteAllDevices($userId)
+    public static function deleteAllDevices($idUser)
     {
-        $devices = Device::where('user_id', $userId)->get();
+        $devices = Device::where('user_id', $idUser)->get();
 
         foreach ($devices as $device) {
             $device->delete();

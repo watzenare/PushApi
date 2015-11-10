@@ -11,6 +11,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Model of the subscriptions table, manages all the relationships and dependencies
  * that can be done on these table
@@ -35,8 +36,8 @@ class Subscription extends Eloquent implements IModel
     }
 
     /**
-     * Relationship 1-n to get an instance of the users table
-     * @return [User] Instance of User model
+     * Relationship 1-n to get an instance of the users table.
+     * @return User Instance of User model.
      */
     public function user()
     {
@@ -44,8 +45,8 @@ class Subscription extends Eloquent implements IModel
     }
 
     /**
-     * Relationship 1-n to get an instance of the channels table
-     * @return [Channel] Instance of Channel model
+     * Relationship 1-n to get an instance of the channels table.
+     * @return Channel Instance of Channel model.
      */
     public function channel()
     {
@@ -55,7 +56,7 @@ class Subscription extends Eloquent implements IModel
 /**
      * Checks if user exists and returns it if true.
      * @param  int $id
-     * @return Channel/false
+     * @return Subscription/false
      */
     public static function checkExists($id)
     {
@@ -69,7 +70,7 @@ class Subscription extends Eloquent implements IModel
     }
 
     /**
-     * Checks if it is set the subscription between user and channel
+     * Checks if it is set the subscription between user and channel.
      * @param  int $idUser
      * @param  int $idChannel
      * @return Subscription/false
@@ -82,7 +83,11 @@ class Subscription extends Eloquent implements IModel
             return false;
         }
 
-        return $subscription;
+        if ($subscription) {
+            return $subscription;
+        }
+
+        return false;
     }
 
     public static function generateFromModel($subscription)
@@ -131,7 +136,7 @@ class Subscription extends Eloquent implements IModel
             throw new PushApiException(PushApiException::DUPLICATED_VALUE);
         }
 
-        if (Channel::checkExists($idChannel)) {
+        if (User::checkExists($idUser) && Channel::checkExists($idChannel)) {
             $subscription = new Subscription;
             $subscription->user_id = (int) $idUser;
             $subscription->channel_id = (int) $idChannel;

@@ -259,8 +259,8 @@ $slim->group('/themes', $authChecker, function() use ($slim, $params) {
         (new ThemeController($params))->getThemes();
     });
     // Get all themes by $range
-    $slim->get('/range/:range', function($range) {
-        (new ThemeController())->getThemesByRange($range);
+    $slim->get('/range/:range', function($range) use ($params) {
+        (new ThemeController($params))->getThemesByRange($range);
     });
 });
 // Gets theme information given its name

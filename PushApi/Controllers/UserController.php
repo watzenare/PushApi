@@ -11,6 +11,7 @@ use \PushApi\Controllers\Controller;
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Contains the basic and general actions that user can do.
  */
@@ -38,11 +39,8 @@ class UserController extends Controller
             throw new PushApiException(PushApiException::INVALID_DATA);
         }
 
-        try {
-            $this->send(User::createUser($email));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(User::createUser($email));
+
     }
 
     /**
@@ -52,11 +50,7 @@ class UserController extends Controller
      */
     public function getUser($id)
     {
-        try {
-            $this->send(User::getUser($id));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(User::getUser($id));
     }
 
     /**
@@ -66,11 +60,7 @@ class UserController extends Controller
      */
     public function deleteUser($id)
     {
-        try {
-            $deleted = User::remove($id);
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $deleted = User::remove($id);
 
         $this->send($deleted);
     }
@@ -115,11 +105,7 @@ class UserController extends Controller
             Device::addDevice($id, $type, $reference);
         }
 
-        try {
-            $this->send(User::getUser($id));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(User::getUser($id));
     }
 
     /**
@@ -130,11 +116,7 @@ class UserController extends Controller
      */
     public function getUserDeviceInfo($id, $idDevice)
     {
-        try {
-            $this->send(Device::getDevice($id, $idDevice));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Device::getDevice($id, $idDevice));
     }
 
     /**
@@ -153,11 +135,7 @@ class UserController extends Controller
 
         $reference = $this->requestParams['reference'];
 
-        try {
-            $this->send(Device::getIdByReference($id, $reference));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Device::getIdByReference($id, $reference));
     }
 
     /**
@@ -168,13 +146,7 @@ class UserController extends Controller
      */
     public function removeUserDevice($id, $idDevice)
     {
-        Device::removeDeviceById($id, $idDevice);
-
-        try {
-            $this->send(User::getUser($id));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Device::removeDeviceById($id, $idDevice));
     }
 
     /**
@@ -196,11 +168,7 @@ class UserController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
         }
 
-        try {
-            $this->send(User::getUsers($limit, $page));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(User::getUsers($limit, $page));
     }
 
     /**
@@ -231,11 +199,7 @@ class UserController extends Controller
             }
         }
 
-        try {
-            $this->send($added);
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send($added);
     }
 
     /**
@@ -259,10 +223,6 @@ class UserController extends Controller
             $smartphones[] = "iOs";
         }
 
-        try {
-            $this->send($smartphones);
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send($smartphones);
     }
 }

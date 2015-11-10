@@ -12,6 +12,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Model of the channels table, manages all the relationships and dependencies
  * that can be done on these table.
@@ -36,7 +37,7 @@ class Channel extends Eloquent implements IModel
 
     /**
      * Relationship n-1 to get an instance of the subscribed table.
-     * @return [Subscribed] Instance of Subscription model
+     * @return Subscribed Instance of Subscription model
      */
     public function subscriptions()
     {
@@ -76,7 +77,7 @@ class Channel extends Eloquent implements IModel
     /**
      * Retrives the channel information given its name.
      * @param  string $name
-     * @return int/boolean
+     * @return array
      * @throws PushApiException
      */
     public static function getInfoByName($name)
@@ -154,6 +155,7 @@ class Channel extends Eloquent implements IModel
     public static function updateChannel($id, $update)
     {
         if (!$channel = self::checkExists($id)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
         }
 
         foreach ($update as $key => $value) {

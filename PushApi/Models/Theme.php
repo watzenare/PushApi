@@ -12,6 +12,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Model of the themes table, manages all the relationships and dependencies
  * that can be done on these table.
@@ -47,8 +48,8 @@ class Theme extends Eloquent implements IModel
     }
 
     /**
-     * Relationship n-1 to get an instance of the preferences table
-     * @return Preferences Instance of preferences model
+     * Relationship n-1 to get an instance of the preferences table.
+     * @return Preferences Instance of preferences model.
      */
     public function preferences()
     {
@@ -56,8 +57,8 @@ class Theme extends Eloquent implements IModel
     }
 
     /**
-     * Relationship n-1 to get an instance of the logs table
-     * @return Log Instance of Log model
+     * Relationship n-1 to get an instance of the logs table.
+     * @return Log Instance of Log model.
      */
     public function logs()
     {
@@ -65,8 +66,8 @@ class Theme extends Eloquent implements IModel
     }
 
     /**
-     * Relationship 1-1 to get an instance of the subjects table
-     * @return Subject Instance of Subject model
+     * Relationship 1-1 to get an instance of the subjects table.
+     * @return Subject Instance of Subject model.
      */
     public function subject()
     {
@@ -74,8 +75,8 @@ class Theme extends Eloquent implements IModel
     }
 
     /**
-     * Returns the valid values that accepts Theme model
-     * @return array Array with the accepted constants
+     * Returns the valid values that accepts Theme model.
+     * @return array Array with the accepted constants.
      */
     public static function getValidValues()
     {
@@ -131,39 +132,6 @@ class Theme extends Eloquent implements IModel
     }
 
     /**
-     * Retrives all themes registered given a range.
-     * @param  string $range
-     * @return array
-     * @throws PushApiException
-     */
-    public static function getInfoByRange($range, $limit = 10, $page = 1)
-    {
-        $result = [
-            'themes' => []
-        ];
-        $skip = 0;
-        // Updating the page offset
-        if ($page != 1) {
-            $skip = $page * $limit;
-        }
-
-        $result['limit'] = (int) $limit;
-        $result['page'] = (int) $page;
-
-        try {
-            $themes = Theme::where('range', $range)->orderBy('id', 'asc')->take($limit)->offset($skip)->get();
-            foreach ($themes as $theme) {
-                $result['themes'][] = self::generateFromModel($theme);
-            }
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
-        }
-        $result['totalInPage'] = sizeof($themes);
-
-        return $result;
-    }
-
-    /**
      * Retrives the Theme id given its name if exists.
      * @param  string $name Theme name.
      * @return int/boolean
@@ -181,7 +149,7 @@ class Theme extends Eloquent implements IModel
 
     /**
      * Obtains all information about target theme given its id.
-     * @param  int $id Theme identification
+     * @param  int $id Theme identification.
      * @return array
      * @throws PushApiException
      */
@@ -270,12 +238,14 @@ class Theme extends Eloquent implements IModel
 
     /**
      * Obtains all themes registered. It can be searched giving limit and page values.
-     * @param  int $limit Max results per page
-     * @param  int $page  Page to display
+     * Also can retrive all themes registered given a range value.
+     * @param  int $limit Max results per page.
+     * @param  int $page  Page to display.
+     * @param  string $range Theme range value.
      * @return array
      * @throws PushApiException
      */
-    public static function getThemes($limit = 10, $page = 1)
+    public static function getThemes($limit = 10, $page = 1, $range = false)
     {
         $result = [
             'themes' => []
@@ -290,7 +260,11 @@ class Theme extends Eloquent implements IModel
         $result['page'] = (int) $page;
 
         try {
-            $themes = Theme::orderBy('id', 'asc')->take($limit)->offset($skip)->get();
+            if ($range) {
+                $themes = Theme::where('range', $range)->orderBy('id', 'asc')->take($limit)->offset($skip)->get();
+            } else {
+                $themes = Theme::orderBy('id', 'asc')->take($limit)->offset($skip)->get();
+            }
             foreach ($themes as $theme) {
                 $result['themes'][] = self::generateFromModel($theme);
             }

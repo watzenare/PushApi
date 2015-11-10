@@ -11,6 +11,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Model of the preferences table, manages all the relationships and dependencies
  * that can be done on these table.
@@ -43,7 +44,7 @@ class Preference extends Eloquent implements IModel
 
     /**
      * Relationship 1-n to get an instance of the users table.
-     * @return User Instance of User model
+     * @return User Instance of User model.
      */
     public function user()
     {
@@ -52,7 +53,7 @@ class Preference extends Eloquent implements IModel
 
     /**
      * Relationship 1-n to get an instance of the themes table.
-     * @return Theme Instance of Theme model
+     * @return Theme Instance of Theme model.
      */
     public function theme()
     {
@@ -76,7 +77,7 @@ class Preference extends Eloquent implements IModel
     }
 
     /**
-     * Checks if it is set the preference between user and theme
+     * Checks if it is set the preference between user and theme.
      * @param  int $idUser
      * @param  int $idTheme
      * @return Preference/false
@@ -89,7 +90,11 @@ class Preference extends Eloquent implements IModel
             return false;
         }
 
-        return $preference;
+        if ($preference) {
+            return $preference;
+        }
+
+        return false;
     }
 
     public static function generateFromModel($preference)
@@ -122,7 +127,7 @@ class Preference extends Eloquent implements IModel
             throw new PushApiException(PushApiException::DUPLICATED_VALUE);
         }
 
-        if (Theme::checkExists($idTheme)) {
+        if (User::checkExists($idUser) && Theme::checkExists($idTheme)) {
             $preference = new Preference;
             $preference->user_id = (int) $idUser;
             $preference->theme_id = (int) $idTheme;

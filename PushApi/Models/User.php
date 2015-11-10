@@ -11,6 +11,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Model of the users table, manages all the relationships and dependencies
  * that can be done on these table.
@@ -38,7 +39,7 @@ class User extends Eloquent implements IModel
 
     /**
      * Relationship n-1 to get an instance of the subscribed table.
-     * @return Subscription Instance of Subscription model
+     * @return Subscription Instance of Subscription model.
      */
     public function subscriptions()
     {
@@ -47,7 +48,7 @@ class User extends Eloquent implements IModel
 
     /**
      * Relationship n-1 to get an instance of the preferences table.
-     * @return Preferences Instance of Preferences model
+     * @return Preferences Instance of Preferences model.
      */
     public function preferences()
     {
@@ -56,7 +57,7 @@ class User extends Eloquent implements IModel
 
     /**
      * Relationship n-1 to get an instance of the logs table.
-     * @return Log Instance of Log model
+     * @return Log Instance of Log model.
      */
     public function logs()
     {
@@ -65,7 +66,7 @@ class User extends Eloquent implements IModel
 
     /**
      * Relationship n-1 to get an instance of the devices table.
-     * @return Device Instance of Device model
+     * @return Device Instance of Device model.
      */
     public function devices()
     {
@@ -74,7 +75,7 @@ class User extends Eloquent implements IModel
 
     /**
      * Checks if user exists and returns it if true.
-     * @param  int $id User id
+     * @param  int $id User id.
      * @return User/false
      */
     public static function checkExists($id)
@@ -90,7 +91,7 @@ class User extends Eloquent implements IModel
 
     /**
      * Generates an user given its object data merging it with the devices that its owning.
-     * @param  User $user User object model
+     * @param  User $user User object model.
      * @return array
      * @throws PushApiException
      */
@@ -125,7 +126,7 @@ class User extends Eloquent implements IModel
     /**
      * Obtains the user identification given its email reference.
      * @param  string $email
-     * @return int/boolean  If user is found returns id, if not, returns false
+     * @return int/boolean  If user is found returns id, if not, returns false.
      */
     public static function getIdByEmail($email)
     {
@@ -140,7 +141,7 @@ class User extends Eloquent implements IModel
 
     /**
      * Obtains all information about target user given its id.
-     * @param  int $id User identification
+     * @param  int $id User identification.
      * @return array
      * @throws PushApiException
      */
@@ -169,7 +170,7 @@ class User extends Eloquent implements IModel
 
     /**
      * Creates a new user given its email reference.
-     * @param  string  $email User email reference
+     * @param  string  $email User email reference.
      * @return User/boolean
      */
     public static function createUser($email)
@@ -279,8 +280,8 @@ class User extends Eloquent implements IModel
     /**
      * Obtains all users registered in Push API with all its devices registered. It can be searched
      * giving limit and page values.
-     * @param  int $limit Max results per page
-     * @param  int $page  Page to display
+     * @param  int $limit Max results per page.
+     * @param  int $page  Page to display.
      * @return array
      * @throws PushApiException
      */
