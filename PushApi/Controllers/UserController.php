@@ -53,7 +53,7 @@ class UserController extends Controller
     public function getUser($id)
     {
         try {
-            $this->send(User::get($id));
+            $this->send(User::getUser($id));
         } catch (PushApiException $e) {
             throw new PushApiException($e->getCode());
         }
@@ -116,7 +116,7 @@ class UserController extends Controller
         }
 
         try {
-            $this->send(User::get($id));
+            $this->send(User::getUser($id));
         } catch (PushApiException $e) {
             throw new PushApiException($e->getCode());
         }
@@ -131,7 +131,7 @@ class UserController extends Controller
     public function getUserDeviceInfo($id, $idDevice)
     {
         try {
-            $this->send(Device::get($id, $idDevice));
+            $this->send(Device::getDevice($id, $idDevice));
         } catch (PushApiException $e) {
             throw new PushApiException($e->getCode());
         }
@@ -171,7 +171,7 @@ class UserController extends Controller
         Device::removeDeviceById($id, $idDevice);
 
         try {
-            $this->send(User::get($id));
+            $this->send(User::getUser($id));
         } catch (PushApiException $e) {
             throw new PushApiException($e->getCode());
         }

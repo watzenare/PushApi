@@ -12,7 +12,7 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  *
  * Model of the preferences table, manages all the relationships and dependencies
- * that can be done on these table
+ * that can be done on these table.
  */
 class Preference extends Eloquent implements IModel
 {
@@ -221,7 +221,7 @@ class Preference extends Eloquent implements IModel
         $skip = 0;
         // Updating the page offset
         if ($page != 1) {
-            $skip = $page * $limit;
+            $skip = ($page - 1) * $limit;
         }
 
         $result['limit'] = (int) $limit;

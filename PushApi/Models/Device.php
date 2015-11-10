@@ -137,7 +137,7 @@ class Device extends Eloquent implements IModel
      * @param  string $reference
      * @return int/boolean  If user is found returns id, if not, returns false
      */
-    public static function get($userId, $deviceId)
+    public static function getDevice($userId, $deviceId)
     {
         $model = self::getEmptyDataModel();
 

@@ -47,20 +47,15 @@ class ChannelController extends Controller
 
     /**
      * Retrives all channels registered or a channel information if it is registered
-     * @param [int] $id  Channel identification
+     * @param int $id  Channel identification
      */
-    public function getChannel($id = false)
+    public function getChannel($id)
     {
         try {
-            if (!$id) {
-                $channel = Channel::orderBy('id', 'asc')->get();
-            } else {
-                $channel = Channel::findOrFail($id);
-            }
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            $this->send(Channel::getChannel($id));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
         }
-        $this->send($channel->toArray());
     }
 
     /**
@@ -73,20 +68,16 @@ class ChannelController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        $channel = Channel::where('name', $this->requestParams['name'])->first();
-
-        if ($channel == null) {
-            $channel = [];
-        } else {
-            $channel = $channel->toArray();
+        try {
+            $this->send(Channel::getInfoByName($this->requestParams['name']));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
         }
-
-        $this->send($channel);
     }
 
     /**
      * Updates channel infomation given its identification and params to update
-     * @param [int] $id  Channel identification
+     * @param int $id  Channel identification
      *
      * Call params:
      * @var "name" required
@@ -102,32 +93,49 @@ class ChannelController extends Controller
         $update['name'] = $this->requestParams['name'];
 
         try {
-            $channel = Channel::findOrFail($id);
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            $this->send(Channel::updateChannel($id, $update));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
         }
-
-        foreach ($update as $key => $value) {
-            $channel->$key = $value;
-        }
-
-        $channel->update();
-        $this->send($channel->toArray());
     }
 
     /**
      * Deletes a channel given its identification
-     * @param [int] $id  Channel identification
+     * @param int $id  Channel identification
      */
     public function deleteChannel($id)
     {
         try {
-            $channel = Channel::findOrFail($id);
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            $this->send(Channel::remove($id));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
         }
-        $channel->delete();
-        // Inverse of the exitsts value, if it doesn't exists result should true
-        $this->send(!$channel->exists);
+    }
+
+    /**
+     * Retrives all channels registred.
+     *
+     * Call params:
+     * @var "limit" optional
+     * @var "page" optional
+     */
+    public function getChannels()
+    {
+        $limit = (isset($this->requestParams['limit']) ? $this->requestParams['limit'] : 10);
+        $page = (isset($this->requestParams['page']) ? $this->requestParams['page'] : 1);
+
+        if ($limit < 0) {
+            throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid limit value");
+        }
+
+        if ($page < 1) {
+            throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
+        }
+
+        try {
+            $this->send(Channel::getChannels($limit, $page));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
+        }
     }
 }

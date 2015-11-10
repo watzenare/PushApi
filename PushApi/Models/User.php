@@ -142,7 +142,7 @@ class User extends Eloquent implements IModel
      * @param  int $id User identification
      * @return array
      */
-    public static function get($id)
+    public static function getUser($id)
     {
         try {
             $user = User::findOrFail($id);
@@ -176,7 +176,7 @@ class User extends Eloquent implements IModel
         $userId = self::getIdByEmail($email);
 
         if ($userId) {
-            return self::get($userId);
+            return self::getUser($userId);
         }
 
         // Creating user adding email as first value
@@ -288,7 +288,7 @@ class User extends Eloquent implements IModel
         $skip = 0;
         // Updating the page offset
         if ($page != 1) {
-            $skip = $page * $limit;
+            $skip = ($page - 1) * $limit;
         }
 
         $result['limit'] = (int) $limit;

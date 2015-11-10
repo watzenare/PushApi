@@ -14,7 +14,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  *
  * Model of the themes table, manages all the relationships and dependencies
- * that can be done on these table
+ * that can be done on these table.
  */
 class Theme extends Eloquent implements IModel
 {
@@ -84,7 +84,7 @@ class Theme extends Eloquent implements IModel
 
     /**
      * Checks if theme exists and returns it if true.
-     * @param  int $id User id
+     * @param  int $id
      * @return Theme/false
      */
     public static function checkExists($id)
@@ -115,7 +115,7 @@ class Theme extends Eloquent implements IModel
     /**
      * Retrives the theme information given its name.
      * @param  string $name
-     * @return int/boolean  If user is found returns id, if not, returns false
+     * @return int/boolean
      */
     public static function getInfoByName($name)
     {
@@ -193,7 +193,7 @@ class Theme extends Eloquent implements IModel
     }
 
     /**
-     * Creates a new theme if it does not exist yet
+     * Creates a new theme if it does not exist yet.
      * @param  string $name  Name of the new theme.
      * @param  string $range Range of the notifications.
      * @return array
@@ -203,7 +203,7 @@ class Theme extends Eloquent implements IModel
         $themeExists = self::getIdByName($name);
 
         if ($themeExists) {
-            return self::get($id);
+            return self::getTheme($id);
         }
 
         if (!isset($theme->name)) {
@@ -217,7 +217,7 @@ class Theme extends Eloquent implements IModel
     }
 
     /**
-     * [update description]
+     * Updates the target theme with the available updating values.
      * @param  string $id
      * @param  array $update
      * @return array
@@ -239,7 +239,7 @@ class Theme extends Eloquent implements IModel
             throw new PushApiException(PushApiException::DUPLICATED_VALUE);
         }
 
-        return self::generateFromModel($theme);
+        return true;
     }
 
     /**
@@ -256,8 +256,8 @@ class Theme extends Eloquent implements IModel
         }
 
         try {
-            $user = Theme::findOrFail($id);
-            $user->delete();
+            $theme = Theme::findOrFail($id);
+            $theme->delete();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
@@ -266,8 +266,7 @@ class Theme extends Eloquent implements IModel
     }
 
     /**
-     * Obtains all themes registered in Push API with all its devices registered. It can be searched
-     * giving limit and page values.
+     * Obtains all themes registered. It can be searched giving limit and page values.
      * @param  int $limit Max results per page
      * @param  int $page  Page to display
      * @return array
@@ -280,7 +279,7 @@ class Theme extends Eloquent implements IModel
         $skip = 0;
         // Updating the page offset
         if ($page != 1) {
-            $skip = $page * $limit;
+            $skip = ($page - 1) * $limit;
         }
 
         $result['limit'] = (int) $limit;

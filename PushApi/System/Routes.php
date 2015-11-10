@@ -221,10 +221,10 @@ $slim->group('/channel', $authChecker, function() use ($slim, $params) {
         (new ChannelController())->deleteChannel($id);
     });
 });
-$slim->group('/channels', $authChecker, function() use ($slim) {
+$slim->group('/channels', $authChecker, function() use ($slim, $params) {
     // Geting all channels
-    $slim->get('', function() {
-        (new ChannelController())->getChannel();
+    $slim->get('', function() use ($params) {
+        (new ChannelController($params))->getChannels();
     });
 });
 // Gets channel information given its name
@@ -253,10 +253,10 @@ $slim->group('/theme', $authChecker, function() use ($slim, $params) {
         (new ThemeController())->deleteTheme($id);
     });
 });
-$slim->group('/themes', $authChecker, function() use ($slim) {
+$slim->group('/themes', $authChecker, function() use ($slim, $params) {
     // Geting all themes
-    $slim->get('', function() {
-        (new ThemeController())->getThemes();
+    $slim->get('', function() use ($params) {
+        (new ThemeController($params))->getThemes();
     });
     // Get all themes by $range
     $slim->get('/range/:range', function($range) {
