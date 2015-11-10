@@ -226,6 +226,11 @@ class Theme extends Eloquent implements IModel
             return false;
         }
 
+        // It must be deleted all subjects first in order to destroy the DB relationship
+        if (!Subject::deleteAllThemeSubjects($id)) {
+            return false;
+        }
+
         try {
             $theme = Theme::findOrFail($id);
             $theme->delete();
@@ -265,13 +270,15 @@ class Theme extends Eloquent implements IModel
             } else {
                 $themes = Theme::orderBy('id', 'asc')->take($limit)->offset($skip)->get();
             }
+
+            $result['totalInPage'] = sizeof($themes);
+
             foreach ($themes as $theme) {
                 $result['themes'][] = self::generateFromModel($theme);
             }
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
-        $result['totalInPage'] = sizeof($themes);
 
         return $result;
     }

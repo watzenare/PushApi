@@ -217,13 +217,15 @@ class Channel extends Eloquent implements IModel
 
         try {
             $channels = Channel::orderBy('id', 'asc')->take($limit)->offset($skip)->get();
-            foreach ($channels as $theme) {
-                $result['channels'][] = self::generateFromModel($theme);
+
+            $result['totalInPage'] = sizeof($channels);
+
+            foreach ($channels as $channel) {
+                $result['channels'][] = self::generateFromModel($channel);
             }
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
-        $result['totalInPage'] = sizeof($channels);
 
         return $result;
     }

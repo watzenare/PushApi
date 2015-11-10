@@ -301,13 +301,15 @@ class User extends Eloquent implements IModel
 
         try {
             $users = User::orderBy('id', 'asc')->take($limit)->offset($skip)->get();
+
+            $result['totalInPage'] = sizeof($users);
+
             foreach ($users as $user) {
                 $result['users'][] = self::generateFromModel($user);
             }
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
-        $result['totalInPage'] = sizeof($users);
 
         return $result;
     }

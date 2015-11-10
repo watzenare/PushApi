@@ -4,10 +4,7 @@ namespace PushApi\Controllers;
 
 use \PushApi\PushApiException;
 use \PushApi\Controllers\Controller;
-use \PushApi\Models\User;
-use \PushApi\Models\Channel;
 use \PushApi\Models\Subscription;
-use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -29,11 +26,7 @@ class SubscriptionController extends Controller
      */
     public function setSubscribed($idUser, $idChannel)
     {
-        try {
-            $this->send(Subscription::createSubscription($idUser, $idChannel));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Subscription::createSubscription($idUser, $idChannel));
     }
 
     /**
@@ -46,11 +39,7 @@ class SubscriptionController extends Controller
      */
     public function getSubscription($idUser, $idChannel)
     {
-        try {
-            $this->send(Subscription::getSubscription($idUser, $idChannel));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Subscription::getSubscription($idUser, $idChannel));
     }
 
     /**
@@ -61,11 +50,7 @@ class SubscriptionController extends Controller
      */
     public function deleteSubscription($idUser, $idChannel)
     {
-        try {
-            $this->send(Subscription::remove($idUser, $idChannel));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Subscription::remove($idUser, $idChannel));
     }
 
     /**
@@ -76,10 +61,6 @@ class SubscriptionController extends Controller
      */
     public function getSubscriptions($idUser)
     {
-        try {
-            $this->send(Subscription::getSubscriptions($idUser));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Subscription::getSubscriptions($idUser));
     }
 }

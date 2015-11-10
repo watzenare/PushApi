@@ -4,10 +4,7 @@ namespace PushApi\Controllers;
 
 use \PushApi\PushApiException;
 use \PushApi\Controllers\Controller;
-use \PushApi\Models\User;
-use \PushApi\Models\Theme;
 use \PushApi\Models\Preference;
-use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -43,11 +40,7 @@ class PreferenceController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE);
         }
 
-        try {
-            $this->send(Preference::createPreference($idUser, $idTheme, $option));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Preference::createPreference($idUser, $idTheme, $option));
     }
 
     /**
@@ -60,11 +53,7 @@ class PreferenceController extends Controller
      */
     public function getPreference($idUser, $idTheme)
     {
-        try {
-            $this->send(Preference::getPreference($idUser, $idTheme));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Preference::getPreference($idUser, $idTheme));
     }
 
     /**
@@ -90,11 +79,7 @@ class PreferenceController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE);
         }
 
-        try {
-            $this->send(Preference::updatePreference($idUser, $idTheme, $update));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Preference::updatePreference($idUser, $idTheme, $update));
     }
 
     /**
@@ -105,11 +90,7 @@ class PreferenceController extends Controller
      */
     public function deletePreference($idUser, $idTheme)
     {
-        try {
-            $this->send(Preference::remove($idUser, $idTheme));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Preference::remove($idUser, $idTheme));
     }
 
     /**
@@ -120,11 +101,7 @@ class PreferenceController extends Controller
      */
     public function getPreferences($idUser)
     {
-        try {
-            $this->send(Preference::getAllPreferences($idUser));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Preference::getAllPreferences($idUser));
     }
 
     /**
@@ -149,10 +126,6 @@ class PreferenceController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE);
         }
 
-        try {
-            $this->send(Preference::updateAllPreferences($idUser, $update));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Preference::updateAllPreferences($idUser, $update));
     }
 }

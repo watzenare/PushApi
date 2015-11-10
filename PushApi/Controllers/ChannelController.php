@@ -5,7 +5,6 @@ namespace PushApi\Controllers;
 use \PushApi\PushApiException;
 use \PushApi\Models\Channel;
 use \PushApi\Controllers\Controller;
-use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -34,11 +33,7 @@ class ChannelController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        try {
-            $this->send(Channel::createChannel($this->requestParams['name']));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Channel::createChannel($this->requestParams['name']));
     }
 
     /**
@@ -48,11 +43,7 @@ class ChannelController extends Controller
      */
     public function getChannel($id)
     {
-        try {
-            $this->send(Channel::getChannel($id));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Channel::getChannel($id));
     }
 
     /**
@@ -66,11 +57,7 @@ class ChannelController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        try {
-            $this->send(Channel::getInfoByName($this->requestParams['name']));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Channel::getInfoByName($this->requestParams['name']));
     }
 
     /**
@@ -91,11 +78,7 @@ class ChannelController extends Controller
 
         $update['name'] = $this->requestParams['name'];
 
-        try {
-            $this->send(Channel::updateChannel($id, $update));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Channel::updateChannel($id, $update));
     }
 
     /**
@@ -105,11 +88,7 @@ class ChannelController extends Controller
      */
     public function deleteChannel($id)
     {
-        try {
-            $this->send(Channel::remove($id));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Channel::remove($id));
     }
 
     /**
@@ -133,10 +112,6 @@ class ChannelController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
         }
 
-        try {
-            $this->send(Channel::getChannels($limit, $page));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Channel::getChannels($limit, $page));
     }
 }

@@ -40,7 +40,6 @@ class UserController extends Controller
         }
 
         $this->send(User::createUser($email));
-
     }
 
     /**

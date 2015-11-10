@@ -289,10 +289,10 @@ $slim->group('/subject', $authChecker, function() use ($slim, $params) {
         (new SubjectController())->deleteSubject($idSubject);
     });
 });
-$slim->group('/subjects', $authChecker, function() use ($slim) {
+$slim->group('/subjects', $authChecker, function() use ($slim, $params) {
     // Geting all subjects
-    $slim->get('', function() {
-        (new SubjectController())->getSubject();
+    $slim->get('', function() use ($params) {
+        (new SubjectController($params))->getSubjects();
     });
 });
 

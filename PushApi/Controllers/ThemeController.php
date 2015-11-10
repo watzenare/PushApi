@@ -50,11 +50,7 @@ class ThemeController extends Controller
      */
     public function getTheme($id)
     {
-        try {
-            $this->send(Theme::getTheme($id));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Theme::getTheme($id));
     }
 
     /**
@@ -87,11 +83,7 @@ class ThemeController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        try {
-            $this->send(Theme::updateTheme($id, $update));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Theme::updateTheme($id, $update));
     }
 
     /**
@@ -100,11 +92,7 @@ class ThemeController extends Controller
      */
     public function deleteTheme($id)
     {
-        try {
-            $this->send(Theme::remove($id));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Theme::remove($id));
     }
 
     /**
@@ -128,11 +116,7 @@ class ThemeController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
         }
 
-        try {
-            $this->send(Theme::getThemes($limit, $page));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Theme::getThemes($limit, $page));
     }
 
     /**
@@ -148,12 +132,7 @@ class ThemeController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        try {
-            $this->send(Theme::getInfoByName($this->requestParams['name']));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
-
+        $this->send(Theme::getInfoByName($this->requestParams['name']));
     }
 
     /**
@@ -182,10 +161,6 @@ class ThemeController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range themes: " . Theme::UNICAST . ", " . Theme::MULTICAST . ", " . Theme::BROADCAST);
         }
 
-        try {
-            $this->send(Theme::getThemes($limit, $page, $range));
-        } catch (PushApiException $e) {
-            throw new PushApiException($e->getCode());
-        }
+        $this->send(Theme::getThemes($limit, $page, $range));
     }
 }
