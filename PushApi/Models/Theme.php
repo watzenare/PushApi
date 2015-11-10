@@ -86,6 +86,7 @@ class Theme extends Eloquent implements IModel
      * Checks if theme exists and returns it if true.
      * @param  int $id
      * @return Theme/false
+     * @throws PushApiException
      */
     public static function checkExists($id)
     {
@@ -116,6 +117,7 @@ class Theme extends Eloquent implements IModel
      * Retrives the theme information given its name.
      * @param  string $name
      * @return int/boolean
+     * @throws PushApiException
      */
     public static function getInfoByName($name)
     {
@@ -132,6 +134,7 @@ class Theme extends Eloquent implements IModel
      * Retrives all themes registered given a range.
      * @param  string $range
      * @return array
+     * @throws PushApiException
      */
     public static function getInfoByRange($range, $limit = 10, $page = 1)
     {
@@ -180,6 +183,7 @@ class Theme extends Eloquent implements IModel
      * Obtains all information about target theme given its id.
      * @param  int $id Theme identification
      * @return array
+     * @throws PushApiException
      */
     public static function getTheme($id)
     {
@@ -197,21 +201,20 @@ class Theme extends Eloquent implements IModel
      * @param  string $name  Name of the new theme.
      * @param  string $range Range of the notifications.
      * @return array
+     * @throws PushApiException
      */
     public static function createTheme($name, $range)
     {
         $themeExists = self::getIdByName($name);
 
         if ($themeExists) {
-            return self::getTheme($id);
+            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
         }
 
-        if (!isset($theme->name)) {
-            $theme = new Theme;
-            $theme->name = $name;
-            $theme->range = $range;
-            $theme->save();
-        }
+        $theme = new Theme;
+        $theme->name = $name;
+        $theme->range = $range;
+        $theme->save();
 
         return $theme;
     }
@@ -270,6 +273,7 @@ class Theme extends Eloquent implements IModel
      * @param  int $limit Max results per page
      * @param  int $page  Page to display
      * @return array
+     * @throws PushApiException
      */
     public static function getThemes($limit = 10, $page = 1)
     {

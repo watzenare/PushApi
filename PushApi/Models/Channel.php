@@ -45,8 +45,9 @@ class Channel extends Eloquent implements IModel
 
     /**
      * Checks if channel exists and returns it if true.
-     * @param  int $id User id
+     * @param  int $id
      * @return Channel/false
+     * @throws PushApiExceptions
      */
     public static function checkExists($id)
     {
@@ -76,6 +77,7 @@ class Channel extends Eloquent implements IModel
      * Retrives the channel information given its name.
      * @param  string $name
      * @return int/boolean
+     * @throws PushApiException
      */
     public static function getInfoByName($name)
     {
@@ -108,6 +110,7 @@ class Channel extends Eloquent implements IModel
      * Obtains all information about target theme given its id.
      * @param  int $id
      * @return array
+     * @throws PushApiException
      */
     public static function getChannel($id)
     {
@@ -124,20 +127,19 @@ class Channel extends Eloquent implements IModel
      * Creates a new channel if it does not exist yet.
      * @param  string $name
      * @return array
+     * @throws PushApiException
      */
     public static function createChannel($name)
     {
         $channelExists = self::getIdByName($name);
 
         if ($channelExists) {
-            return self::getChannel($id);
+            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
         }
 
-        if (!isset($channel->name)) {
-            $channel = new Channel;
-            $channel->name = $name;
-            $channel->save();
-        }
+        $channel = new Channel;
+        $channel->name = $name;
+        $channel->save();
 
         return $channel;
     }
@@ -147,11 +149,11 @@ class Channel extends Eloquent implements IModel
      * @param  int $id
      * @param  string $name
      * @return boolean
+     * @throws PushApiException
      */
     public static function updateChannel($id, $update)
     {
         if (!$channel = self::checkExists($id)) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
         }
 
         foreach ($update as $key => $value) {
@@ -171,6 +173,7 @@ class Channel extends Eloquent implements IModel
      * Deletes the target channel given its id.
      * @param  int $id
      * @return boolean
+     * @throws PushApiException
      */
     public static function remove($id)
     {
@@ -194,6 +197,7 @@ class Channel extends Eloquent implements IModel
      * @param  int $limit
      * @param  int $page
      * @return array
+     * @throws PushApiException
      */
     public static function getChannels($limit = 10, $page = 1)
     {

@@ -92,6 +92,7 @@ class User extends Eloquent implements IModel
      * Generates an user given its object data merging it with the devices that its owning.
      * @param  User $user User object model
      * @return array
+     * @throws PushApiException
      */
     public static function generateFromModel($user)
     {
@@ -141,6 +142,7 @@ class User extends Eloquent implements IModel
      * Obtains all information about target user given its id.
      * @param  int $id User identification
      * @return array
+     * @throws PushApiException
      */
     public static function getUser($id)
     {
@@ -225,6 +227,7 @@ class User extends Eloquent implements IModel
      * @param  int $userId
      * @param  int $deviceType
      * @return boolean
+     * @throws PushApiException
      */
     public static function decrementDevice($userId, $deviceType)
     {
@@ -279,6 +282,7 @@ class User extends Eloquent implements IModel
      * @param  int $limit Max results per page
      * @param  int $page  Page to display
      * @return array
+     * @throws PushApiException
      */
     public static function getUsers($limit = 10, $page = 1)
     {

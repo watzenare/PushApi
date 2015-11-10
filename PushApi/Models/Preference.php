@@ -5,6 +5,7 @@ namespace PushApi\Models;
 use \PushApi\System\IModel;
 use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
+use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -60,7 +61,7 @@ class Preference extends Eloquent implements IModel
 
     /**
      * Checks if user exists and returns it if true.
-     * @param  int $id User id
+     * @param  int $id
      * @return Theme/false
      */
     public static function checkExists($id)
@@ -117,13 +118,7 @@ class Preference extends Eloquent implements IModel
     public static function createPreference($idUser, $idTheme, $option)
     {
         // Checking if preference is already set
-        try {
-            $preferenceExists = User::findOrFail($idUser)->preferences()->where('theme_id', $idTheme)->first();
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
-        }
-
-        if ($preferenceExists) {
+        if (self::checkExistsUserPreference($idUser, $idTheme)) {
             throw new PushApiException(PushApiException::DUPLICATED_VALUE);
         }
 
@@ -133,9 +128,10 @@ class Preference extends Eloquent implements IModel
             $preference->theme_id = (int) $idTheme;
             $preference->option = $option;
             $preference->save();
+            return $preference;
+        } else {
+            throw new PushApiException(PushApiException::NOT_FOUND);
         }
-
-        return $preference;
     }
 
     /**
@@ -206,36 +202,23 @@ class Preference extends Eloquent implements IModel
     }
 
     /**
-     * Obtains all user preferences set by the user. It can be searched giving limit and page values.
+     * Obtains all user preferences set by the user.
      * @param  int $idUser
-     * @param  int $limit
-     * @param  int $page
      * @return array
      * @throws PushApiException
      */
-    public static function getAllPreferences($idUser, $limit, $page)
+    public static function getAllPreferences($idUser)
     {
-        $result = [
-            'preferences' => []
-        ];
-        $skip = 0;
-        // Updating the page offset
-        if ($page != 1) {
-            $skip = ($page - 1) * $limit;
-        }
-
-        $result['limit'] = (int) $limit;
-        $result['page'] = (int) $page;
+        $result = [];
 
         try {
-            $preferences = User::findOrFail($idUser)->preferences()->orderBy('id', 'asc')->take($limit)->offset($skip)->get();
+            $preferences = User::findOrFail($idUser)->preferences()->orderBy('id', 'asc')->get();
             foreach ($preferences as $preference) {
-                $result['preferences'][] = self::generateFromModel($preference);
+                $result[] = self::generateFromModel($preference);
             }
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
-        $result['totalInPage'] = sizeof($preferences);
 
         return $result;
     }

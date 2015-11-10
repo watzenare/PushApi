@@ -22,6 +22,7 @@ class ChannelController extends Controller
      * to registrate twice (checked by name), the information of the
      * registrated channel is displayed without adding him again into the
      * registration.
+     * @throws PushApiException
      *
      * Call params:
      * @var "name" required
@@ -32,22 +33,17 @@ class ChannelController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        $name = $this->requestParams['name'];
-
-        // Checking if channel already exists
-        $channel = Channel::where('name', $name)->first();
-
-        if (!isset($channel->name)) {
-            $channel = new Channel;
-            $channel->name = $name;
-            $channel->save();
+        try {
+            $this->send(Channel::createChannel($this->requestParams['name']));
+        } catch (PushApiException $e) {
+            throw new PushApiException($e->getCode());
         }
-        $this->send($channel->toArray());
     }
 
     /**
-     * Retrives all channels registered or a channel information if it is registered
-     * @param int $id  Channel identification
+     * Retrives all channels registered or a channel information if it is registered.
+     * @param int $id  Channel identification.
+     * @throws PushApiException
      */
     public function getChannel($id)
     {
@@ -59,8 +55,9 @@ class ChannelController extends Controller
     }
 
     /**
-     * Retrives the channel information given its name
-     * @param [string] $name  Channel name
+     * Retrives the channel information given its name.
+     * @param string $name  Channel name.
+     * @throws PushApiException
      */
     public function getChannelByName()
     {
@@ -76,8 +73,9 @@ class ChannelController extends Controller
     }
 
     /**
-     * Updates channel infomation given its identification and params to update
-     * @param int $id  Channel identification
+     * Updates channel infomation given its identification and params to update.
+     * @param int $id  Channel identification.
+     * @throws PushApiException
      *
      * Call params:
      * @var "name" required
@@ -100,8 +98,9 @@ class ChannelController extends Controller
     }
 
     /**
-     * Deletes a channel given its identification
-     * @param int $id  Channel identification
+     * Deletes a channel given its identification.
+     * @param int $id  Channel identification.
+     * @throws PushApiException
      */
     public function deleteChannel($id)
     {
@@ -114,6 +113,7 @@ class ChannelController extends Controller
 
     /**
      * Retrives all channels registred.
+     * @throws PushApiException
      *
      * Call params:
      * @var "limit" optional

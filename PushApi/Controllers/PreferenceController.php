@@ -22,8 +22,9 @@ class PreferenceController extends Controller
      * Sets user preference to a given theme, if the preference has
      * been done before, it only displays the information of the preference
      * else, creates the preference and displays the resulting information
-     * @param [int] $idUser User identification
-     * @param [int] $idTheme Theme identification
+     * @param int $idUser User identification
+     * @param int $idTheme Theme identification
+     * @throws PushApiException
      *
      * Call params:
      * @var "option" required
@@ -52,8 +53,9 @@ class PreferenceController extends Controller
      * Retrives all preferences of a given user or it also can check
      * if user has set preferences from a theme (if he has set it, the
      * preference is displayed)
-     * @param [int] $idUser User identification
-     * @param [int] $idTheme Theme identification
+     * @param int $idUser User identification
+     * @param int $idTheme Theme identification
+     * @throws PushApiException
      */
     public function getPreference($idUser, $idTheme)
     {
@@ -66,8 +68,9 @@ class PreferenceController extends Controller
 
     /**
      * Updates user preference given an id theme
-     * @param [int] $idUser User identification
-     * @param [int] $idTheme Theme identification
+     * @param int $idUser User identification
+     * @param int $idTheme Theme identification
+     * @throws PushApiException
      *
      * Call params:
      * @var "option" required
@@ -95,8 +98,9 @@ class PreferenceController extends Controller
 
     /**
      * Deletes a user preference given a user and a theme id
-     * @param [int] $idUser User identification
-     * @param [int] $idTheme Theme identification
+     * @param int $idUser User identification
+     * @param int $idTheme Theme identification
+     * @throws PushApiException
      */
     public function deletePreference($idUser, $idTheme)
     {
@@ -107,21 +111,16 @@ class PreferenceController extends Controller
         }
     }
 
+    /**
+     * Retrives all user preferences registred.
+     * @param  int $idUser User identification.
+     * @return array
+     * @throws PushApiException
+     */
     public function getPreferences($idUser)
     {
-        $limit = (isset($this->requestParams['limit']) ? $this->requestParams['limit'] : 10);
-        $page = (isset($this->requestParams['page']) ? $this->requestParams['page'] : 1);
-
-        if ($limit < 0) {
-            throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid limit value");
-        }
-
-        if ($page < 1) {
-            throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
-        }
-
         try {
-            $this->send(Preference::getAllPreferences($idUser, $limit, $page));
+            $this->send(Preference::getAllPreferences($idUser));
         } catch (PushApiException $e) {
             throw new PushApiException($e->getCode());
         }
@@ -129,7 +128,8 @@ class PreferenceController extends Controller
 
     /**
      * Updates the value of all the user preferences with the option set
-     * @param [int] $idUser User identification
+     * @param int $idUser User identification
+     * @throws PushApiException
      *
      * Call params:
      * @var "option" required

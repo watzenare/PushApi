@@ -144,15 +144,15 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
         $slim->group('/subscribed', function() use ($slim) {
             // Gets user subscriptions
             $slim->get('', function($id) {
-                (new SubscriptionController())->getSubscribed($id);
+                (new SubscriptionController())->getSubscriptions($id);
             });
             // Gets user $id subscription $idchannel
             $slim->get('/:idchannel', function($id, $idchannel) {
-                (new SubscriptionController())->getSubscribed($id, $idchannel);
+                (new SubscriptionController())->getSubscription($id, $idchannel);
             });
             // Deletes user $id subscriptions
             $slim->delete('/:idchannel', function($id, $idchannel) {
-                (new SubscriptionController())->deleteSubscribed($id, $idchannel);
+                (new SubscriptionController())->deleteSubscription($id, $idchannel);
             });
         });
         //////////////////////////////////////////

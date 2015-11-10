@@ -27,23 +27,29 @@ function dbConnect()
 }
 
 $db = dbConnect();
-
+$count = 0;
 $users = $db->query("SELECT * FROM users");
 
 foreach ($users as $user) {
     if (!empty($user['email'])) {
-        var_dump($db->query("INSERT INTO `devices` (`type`, `user_id`, `device_id`, `created`) VALUES (" . 1 . ", " . $user['id'] . ", '" . $user['email'] . "', now())") === true);
+        print_r($db->query("INSERT INTO `devices` (`type`, `user_id`, `device_id`, `created`) VALUES (" . 1 . ", " . $user['id'] . ", '" . $user['email'] . "', now())") === true);
     }
 
     if (!empty($user['android_id'])) {
-        var_dump($db->query("INSERT INTO `devices` (`type`, `user_id`, `device_id`, `created`) VALUES (" . 2 . ", " . $user['id'] . ", '" . $user['android_id'] . "', now())") === true);
+        print_r($db->query("INSERT INTO `devices` (`type`, `user_id`, `device_id`, `created`) VALUES (" . 2 . ", " . $user['id'] . ", '" . $user['android_id'] . "', now())") === true);
     }
 
     if (!empty($user['ios_id'])) {
-        var_dump($db->query("INSERT INTO `devices` (`type`, `user_id`, `device_id`, `created`) VALUES (" . 2 . ", " . $user['id'] . ", '" . $user['ios_id'] . "', now())") === true);
+        print_r($db->query("INSERT INTO `devices` (`type`, `user_id`, `device_id`, `created`) VALUES (" . 2 . ", " . $user['id'] . ", '" . $user['ios_id'] . "', now())") === true);
+    }
+    $count++;
+    if (($count % 10) == 0) {
+        print_r("Users done:" . $count);
     }
 }
 
-var_dump("All done, DROP and CREATE the Users table again.");
+print_r("All user devices added to the new 'Devices table', DROPING and CREATING again the 'Users table'.");
+
+// print_r($db->query("UPDATE `users` SET `email/android/ios` = $count WHERE `id` = $id") === true);
 
 $db->close();
