@@ -229,4 +229,26 @@ class Channel extends Eloquent implements IModel
 
         return $result;
     }
+
+    public static function getSubscriptors($name)
+    {
+        $users = [];
+
+        $id = self::getIdByName($name);
+
+        if ($id == null) {
+            return false;
+        }
+
+        try {
+            $subscriptors = Channel::findOrFail($id)->subscriptions()->get();
+            foreach ($subscriptors as $user) {
+                $users[] = User::getUser($user->user_id);
+            }
+        } catch (ModelNotFoundException $e) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        return $users;
+    }
 }
