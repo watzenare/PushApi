@@ -302,3 +302,31 @@ $slim->group('/subjects', $authChecker, function() use ($slim, $params) {
 $slim->post('/send', $authChecker, function() use ($slim, $params) {
     (new LogController($params))->sendMessage();
 });
+
+//////////////////////////////////
+//         LOG ROUTES           //
+//////////////////////////////////
+// $slim->group('/log', $authChecker, function() use ($slim, $params) {
+//     // // Creates log retrives it if it was created before
+//     // $slim->post('', function() use ($params) {
+//     //     (new LogController($params))->setSubject();
+//     // });
+//     // Gets log $idSubject
+//     $slim->get('/:idlog', function($idSubject) {
+//         (new LogController())->getSubject($idSubject);
+//     });
+//     // // Updates log $idSubject given put params
+//     // $slim->put('/:idlog', function($idSubject) use ($params) {
+//     //     (new LogController($params))->updateSubject($idSubject);
+//     // });
+//     // Deletes log $idSubject
+//     $slim->delete('/:idlog', function($idSubject) {
+//         (new LogController())->deleteSubject($idSubject);
+//     });
+// });
+// $slim->group('/logs', $authChecker, function() use ($slim, $params) {
+//     // Geting all logs
+//     $slim->get('', function() use ($params) {
+//         (new LogController($params))->getSubjects();
+//     });
+// });

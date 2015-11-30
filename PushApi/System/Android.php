@@ -153,7 +153,6 @@ class Android implements INotification
      */
     public function checkResults($users, $result)
     {
-        $user = new User;
         for ($i = 0; $i < sizeof($users); $i++) {
             // user can't be reached and the message should be sent again
             if (isset($result[$i]->error) && $result[$i]->error == self::UNAVAILABLE) {

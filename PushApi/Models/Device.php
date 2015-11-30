@@ -59,7 +59,7 @@ class Device extends Eloquent implements IModel
     }
 
     /**
-     * Checks if device exists and returns it if true.
+     * Checks if device id exists and returns the device if true.
      * @param  int $id Device id.
      * @return Device/false
      */
