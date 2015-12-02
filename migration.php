@@ -11,10 +11,10 @@ function dbConnect()
 {
     // Create connection
     $conn = new mysqli(
-        'localhost',
-        'pushapi',
-        'f69fda8c6dbbe18b',
-        'pushdb'
+        'db_host',
+        'db_username',
+        'db_password',
+        'db_name'
     );
 
     // Check connection
