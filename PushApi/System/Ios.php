@@ -4,10 +4,13 @@ namespace PushApi\System;
 
 use \PushApi\PushApiException;
 use \PushApi\System\INotification;
-use \PushApi\Models\User;
+use \PushApi\Models\Device;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Manages the main functionalities that handles iOs notifications sending.
  *
@@ -124,24 +127,25 @@ class Ios implements INotification
 
 
     /**
-     * Obtains the user id from the DB and caches it into a local array variable
-     * @param  string $deviceToken The target device token
-     * @return int              The push user id
+     * Obtains the user id from the DB and caches it into a local array variable.
+     * @param  string $deviceToken The target device token.
+     * @return int  The push user id.
      */
     private function getIdentifier($deviceToken)
     {
         if (!isset($this->appleIdentifiersList[$deviceToken])) {
-            $user = new User;
-            $user = User::where('ios_id', $deviceToken)->first();
-            $this->appleIdentifiersList[$deviceToken] = (int) $user->id;
+            $device = Device::getFullDeviceInfoByReference($deviceToken);
+            if ($device) {
+                $this->appleIdentifiersList[$deviceToken] = $device['user_id'];
+            }
         }
 
         return $this->appleIdentifiersList[$deviceToken];
     }
 
     /**
-     * Returns the expiry time of the message which can be alive
-     * @return integer The expiry time of the message
+     * Returns the expiry time of the message which can be alive.
+     * @return integer The expiry time of the message.
      */
     private function getExpiry()
     {
@@ -155,7 +159,7 @@ class Ios implements INotification
     }
 
     /**
-     * Obtains the right APNS server Url depending the environment
+     * Obtains the right APNS server Url depending the environment.
      */
     private function getServerUrl($feedBackUrl = false)
     {
@@ -173,7 +177,7 @@ class Ios implements INotification
     }
 
     /**
-     * Obtains the right certificate depending the environment
+     * Obtains the right certificate depending the environment.
      */
     private function getCertificateFile()
     {
@@ -185,7 +189,7 @@ class Ios implements INotification
     }
 
     /**
-     * Obtains the right password for the private key depending the environment
+     * Obtains the right password for the private key depending the environment.
      */
     private function getPrivateKeyPassword()
     {
@@ -197,12 +201,12 @@ class Ios implements INotification
     }
 
     /**
-     * Building the binary notification (see the structure) and sending to its receiver/s
+     * Building the binary notification (see the structure) and sending to its receiver/s.
      * @link https://developer.apple.com/library/ios/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/Chapters/CommunicatingWIthAPS.html#//apple_ref/doc/uid/TP40008194-CH101-SW6
      * DeviceToken(32bytes) - Payload(<=2kilobytes) - NotificationIdentifier(4bytes) - ExpirationDate(4bytes) - Priority(1byte)
-     * @param  stirng $deviceToken The target device token that will receive the message
-     * @param  string $payload     A json with the message that will be send to APNS
-     * @return string              The apple message constructed
+     * @param  stirng $deviceToken The target device token that will receive the message.
+     * @param  string $payload  A json with the message that will be send to APNS.
+     * @return string  The apple message constructed.
      */
     private function generateBinaryMessage($deviceToken, $payload)
     {
@@ -214,16 +218,16 @@ class Ios implements INotification
     }
 
     /**
-     * Sending the message to the server
+     * Sending the message to the server.
      *
      * INFO:
      * When you send a notification that is accepted by APNs, nothing is returned. When you
      * send a notification that is malformed or otherwise unintelligible, APNs returns an error-
      * response packet and closes the connection. Any notifications that you sent after the
      * malformed notification using the same connection are discarded, and must be resent.
-     * @param  Socket $apns        The connection to APNS
-     * @param  ApnsMessage $apnsMessage The Binary APNS message
-     * @return Array              An array with the response after sending the message
+     * @param  Socket $apns  The connection to APNS.
+     * @param  ApnsMessage $apnsMessage The Binary APNS message.
+     * @return Array  An array with the response after sending the message.
      */
     private function sendToApns($apns, $apnsMessage)
     {
@@ -274,7 +278,7 @@ class Ios implements INotification
             $apnsMessage = $this->generateBinaryMessage($this->recipient, $this->message);
             $response = $this->sendToApns($apns, $apnsMessage);
             if ($response['code'] != self::SUCCESS) {
-                $response['deviceToken'] = $deviceToken;
+                $response['deviceToken'] = $this->recipient;
                 $result[] = $response;
             }
         }
@@ -286,9 +290,9 @@ class Ios implements INotification
     }
 
     /**
-     * Transforms the APNS response code into an improved description of the response (string description)
-     * @param  int  $response  The APNS response code
-     * @return string  The description of the response code
+     * Transforms the APNS response code into an improved description of the response (string description).
+     * @param  int  $response  The APNS response code.
+     * @return string  The description of the response code.
      */
     private function getResponseDescription($response)
     {
@@ -322,9 +326,9 @@ class Ios implements INotification
     }
 
     /**
-     * Review the errors with the feedback of APNS
-     * @param  array $result The array of the errors that APNS has warned
-     * @return boolean         The result of the validation
+     * Review the errors with the feedback of APNS.
+     * @param  array $result The array of the errors that APNS has warned.
+     * @return boolean  The result of the validation.
      */
     public function checkResults($result)
     {
@@ -334,12 +338,10 @@ class Ios implements INotification
 
         foreach ($result as $target) {
             if ($target['code'] == self::INVALID_TOKEN || $target['code'] == self::INVALID_TOKEN_SIZE) {
-                // Deleting the user token
-                $user = new User;
-                $user = User::where('ios_id', $target['deviceToken'])->first();
-                if (isset($user)) {
-                    $user->ios_id = "0";
-                    $user->update();
+                // Deleting the user device reference if exists.
+                $device = Device::getFullDeviceInfoByReference($target['deviceToken']);
+                if ($device) {
+                    Device::removeDeviceByParams($device['user_id'], Device::TYPE_IOS, $target['deviceToken']);
                 }
             }
         }

@@ -3,6 +3,11 @@
  * Worker that retrives data from the iOs queue, prepares the HTTP messsage in order
  * to send it to the APNS server who will send the message to its target. It is logged the
  * queue data and the result of sending the information.
+ *
+ * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  */
 
 // Include configurations and global PushApi constants

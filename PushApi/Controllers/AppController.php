@@ -9,6 +9,9 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Contains the basic and general actions for the API validation.
  */
@@ -104,11 +107,12 @@ class AppController extends Controller
 	{
         try {
             $app = App::findOrFail($id);
+            $app->delete();
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
-        $app->delete();
-        $this->send($app->toArray());
+        // Inverse of the exitsts value, if it doesn't exists result should true
+        $this->send(!$app->exists);
     }
 
 	/**

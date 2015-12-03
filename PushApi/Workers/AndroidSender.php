@@ -1,11 +1,16 @@
 <?php
 /**
- * Worker that retrives data from the android queue, prepares the HTTP messsage in order
+ * Worker that retrieves data from the android queue, prepares the HTTP message in order
  * to send it to the Google Cloud Messaging server and sends the message. It is logged the
  * queue data and the result of sending the information.
  * Also it is updated user information if it has got a new registration_id, deletes user
- * registration id if this id has been deprecated or resends the notification if the target
+ * registration id if this id has been deprecated or resend the notification if the target
  * can't be reached.
+ *
+ * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  */
 
 // Include configurations and global PushApi constants
