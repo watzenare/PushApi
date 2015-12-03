@@ -26,13 +26,13 @@ class QueueController extends Controller
      */
     private $params = [];
     private $references = [
-        'android' => [],
-        'ios' => [],
+        self::ANDROID => [],
+        self::IOS => [],
     ];
 
     /**
      * Basic setter of the private $params variable.
-     * @param sting $key
+     * @param string $key
      * @param int/string/boolean $value
      */
     public function addParams($key, $value)
@@ -57,7 +57,7 @@ class QueueController extends Controller
     }
 
     /**
-     * Adds at the end of the specific queue the data recived
+     * Adds at the end of the specific queue the data received
      * @param array $data   Data we want to add into the queue
      * @param string $target The target queue name
      * @return boolean       Success of the operation
@@ -86,7 +86,7 @@ class QueueController extends Controller
     }
 
     /**
-     * Retrieves the data data of the queue from the begining of the target queue
+     * Retrieves the data data of the queue from the beginning of the target queue
      * @param  string $target The target queue name
      * @return array/boolean The data in the queue
      */
@@ -121,7 +121,7 @@ class QueueController extends Controller
      */
     public function preQueuingDecider($preference, $devicesIds, $multiple = false)
     {
-        // Checking if user wants to recive via email
+        // Checking if user wants to receive via email
         if ((Preference::EMAIL & $preference) == Preference::EMAIL && isset($devicesIds[self::EMAIL])) {
             $this->addEachDeviceToQueue($devicesIds[self::EMAIL], self::EMAIL);
         }
@@ -141,18 +141,18 @@ class QueueController extends Controller
             // Checking if user wants to receive via smartphone
             if ((Preference::SMARTPHONE & $preference) == Preference::SMARTPHONE) {
                 if (isset($devicesIds[self::ANDROID]) && !empty($devicesIds[self::ANDROID])) {
-                    $this->references['android'] = $this->addReferencesToArray($devicesIds[self::ANDROID]);
+                    $this->references[self::ANDROID] = $this->addReferencesToArray($devicesIds[self::ANDROID]);
                 }
                 if (isset($devicesIds[self::IOS]) && !empty($devicesIds[self::IOS])) {
-                    $this->references['ios'] = $this->addReferencesToArray($devicesIds[self::IOS]);
+                    $this->references[self IOS] = $this->addReferencesToArray($devicesIds[self::IOS]);
                 }
 
                 // Android GMC lets send notifications to 1000 devices with one JSON message,
                 // if there are more >1000 we need to refill the list
-                if (sizeof($this->references['android']) == 1000) {
-                    $this->params['receiver'] = $this->references['android'];
+                if (sizeof($this->references[self::ANDROID]) == 1000) {
+                    $this->params['receiver'] = $this->references[self::ANDROID];
                     $this->addToDeviceQueue(self::ANDROID);
-                    $this->references['android'] = [];
+                    $this->references[self::ANDROID] = [];
                 }
             }
         }
@@ -162,13 +162,36 @@ class QueueController extends Controller
      * Obtains all destination references of the target user given the target device.
      * @param  array $references
      * @param  string $device
-     * @return
      */
     private function addEachDeviceToQueue($references, $device)
     {
-        foreach ($references as $deviceId => $reference) {
-            $this->params['receiver'] = $reference;
-            $this->addToDeviceQueue($device);
+        // When target has various mail address, it should be send one by one.
+        if ($device == self::EMAIL) {
+            foreach ($references as $deviceId => $reference) {
+                $this->params['receiver'] = $reference;
+                $this->addToDeviceQueue($device);
+            }
+        } else {
+            // When target has only one reference, the receiver information should be managed different depending
+            // of the target device to send.
+            if (sizeof($references) == 1) {
+                if ($device == self::IOS) {
+                    // Ios does not require to receive one device into an array
+                    $this->params['receiver'] = array_values($references)[0];
+                } else {
+                    // Android requires to be stored into an array structure even if the target is one device.
+                    $this->params['receiver'] = array(array_values($references)[0]);
+                }
+                $this->addToDeviceQueue($device);
+                // When target has various device references, it will be send in the same GCM message.
+            } else {
+                $receivers = [];
+                foreach ($references as $deviceId => $reference) {
+                    $receivers[] = $reference;
+                }
+                $this->params['receiver'] = $receivers;
+                $this->addToDeviceQueue($device);
+            }
         }
     }
 
@@ -191,13 +214,13 @@ class QueueController extends Controller
      */
     public function storeToQueues()
     {
-        if (!empty($this->references['android'])) {
-            $this->params['receiver'] = $this->references['android'];
+        if (!empty($this->references[self::ANDROID])) {
+            $this->params['receiver'] = $this->references[self::ANDROID];
             $this->addToDeviceQueue(self::ANDROID);
         }
 
-        if (!empty($this->references['ios'])) {
-            $this->params['receiver'] = $this->references['ios'];
+        if (!empty($this->references[self::IOS])) {
+            $this->params['receiver'] = $this->references[self::IOS];
             $this->addToDeviceQueue(self::IOS);
         }
     }

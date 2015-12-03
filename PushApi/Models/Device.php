@@ -45,6 +45,7 @@ class Device extends Eloquent implements IModel
         return [
             "id" => 0,
             "type" => "",
+            "user_id" => 0,
             "reference" => "",
         ];
     }

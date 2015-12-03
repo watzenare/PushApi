@@ -21,7 +21,7 @@ class Log extends Eloquent
      * Array of theme ids that will be prevented to be stored into the Log database.
      * @var array
      */
-    public static $blackList = [];
+    private static $blackList = [];
 
     /**
      * Stores the main data used to send a notification.
@@ -33,7 +33,7 @@ class Log extends Eloquent
     public static function storeNotificationLog($attributes)
     {
         // Preventing to store notification if theme is into the blacklist
-        if (in_array($attributes['theme_id'], Log::blacklist)) {
+        if (in_array($attributes['theme_id'], self::$blackList)) {
             return false;
         }
 

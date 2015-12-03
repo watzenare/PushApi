@@ -4,7 +4,7 @@ namespace PushApi\System;
 
 use \PushApi\PushApiException;
 use \PushApi\System\INotification;
-use \PushApi\Models\Theme;
+use \PushApi\Models\Subject;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -123,14 +123,13 @@ class Mail implements INotification
             return $this->subjects[$name];
         } else {
             try {
-                $subject = Theme::getInfoByName($name);
+                $subject = Subject::getSubjectByThemeName($name);
             } catch (PushApiException $e) {
                 return false;
             }
 
-            // Catching the subject values and returning the translation
+            // Catching the subject values and returning the translation or returning the subject directly if there's no description.
             if (isset($subject)) {
-                $subject = $subject->toArray();
                 $this->subjects[$name] = $subject['description'];
                 return $this->subjects[$name];
             } else {

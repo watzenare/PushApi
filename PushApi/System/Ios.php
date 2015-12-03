@@ -4,7 +4,7 @@ namespace PushApi\System;
 
 use \PushApi\PushApiException;
 use \PushApi\System\INotification;
-use \PushApi\Models\User;
+use \PushApi\Models\Device;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -278,7 +278,7 @@ class Ios implements INotification
             $apnsMessage = $this->generateBinaryMessage($this->recipient, $this->message);
             $response = $this->sendToApns($apns, $apnsMessage);
             if ($response['code'] != self::SUCCESS) {
-                $response['deviceToken'] = $deviceToken;
+                $response['deviceToken'] = $this->recipient;
                 $result[] = $response;
             }
         }
@@ -338,12 +338,10 @@ class Ios implements INotification
 
         foreach ($result as $target) {
             if ($target['code'] == self::INVALID_TOKEN || $target['code'] == self::INVALID_TOKEN_SIZE) {
-                // Deleting the user token
-                $user = new User;
-                $user = User::where('ios_id', $target['deviceToken'])->first();
-                if (isset($user)) {
-                    $user->ios_id = "0";
-                    $user->update();
+                // Deleting the user device reference if exists.
+                $device = Device::getFullDeviceInfoByReference($target['deviceToken']);
+                if ($device) {
+                    Device::removeDeviceByParams($device['user_id'], Device::TYPE_IOS, $target['deviceToken']);
                 }
             }
         }

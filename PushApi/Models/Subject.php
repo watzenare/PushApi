@@ -229,20 +229,4 @@ class Subject extends Eloquent implements IModel
 
         return $result;
     }
-
-    /**
-     * Deletes all subjects related with the target theme.
-     * @param  int $idTheme
-     * @return boolean
-     */
-    public static function deleteAllThemeSubjects($idTheme)
-    {
-        $subjects = Subject::where('theme_id', $idTheme)->get();
-
-        foreach ($subjects as $subject) {
-            $subject->delete();
-        }
-
-        return true;
-    }
 }
