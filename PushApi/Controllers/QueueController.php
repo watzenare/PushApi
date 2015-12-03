@@ -144,7 +144,7 @@ class QueueController extends Controller
                     $this->references[self::ANDROID] = $this->addReferencesToArray($devicesIds[self::ANDROID]);
                 }
                 if (isset($devicesIds[self::IOS]) && !empty($devicesIds[self::IOS])) {
-                    $this->references[self IOS] = $this->addReferencesToArray($devicesIds[self::IOS]);
+                    $this->references[self::IOS] = $this->addReferencesToArray($devicesIds[self::IOS]);
                 }
 
                 // Android GMC lets send notifications to 1000 devices with one JSON message,
