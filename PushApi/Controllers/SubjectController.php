@@ -4,12 +4,13 @@ namespace PushApi\Controllers;
 
 use \PushApi\PushApiException;
 use \PushApi\Controllers\Controller;
-use \PushApi\Models\Theme;
 use \PushApi\Models\Subject;
-use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Contains the basic and general actions for managing subjects
  */
@@ -18,6 +19,7 @@ class SubjectController extends Controller
     /**
      * Sets a description for a given subject or returns the information if it has
      * been edited before.
+     * @throws PushApiException
      *
      * Call params:
      * @var "theme_name" required
@@ -25,51 +27,29 @@ class SubjectController extends Controller
      */
     public function setSubject()
     {
-            if (!isset($this->requestParams['theme_name']) || !isset($this->requestParams['description'])) {
-                throw new PushApiException(PushApiException::NO_DATA);
-            }
+        if (!isset($this->requestParams['theme_name']) || !isset($this->requestParams['description'])) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
 
-            $themeName = $this->requestParams['theme_name'];
-            $description = $this->requestParams['description'];
+        $themeName = $this->requestParams['theme_name'];
+        $description = $this->requestParams['description'];
 
-            // Checking if theme exists
-            $theme = Theme::where('name', $themeName)->first();
-
-            if (!isset($theme) && empty($theme)) {
-                throw new PushApiException(PushApiException::NOT_FOUND, 'theme_name not found');
-            }
-
-            $subject = Subject::where('theme_id', $theme->id)->first();
-            if (!isset($subject) && empty($subject)) {
-                $subject = new Subject;
-                $subject->theme_id = $theme->id;
-                $subject->description = $description;
-                $subject->save();
-            }
-            $this->send($subject->toArray());
+        $this->send(Subject::createSubject($themeName, $description));
     }
 
     /**
      * Retrives all edited subjects or the subject information given its id
-     * @param [int] $idSubject Subject identification
+     * @param int $idSubject Subject identification
      */
-    public function getSubject($idSubject = false)
+    public function getSubject($idSubject)
     {
-        try {
-            if (!$idSubject) {
-                $subject = Subject::orderBy('id', 'asc')->get();
-            } else {
-                $subject = Subject::findOrFail($idSubject);
-            }
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
-        }
-        $this->send($subject->toArray());
+        $this->send(Subject::getSubject($idSubject));
     }
 
     /**
-     * Updates subject description given a subject id
-     * @param [int] $idSubject User identification
+     * Updates subject description given a subject id.
+     * @param int $idSubject User identification.
+     * @throws PushApiException
      *
      * Call params:
      * @var "description" required
@@ -84,28 +64,39 @@ class SubjectController extends Controller
 
         $update['description'] = $this->requestParams['description'];
 
-        try {
-            $subject = Subject::findOrFail($idSubject);
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
-        }
-        $subject->description = $update['description'];
-        $subject->update();
-        $this->send($subject->toArray());
+        $this->send(Subject::updateSubject($idSubject, $update));
     }
 
     /**
-     * Deletes a subject given its id
-     * @param [int] $idSubject Subject identification
+     * Deletes a subject given its id.
+     * @param int $idSubject Subject identification.
      */
     public function deleteSubject($idSubject)
     {
-        try {
-            $subject = Subject::findOrFail($idSubject);
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+        $this->send(Subject::remove($idSubject));
+    }
+
+    /**
+     * Retrives all subjects registred.
+     * @throws PushApiException
+     *
+     * Call params:
+     * @var "limit" optional
+     * @var "page" optional
+     */
+    public function getSubjects()
+    {
+        $limit = (isset($this->requestParams['limit']) ? $this->requestParams['limit'] : 10);
+        $page = (isset($this->requestParams['page']) ? $this->requestParams['page'] : 1);
+
+        if ($limit < 0) {
+            throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid limit value");
         }
-        $subject->delete();
-        $this->send($subject->toArray());
+
+        if ($page < 1) {
+            throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
+        }
+
+        $this->send(Subject::getSubjects($limit, $page));
     }
 }

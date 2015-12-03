@@ -110,10 +110,6 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
         $slim->get('', function($id) {
             (new UserController())->getUser($id);
         });
-        // Updates user $id given put params
-        $slim->put('', function($id) use ($params) {
-            (new UserController($params))->updateUser($id);
-        });
         // Deletes user $id
         $slim->delete('', function($id) {
             (new UserController())->deleteUser($id);
@@ -121,6 +117,22 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
         // Gets user $id the devices that has registered
         $slim->get('/smartphones', function($id) {
             (new UserController())->getSmartphonesRegistered($id);
+        });
+        // Adds new new devices ids to user
+        $slim->post('/device', function($id) use ($params) {
+            (new UserController($params))->addUserDevice($id);
+        });
+        // Gets device information given some params
+        $slim->get('/device', function($id) use ($params) {
+            (new UserController($params))->getUserDeviceInfoByParams($id);
+        });
+        // Gets device information given the id
+        $slim->get('/device/:iddevice', function($id, $iddevice) {
+            (new UserController())->getUserDeviceInfo($id, $iddevice);
+        });
+        // Removes a device form user
+        $slim->delete('/device/:iddevice', function($id, $iddevice) {
+            (new UserController())->removeUserDevice($id, $iddevice);
         });
         ////////////////////////////////////////
         //         SUBSCRIBE ROUTES           //
@@ -132,15 +144,15 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
         $slim->group('/subscribed', function() use ($slim) {
             // Gets user subscriptions
             $slim->get('', function($id) {
-                (new SubscriptionController())->getSubscribed($id);
+                (new SubscriptionController())->getSubscriptions($id);
             });
             // Gets user $id subscription $idchannel
             $slim->get('/:idchannel', function($id, $idchannel) {
-                (new SubscriptionController())->getSubscribed($id, $idchannel);
+                (new SubscriptionController())->getSubscription($id, $idchannel);
             });
             // Deletes user $id subscriptions
             $slim->delete('/:idchannel', function($id, $idchannel) {
-                (new SubscriptionController())->deleteSubscribed($id, $idchannel);
+                (new SubscriptionController())->deleteSubscription($id, $idchannel);
             });
         });
         //////////////////////////////////////////
@@ -149,7 +161,7 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
         $slim->group('/preferences', function() use ($slim, $params) {
             // Gets user preferences
             $slim->get('', function($id) {
-                (new PreferenceController())->getPreference($id);
+                (new PreferenceController())->getPreferences($id);
             });
             // Updates all user preferences
             $slim->put('', function($id) use ($params) {
@@ -183,8 +195,8 @@ $slim->group('/users', $authChecker, function() use ($slim, $params) {
         (new UserController($params))->setUsers();
     });
     // Geting all users
-    $slim->get('', function() {
-        (new UserController())->getUser();
+    $slim->get('', function() use ($params) {
+        (new UserController($params))->getUsers();
     });
 });
 
@@ -209,10 +221,10 @@ $slim->group('/channel', $authChecker, function() use ($slim, $params) {
         (new ChannelController())->deleteChannel($id);
     });
 });
-$slim->group('/channels', $authChecker, function() use ($slim) {
+$slim->group('/channels', $authChecker, function() use ($slim, $params) {
     // Geting all channels
-    $slim->get('', function() {
-        (new ChannelController())->getChannel();
+    $slim->get('', function() use ($params) {
+        (new ChannelController($params))->getChannels();
     });
 });
 // Gets channel information given its name
@@ -241,14 +253,14 @@ $slim->group('/theme', $authChecker, function() use ($slim, $params) {
         (new ThemeController())->deleteTheme($id);
     });
 });
-$slim->group('/themes', $authChecker, function() use ($slim) {
+$slim->group('/themes', $authChecker, function() use ($slim, $params) {
     // Geting all themes
-    $slim->get('', function() {
-        (new ThemeController())->getTheme();
+    $slim->get('', function() use ($params) {
+        (new ThemeController($params))->getThemes();
     });
     // Get all themes by $range
-    $slim->get('/range/:range', function($range) {
-        (new ThemeController())->getByRange($range);
+    $slim->get('/range/:range', function($range) use ($params) {
+        (new ThemeController($params))->getThemesByRange($range);
     });
 });
 // Gets theme information given its name
@@ -277,10 +289,10 @@ $slim->group('/subject', $authChecker, function() use ($slim, $params) {
         (new SubjectController())->deleteSubject($idSubject);
     });
 });
-$slim->group('/subjects', $authChecker, function() use ($slim) {
+$slim->group('/subjects', $authChecker, function() use ($slim, $params) {
     // Geting all subjects
-    $slim->get('', function() {
-        (new SubjectController())->getSubject();
+    $slim->get('', function() use ($params) {
+        (new SubjectController($params))->getSubjects();
     });
 });
 
@@ -290,3 +302,31 @@ $slim->group('/subjects', $authChecker, function() use ($slim) {
 $slim->post('/send', $authChecker, function() use ($slim, $params) {
     (new LogController($params))->sendMessage();
 });
+
+//////////////////////////////////
+//         LOG ROUTES           //
+//////////////////////////////////
+// $slim->group('/log', $authChecker, function() use ($slim, $params) {
+//     // // Creates log retrives it if it was created before
+//     // $slim->post('', function() use ($params) {
+//     //     (new LogController($params))->setSubject();
+//     // });
+//     // Gets log $idSubject
+//     $slim->get('/:idlog', function($idSubject) {
+//         (new LogController())->getSubject($idSubject);
+//     });
+//     // // Updates log $idSubject given put params
+//     // $slim->put('/:idlog', function($idSubject) use ($params) {
+//     //     (new LogController($params))->updateSubject($idSubject);
+//     // });
+//     // Deletes log $idSubject
+//     $slim->delete('/:idlog', function($idSubject) {
+//         (new LogController())->deleteSubject($idSubject);
+//     });
+// });
+// $slim->group('/logs', $authChecker, function() use ($slim, $params) {
+//     // Geting all logs
+//     $slim->get('', function() use ($params) {
+//         (new LogController($params))->getSubjects();
+//     });
+// });

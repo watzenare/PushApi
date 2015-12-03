@@ -6,6 +6,9 @@ use \Exception;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Customized PushApi Exceptions in order to handle the different errors
  * that could happen while the app is running.

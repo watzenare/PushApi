@@ -35,7 +35,6 @@ Also, I will be grateful if you want to make a donation, this project hasn't got
 
 You are free to help with them:
 
-- Be able to store more than one smartphone token per user (an user can use more than one android/ios device and it is only stored one token per user).
 - Add 'collapse_key' param when sending a notification in order that pushapi sends more than one of that theme.
 - Create a *plugin system* that would interact with the sending system and depending of the plugin would able to filter messages or whatever the plugin does. Developers will be able to create plugins. The target of this system is to avoid modify the base structure of the PushApi.
 - Unit testing (do mock objects simulating the DB and checking the routes and controllers).

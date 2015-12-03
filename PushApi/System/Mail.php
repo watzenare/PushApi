@@ -4,10 +4,13 @@ namespace PushApi\System;
 
 use \PushApi\PushApiException;
 use \PushApi\System\INotification;
-use \PushApi\Models\Theme;
+use \PushApi\Models\Subject;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Manages the main functionalities that mailing service suplies.
  */
@@ -22,15 +25,11 @@ class Mail implements INotification
 
     public function __construct()
     {
-        // Mail
-        $this->transport = \Swift_MailTransport::newInstance();
+        // Create the SMTP Transport
+        $this->transport = \Swift_SmtpTransport::newInstance(MAIL_SERVER, MAIL_SERVER_PORT);
 
-        // Other ways to create the Transport:
-        // $this->transport = \Swift_MailTransport::newInstance(MAIL_SERVER, MAIL_SERVER_PORT);
-
-        // Sendmail
-        // $this->transport = \Swift_SendmailTransport::newInstance("/usr/sbin/sendmail -t");
-        // $this->transport = \Swift_SendmailTransport::newInstance('/usr/sbin/sendmail -bs');
+        // Using the localhost Transport
+        // $this->transport = \Swift_MailTransport::newInstance();
 
         // Create the Mailer using your created Transport
         $this->mailer = \Swift_Mailer::newInstance($this->transport);
@@ -115,8 +114,8 @@ class Mail implements INotification
      * if it has been introduced before.
      * The subjects already found are loaded into a local variable in order to
      * avoid the overloading of the database.
-     * @param  [string] $subject Encoded database subject that needs a translation
-     * @return [string] The subject transformed
+     * @param  string $subject Encoded database subject that needs a translation
+     * @return string The subject transformed
      */
     private function subjectTransformer($name)
     {
@@ -124,14 +123,13 @@ class Mail implements INotification
             return $this->subjects[$name];
         } else {
             try {
-                $subject = Theme::where('name', $name)->first()->subject;
-            } catch (ModelNotFoundException $e) {
-                throw new PushApiException(PushApiException::NOT_FOUND);
+                $subject = Subject::getSubjectByThemeName($name);
+            } catch (PushApiException $e) {
+                return false;
             }
 
-            // Catching the subject values and returning the translation
+            // Catching the subject values and returning the translation or returning the subject directly if there's no description.
             if (isset($subject)) {
-                $subject = $subject->toArray();
                 $this->subjects[$name] = $subject['description'];
                 return $this->subjects[$name];
             } else {

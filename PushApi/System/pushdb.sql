@@ -26,7 +26,8 @@ CREATE TABLE `channels` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -62,6 +63,19 @@ CREATE TABLE `preferences` (
   CONSTRAINT `preferences_ibfk_2` FOREIGN KEY (`theme_id`) REFERENCES `themes` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `devices`;
+CREATE TABLE `devices` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` tinyint(4) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `reference` varchar(255) NOT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `reference` (`reference`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `devices_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 DROP TABLE IF EXISTS `subjects`;
 CREATE TABLE `subjects` (
@@ -95,27 +109,27 @@ CREATE TABLE `themes` (
   `name` varchar(80) NOT NULL,
   `range` varchar(9) NOT NULL DEFAULT '',
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `email` varchar(80) NOT NULL,
-  `android_id` varchar(255) NOT NULL DEFAULT '0',
-  `ios_id` varchar(255) NOT NULL DEFAULT '0',
+  `email` int(5) NOT NULL DEFAULT '0',
+  `android` int(5) NOT NULL DEFAULT '0',
+  `ios` int(5) NOT NULL DEFAULT '0',
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `trackings`;
 CREATE TABLE `trackings` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `email` varchar(100) NOT NULL,
-  `theme` varchar(100) NOT NULL,
-  `agent` varchar(255) NOT NULL,
+  `email` varchar(100) NOT NULL DEFAULT 0,
+  `theme` varchar(100) NOT NULL DEFAULT 0,
+  `agent` varchar(255) NOT NULL DEFAULT 0,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

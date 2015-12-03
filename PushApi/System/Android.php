@@ -8,13 +8,16 @@ use \PushApi\Models\User;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
+ * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
+ * @license http://www.opensource.org/licenses/mit-license.php The MIT License
+ * Documentation @link https://push-api.readme.io/
  *
  * Manages the main functionalities that handles android notifications sending.
  *
  * Google Note: If your organization has a firewall that restricts the traffic to or from the Internet,
  * you need to configure it to allow connectivity with GCM in order for your Android devices to
  * receive messages. The ports to open are: 5228, 5229, and 5230. GCM typically only uses 5228,
- * but it sometimes uses 5229 and 5230. GCM doesn't provide specific IPs, so you should allow your
+ * but it sometimes uses 5229 and 5230. GCM does not provide specific IPs, so you should allow your
  * firewall to accept outgoing connections to all IP addresses contained in the IP blocks listed in
  * Google's ASN of 15169.
  */
@@ -125,7 +128,7 @@ class Android implements INotification
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($this->message));
 
-        // Disabling SSL Certificate support temporarly
+        // Disabling SSL Certificate support temporally
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
         // Send POST request to Google Cloud Message Server
@@ -144,36 +147,34 @@ class Android implements INotification
 
     /**
      * Checks the failures of the results and does the right action foreach case:
-     * - user has uninstalled the app or hasn't that id -> delete the android_id
+     * - user has uninstalled the app or has not that id -> delete the android reference
      * - user is unreachable -> resend the notification
      * - user id has changed -> update user id with the new one
      */
     public function checkResults($users, $result)
     {
-        $user = new User;
         for ($i = 0; $i < sizeof($users); $i++) {
-            // user can't be reached and the message should be sent again
+            // User can't be reached and the message should be sent again
             if (isset($result[$i]->error) && $result[$i]->error == self::UNAVAILABLE) {
                 $this->message["registration_ids"] = array($users[$i]);
                 $this->send();
             }
 
-            // user id has changed or is invalid and it should be removed in order to avoid send a message again
+            // User id has changed or is invalid and it should be removed in order to avoid send a message again.
             if (isset($result[$i]->error) && ($result[$i]->error == self::INVALID_REGISTRATION
-                || $result[$i]->error == self::NOT_REGISTERED)) {
-                $user = User::where('android_id', $users[$i])->first();
-                if (isset($user)) {
-                    $user->android_id = "0";
-                    $user->update();
+                    || $result[$i]->error == self::NOT_REGISTERED)) {
+                $device = Device::getFullDeviceInfoByReference($users[$i]);
+                if ($device) {
+                    Device::removeDeviceById($device['user_id'], $device['id']);
                 }
             }
 
-            // user id has changed and it must be updated because this is the only warning that will send the GCM
+            // User id has changed and it must be updated because this is the only warning that will send the GCM.
             if (isset($result[$i]->registration_id)) {
-                $user = User::where('android_id', $users[$i])->first();
-                if (isset($user)) {
-                    $user->android_id = $result[$i]->registration_id;
-                    $user->update();
+                $device = Device::getFullDeviceInfoByReference($users[$i]);
+                if ($device) {
+                    Device::removeDeviceById($device['user_id'], $device['id']);
+                    Device::addDevice($device['user_id'], Device::TYPE_ANDROID, $result[$i]->registration_id);
                 }
             }
         }
