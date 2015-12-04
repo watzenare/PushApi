@@ -20,7 +20,7 @@ class AppController extends Controller
 	/**
 	 * Creates a new app into with given params and displays the
      * information of the created app. If it is tried to register app
-     * twice (checked by mail), the information of the registrated app
+     * twice (checked by mail), the information of the registered app
      * is displayed without adding it again into the registration.
      *
      * Call params:
@@ -54,8 +54,8 @@ class AppController extends Controller
     }
 
 	/**
-     * Retrives app information if it is registered
-     * @param [int] $id  App identification
+     * Retrieves app information if it is registered.
+     * @param int $id  App identification
      */
 	public function getApp($id)
 	{
@@ -68,8 +68,8 @@ class AppController extends Controller
     }
 
 	/**
-     * Updates app infomation given its identification and the param to update
-     * @param [int] $id  App identification
+     * Updates app information given its identification and the param to update.
+     * @param int $id  App identification
      *
      * Call params:
      * @var "name" required
@@ -101,7 +101,7 @@ class AppController extends Controller
 
 	/**
      * Deletes an app given its identification
-     * @param [int] $id  App identification
+     * @param int $id  App identification
      */
 	public function deleteApp($id)
 	{
@@ -116,7 +116,7 @@ class AppController extends Controller
     }
 
 	/**
-     * Retrives all apps registered
+     * Retrieves all apps registered.
      */
 	public function getApps()
 	{
@@ -132,7 +132,7 @@ class AppController extends Controller
     /**
      * Checks if the call has an authentication token is valid and lets
      * the app use the PushApi methods or dies if it is an invalid key.
-     * In order to authenticate the aplication it is required to send via
+     * In order to authenticate the application it is required to send via
      * HTTP headers the following tags:
      *
      * @var 'X-App-Id' that must contain the id of the app that wants to use the API

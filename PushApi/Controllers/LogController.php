@@ -18,7 +18,7 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  * Documentation @link https://push-api.readme.io/
  *
- * Contains the general actions in order to send the messages (retriving actor data and
+ * Contains the general actions in order to send the messages (retrieving actor data and
  * transforming it in order to be correctly queued)
  */
 class LogController extends Controller
@@ -38,12 +38,12 @@ class LogController extends Controller
 
     /**
      * Given the different parameters, it is ordered to check the range of the message and
-     * if the users wants to recive that message (included it's preferences email/smartphone).
+     * if the users wants to receive that message (included it's preferences email/smartphone).
      * Once the information is obtained it is stored a log of the call and it is queued in
      * order to be sent when server can do it.
-     * If user hasn't set preferences from that theme, default send is to all ranges. There is
-     * only one possibility that the user doesn't receive notifications, he has to set the preference
-     * of that theme. Otherwise, he can recive emails (if smartphones aren't set).
+     * If user has not set preferences from that theme, default send is to all ranges. There is
+     * only one possibility that the user does not receive notifications, he has to set the preference
+     * of that theme. Otherwise, he can receive emails (if smartphones are not set).
      * @throws  PushApiException
      *
      * Call params:
@@ -56,7 +56,7 @@ class LogController extends Controller
     {
         /**
          * The most important first values to check are message and theme because if theme it's
-         * multicast we don't need to check the other parameters
+         * multicast we don't need to check the other parameters.
          */
         if (!isset($this->requestParams['message']) || !isset($this->requestParams['theme'])) {
             throw new PushApiException(PushApiException::NO_DATA, "Expected required params");
@@ -296,7 +296,7 @@ class LogController extends Controller
             );
         }
 
-        // Storing prequeuing results to each queue
+        // Storing pre-queuing results to each queue
         $this->queueController->storeToQueues();
 
         // Registering message

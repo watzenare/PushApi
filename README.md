@@ -2,7 +2,7 @@
 
 The PushApi is a server side project using PHP. It provides a way to notify users of different kind of events. There is the possibility to send notifications using unicast (target user), multicast (interested group) or broadcast (all users).
 
-> It is being tested in a real system and it is obtaining the goals for which Pushapi was designed for.
+> It is being tested in a real system and it is obtaining the goals for which PushApi was designed for.
 - It is being tested handling a database of more than 400k users.
 - It is sending an average of 50k daily mails.
 - The same values than before with android smartphones.
@@ -35,7 +35,7 @@ Also, I will be grateful if you want to make a donation, this project hasn't got
 
 You are free to help with them:
 
-- Add 'collapse_key' param when sending a notification in order that pushapi sends more than one of that theme.
+- Add 'collapse_key' param when sending a notification in order that PushApi sends more than one of that theme.
 - Create a *plugin system* that would interact with the sending system and depending of the plugin would able to filter messages or whatever the plugin does. Developers will be able to create plugins. The target of this system is to avoid modify the base structure of the PushApi.
 - Unit testing (do mock objects simulating the DB and checking the routes and controllers).
 - To log most of the functionalities.

@@ -19,7 +19,7 @@ class SubscriptionController extends Controller
     /**
      * Subscribes a user to a given channel, if the subscription has
      * been done before, it only displays the information of the subscription
-     * else, creates the subscription and displays the resulting information
+     * else, creates the subscription and displays the resulting information.
      * @param int $idUser    User identification
      * @param int $idChannel Channel identification
      * @throws PushApiException
@@ -30,9 +30,9 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Retrives all subscriptions of a given user or it also can check
+     * Retrieves all subscriptions of a given user or it also can check
      * if user is subscribed into a channel (if he is subscribed, the
-     * subscription is displayed)
+     * subscription is displayed).
      * @param int $idUser    User identification
      * @param int $idChannel Channel identification
      * @throws PushApiException
@@ -43,7 +43,7 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Deletes a user subscription given a user and a subscription id
+     * Deletes a user subscription given a user and a subscription id.
      * @param int $idUser    User identification.
      * @param int $idChannel Channel identification.
      * @throws PushApiException
@@ -54,7 +54,7 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Retrives all user subscriptions registred.
+     * Retrieves all user subscriptions registered.
      * @param  int $idUser User identification.
      * @return array
      * @throws PushApiException

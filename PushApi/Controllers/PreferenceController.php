@@ -44,9 +44,9 @@ class PreferenceController extends Controller
     }
 
     /**
-     * Retrives all preferences of a given user or it also can check
+     * Retrieves all preferences of a given user or it also can check
      * if user has set preferences from a theme (if he has set it, the
-     * preference is displayed)
+     * preference is displayed).
      * @param int $idUser User identification
      * @param int $idTheme Theme identification
      * @throws PushApiException
@@ -94,7 +94,7 @@ class PreferenceController extends Controller
     }
 
     /**
-     * Retrives all user preferences registred.
+     * Retrieves all user preferences registered.
      * @param  int $idUser User identification.
      * @return array
      * @throws PushApiException
@@ -105,7 +105,7 @@ class PreferenceController extends Controller
     }
 
     /**
-     * Updates the value of all the user preferences with the option set
+     * Updates the value of all the user preferences with the option set.
      * @param int $idUser User identification
      * @throws PushApiException
      *

@@ -14,7 +14,7 @@
 // Include configurations and global PushApi constants
 require_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'BootStrap.php';
 
-// Geting the mail template and adding it into the message
+// Getting the mail template and adding it into the message
 ob_start();
 include_once dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . "templates/mail.html";
 $template = ob_get_contents();

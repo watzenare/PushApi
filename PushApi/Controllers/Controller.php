@@ -26,7 +26,7 @@ class Controller
 
     /**
      * Prepares an HTML response, it modifies some response headers and prepares the
-     * resulting data encoding it into json and sends it to the client
+     * resulting data encoding it into json and sends it to the client.
      * @param  [array] $result Array with resulting values
      */
     protected function send($result)
@@ -38,9 +38,9 @@ class Controller
     }
 
     /**
-     * Deletes unset parameters given an array
-     * @param  [array] $data
-     * @return [array] An updated array without unset params
+     * Deletes unset parameters given an array.
+     * @param  array $data
+     * @return array An updated array without unset params
      */
     protected function cleanParams($data = array()) {
         foreach ($data as $key => $value) {
@@ -52,11 +52,11 @@ class Controller
     }
 
     /**
-     * Changes the value of an integer changing it into a boolean value
-     * @param  [int] $data Integer
-     * @return [bool] Boolean value
+     * Changes the value of an integer changing it into a boolean value.
+     * @param  int $data Integer
+     * @return bool Boolean value
      */
     protected function boolinize($data) {
-        return ((int)$data != 0);
+        return ((int) $data != 0);
     }
 }

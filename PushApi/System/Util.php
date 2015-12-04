@@ -8,7 +8,7 @@ namespace PushApi\System;
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  * Documentation @link https://push-api.readme.io/
  *
- * Container class used to store diferent useful functions
+ * Container class used to store different useful functions
  */
 class Util
 {

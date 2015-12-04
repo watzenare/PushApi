@@ -3,7 +3,7 @@
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Events\Dispatcher as Dispatcher;
 
-// Instanciate an Eloquen helper
+// Instantiates an Eloquent helper
 $capsule = new Capsule;
 
 $capsule->addConnection(array(

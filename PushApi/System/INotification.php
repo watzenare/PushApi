@@ -10,18 +10,18 @@ use \PushApi\PushApiException;
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  * Documentation @link https://push-api.readme.io/
  *
- * Contains the basic functions that all notifications emisors must implement
+ * Contains the basic functions that all notifications transmitter must implement
  * in order to get a better message definition.
  */
 interface INotification
 {
     /**
      * Prepares a message in order to be send.
-     * @param  string  $to      Adress wanted to send to
+     * @param  string  $to      Address wanted to send to
      * @param  string  $subject Subject encoded from database wanted to send
      * @param  string  $message Message wanted to display
-     * @param  string  $from    Adress wanted to send from
-     * @return boolean          Asserts if the message creation has worked succesfully
+     * @param  string  $from    Address wanted to send from
+     * @return boolean          Asserts if the message creation has worked successfully
      */
     public function setMessage($to, $subject, $theme, $message, $from = false);
 

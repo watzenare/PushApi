@@ -10,7 +10,7 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  * Documentation @link https://push-api.readme.io/
  *
- * Model of the trakings table, manages all the relationships and dependencies
+ * Model of the trackings table, manages all the relationships and dependencies
  * that can be done on this table
  */
 class Tracking extends Eloquent

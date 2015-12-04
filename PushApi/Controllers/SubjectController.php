@@ -38,7 +38,7 @@ class SubjectController extends Controller
     }
 
     /**
-     * Retrives all edited subjects or the subject information given its id
+     * Retrieves all edited subjects or the subject information given its id.
      * @param int $idSubject Subject identification
      */
     public function getSubject($idSubject)
@@ -77,7 +77,7 @@ class SubjectController extends Controller
     }
 
     /**
-     * Retrives all subjects registred.
+     * Retrieves all subjects registered.
      * @throws PushApiException
      *
      * Call params:

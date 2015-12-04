@@ -82,7 +82,7 @@ class Subject extends Eloquent implements IModel
     }
 
     /**
-     * Retrives the subject given its theme id reference.
+     * Retrieves the subject given its theme id reference.
      * @param  int $idTheme
      * @return array/boolean
      */
@@ -98,7 +98,7 @@ class Subject extends Eloquent implements IModel
     }
 
     /**
-     * Retrives the subject given its theme name reference.
+     * Retrieves the subject given its theme name reference.
      * @param  string $themeName
      * @return array/boolean
      */
@@ -131,8 +131,8 @@ class Subject extends Eloquent implements IModel
     }
     /**
      * Creates a new subject if it does not exist yet.
-     * @param  [type] $themeName
-     * @param  [type] $description
+     * @param  string $themeName
+     * @param  string $description
      * @return array
      * @throws PushApiException
      */

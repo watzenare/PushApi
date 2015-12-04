@@ -19,8 +19,8 @@ class ChannelController extends Controller
     /**
      * Creates a new channel into the registration with given params and
      * displays the information of the created channel. If the channel tries
-     * to registrate twice (checked by name), the information of the
-     * registrated channel is displayed without adding him again into the
+     * to register twice (checked by name), the information of the
+     * register channel is displayed without adding him again into the
      * registration.
      * @throws PushApiException
      *
@@ -37,7 +37,7 @@ class ChannelController extends Controller
     }
 
     /**
-     * Retrives all channels registered or a channel information if it is registered.
+     * Retrieves all channels registered or a channel information if it is registered.
      * @param int $id  Channel identification.
      * @throws PushApiException
      */
@@ -47,7 +47,7 @@ class ChannelController extends Controller
     }
 
     /**
-     * Retrives the channel information given its name.
+     * Retrieves the channel information given its name.
      * @param string $name  Channel name.
      * @throws PushApiException
      */
@@ -61,7 +61,7 @@ class ChannelController extends Controller
     }
 
     /**
-     * Updates channel infomation given its identification and params to update.
+     * Updates channel information given its identification and params to update.
      * @param int $id  Channel identification.
      * @throws PushApiException
      *
@@ -92,7 +92,7 @@ class ChannelController extends Controller
     }
 
     /**
-     * Retrives all channels registred.
+     * Retrieves all channels register.
      * @throws PushApiException
      *
      * Call params:

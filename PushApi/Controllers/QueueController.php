@@ -12,7 +12,7 @@ use \PushApi\Controllers\Controller;
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  * Documentation @link https://push-api.readme.io/
  *
- * Controlls the various actions that can be done into the queues.
+ * Controls the various actions that can be done into the queues.
  */
 class QueueController extends Controller
 {
@@ -57,7 +57,7 @@ class QueueController extends Controller
     }
 
     /**
-     * Adds at the end of the specific queue the data received
+     * Adds at the end of the specific queue the data received.
      * @param array $data   Data we want to add into the queue
      * @param string $target The target queue name
      * @return boolean       Success of the operation
@@ -86,7 +86,7 @@ class QueueController extends Controller
     }
 
     /**
-     * Retrieves the data data of the queue from the beginning of the target queue
+     * Retrieves the data data of the queue from the beginning of the target queue.
      * @param  string $target The target queue name
      * @return array/boolean The data in the queue
      */
@@ -257,7 +257,7 @@ class QueueController extends Controller
                     $validData["subject"] = $this->params['subject'];
                 }
 
-                // If template is set, it is prefered to use it instead of the plain message
+                // If template is set, it is preferred to use it instead of the plain message
                 if (isset($this->params['template'])) {
                     $validData["message"] = $this->params['template'];
                 }
