@@ -35,9 +35,9 @@ class PushApiException extends Exception
     const DUPLICATED_VALUE = 15;
 
     /**
-     * Generates the exception given a code and an extra message if is passed
-     * @param [int] $code Exception code
-     * @param [string] $message Additional message added to the default exception message
+     * Generates the exception given a code and an extra message if is passed.
+     * @param int $code Exception code
+     * @param string $message Additional message added to the default exception message
      */
     public function __construct($code, $message = null) {
         if (!isset($message)) {
@@ -51,9 +51,9 @@ class PushApiException extends Exception
     }
 
     /**
-     * Transforms the integer code to a string in order to get a message of the exception
-     * @param  [int] $code Exception code
-     * @return [string]       Default message of $code
+     * Transforms the integer code to a string in order to get a message of the exception.
+     * @param  int $code Exception code
+     * @return string  Default message of $code
      */
     private function getExceptionMessage($code) {
         switch ($code) {

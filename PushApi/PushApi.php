@@ -57,7 +57,7 @@ class PushApi
 
     /**
      * Customized error handler. It displays the right HTTP header response if the
-     * API generates some kind of exeption while running.
+     * API generates some kind of exception while running.
      */
     private function startErrorHandling() {
         $this->app->error(function (PushApiException $e) {
@@ -94,8 +94,8 @@ class PushApi
                     break;
             }
         });
-        // If a call doesn't exist it is custmoized the not found
-        // (default not found HTTP header) result message
+        // If a call doesn't exist it is customized the not found
+        // (default not found HTTP header) result message.
         $this->app->notFound(function () {
             $this->app->response()->header('X-Status-Reason', "Call doesn't exist on PushApi");
         });
@@ -103,7 +103,7 @@ class PushApi
 
     /**
      * Adds into a container all the services that the API requires.
-     * @return [Container] The Container object fully created
+     * @return Container The Container object fully created
      */
     private function fillContainer()
     {
@@ -134,8 +134,8 @@ class PushApi
 
     /**
      * Sets a new parameter or service into the container storing it with an index.
-     * @param [string] $serviceName  The reference name of the service
-     * @param [string] $value  An instance of the service
+     * @param string $serviceName  The reference name of the service
+     * @param string $value  An instance of the service
      */
     public static function setContainerService($serviceName, $value)
     {
@@ -144,8 +144,8 @@ class PushApi
 
     /**
      * Retrieves a specific content of the container given a target index.
-     * @param  [string]  $serviceName  The reference name of the service
-     * @return [Container]  The content of the container
+     * @param  string  $serviceName  The reference name of the service
+     * @return Container  The content of the container
      */
     public static function getContainerService($serviceName)
     {
@@ -154,7 +154,7 @@ class PushApi
 
     /**
      * Returns all the data that is stored into the container.
-     * @return [Container] All the container data
+     * @return Container All the container data
      */
     public static function getContainer()
     {

@@ -115,7 +115,7 @@ class Theme extends Eloquent implements IModel
     }
 
     /**
-     * Retrives the theme information given its name.
+     * Retrieves the theme information given its name.
      * @param  string $name
      * @return int/boolean
      * @throws PushApiException
@@ -132,7 +132,7 @@ class Theme extends Eloquent implements IModel
     }
 
     /**
-     * Retrives the Theme id given its name if exists.
+     * Retrieves the Theme id given its name if exists.
      * @param  string $name Theme name.
      * @return int/boolean
      */
@@ -243,7 +243,7 @@ class Theme extends Eloquent implements IModel
 
     /**
      * Obtains all themes registered. It can be searched giving limit and page values.
-     * Also can retrive all themes registered given a range value.
+     * Also can retrieve all themes registered given a range value.
      * @param  int $limit Max results per page.
      * @param  int $page  Page to display.
      * @param  string $range Theme range value.

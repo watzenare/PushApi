@@ -170,7 +170,7 @@ class Device extends Eloquent implements IModel
     }
 
     /**
-     * Adds a new device refering the user and increases its devices counter.
+     * Adds a new device referring the user and increases its devices counter.
      * It prevents to add duplicate values and updates smartphones device ids when a new user
      * is using the same smartphone.
      * @param  int $idUser  User identification.
@@ -222,7 +222,7 @@ class Device extends Eloquent implements IModel
 
     /**
      * Deletes a device given that fits with all the params and decreases user devices counter.
-     * Prevents to delete the last email address because user should hava at least 1 email registered.
+     * Prevents to delete the last email address because user should have at least 1 email registered.
      * @param  int $idUser
      * @param  int/string $deviceType
      * @param  string $reference
@@ -261,7 +261,7 @@ class Device extends Eloquent implements IModel
 
     /**
      * Deletes a device using reference ids and decreases user devices counter.
-     * Prevents to delete the last email address because user should hava at least 1 email registered.
+     * Prevents to delete the last email address because user should have at least 1 email registered.
      * @param  int $idUser
      * @param  int $idDevice
      * @return boolean

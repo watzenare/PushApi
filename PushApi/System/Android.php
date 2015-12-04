@@ -45,7 +45,7 @@ class Android implements INotification
     private $url = GCM_URL;
     // See documentation in order to get the $apiKey
     private $apiKey = ANDROID_KEY;
-    private $autorization = "Authorization: key=";
+    private $authorization = "Authorization: key=";
     private $contentType = "Content-type: ";
     private $headers = array();
 
@@ -113,7 +113,7 @@ class Android implements INotification
 
         // Preparing HTTP headers
         $this->headers = array(
-            $this->autorization . $this->apiKey,
+            $this->authorization . $this->apiKey,
             $this->contentType . self::JSON
         );
 

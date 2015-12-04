@@ -19,8 +19,8 @@ class UserController extends Controller
 {
     /**
      * Creates a new user with given params and displays the information
-     * of the created user. If the user tries to registrate twice (checked
-     * by mail), the information of the registrated user is displayed
+     * of the created user. If the user tries to register twice (checked
+     * by mail), the information of the registered user is displayed
      * without adding him again into the registration.
      *
      * Request params:
@@ -43,7 +43,7 @@ class UserController extends Controller
     }
 
     /**
-     * Retrives the user information if it is registered.
+     * Retrieves the user information if it is registered.
      * @param int $id  User identification
      * @throws PushApiException
      */
@@ -53,7 +53,7 @@ class UserController extends Controller
     }
 
     /**
-     * Deletes a user given its identification
+     * Deletes a user given its identification.
      * @param int $id  User identification
      * @throws PushApiException
      */
@@ -65,7 +65,7 @@ class UserController extends Controller
     }
 
     /**
-     * Updates user infomation given its identification and params to update.
+     * Updates user information given its identification and params to update.
      * @param int $id  User identification
      *
      * Request params:
@@ -149,7 +149,7 @@ class UserController extends Controller
     }
 
     /**
-     * Retrives all users registred.
+     * Retrieves all users registered.
      * @var "limit" optional
      * @var "page" optional
      * @throws PushApiException
@@ -202,7 +202,7 @@ class UserController extends Controller
     }
 
     /**
-     * Retrives the smartphones that user has registered.
+     * Retrieves the smartphones that user has registered.
      * @param int $id  User identification
      * @throws PushApiException
      */

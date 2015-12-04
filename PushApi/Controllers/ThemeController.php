@@ -20,7 +20,7 @@ class ThemeController extends Controller
     /**
      * Creates a new theme into the registration with given params and
      * displays the information of the created theme. If the theme tries
-     * to registrate twice (checked by name), the information of the
+     * to register twice (checked by name), the information of the
      * saved theme is displayed without adding him again into the
      * registration.
      *
@@ -45,7 +45,7 @@ class ThemeController extends Controller
     }
 
     /**
-     * Retrives the theme information if it is registered
+     * Retrieves the theme information if it is registered.
      * @param int $id  Theme identification
      */
     public function getTheme($id)
@@ -54,7 +54,7 @@ class ThemeController extends Controller
     }
 
     /**
-     * Updates theme infomation given its identification and params to update.
+     * Updates theme information given its identification and params to update.
      * @param [int] $id  Theme identification.
      *
      * Call params:
@@ -96,7 +96,7 @@ class ThemeController extends Controller
     }
 
     /**
-     * Retrives all themes registred.
+     * Retrieves all themes registered.
      * @throws PushApiException
      *
      * Call params:
@@ -120,7 +120,7 @@ class ThemeController extends Controller
     }
 
     /**
-     * Retrives the theme information given its name.
+     * Retrieves the theme information given its name.
      * @throws PushApiException
      *
      * Call params:
@@ -136,8 +136,8 @@ class ThemeController extends Controller
     }
 
     /**
-     * Retrives all themes registered given a range.
-     * @param  string $range Value refering the range of the theme.
+     * Retrieves all themes registered given a range.
+     * @param  string $range Value referring the range of the theme.
      * @throws PushApiException
      *
      * Call params:

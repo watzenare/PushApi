@@ -75,7 +75,7 @@ class Channel extends Eloquent implements IModel
     }
 
     /**
-     * Retrives the channel information given its name.
+     * Retrieves the channel information given its name.
      * @param  string $name
      * @return array
      * @throws PushApiException
@@ -92,7 +92,7 @@ class Channel extends Eloquent implements IModel
     }
 
     /**
-     * Retrives the Channel id given its name if exists.
+     * Retrieves the Channel id given its name if exists.
      * @param  string $name Channel name.
      * @return int/boolean
      */
@@ -241,8 +241,8 @@ class Channel extends Eloquent implements IModel
         }
 
         try {
-            $subscriptors = Channel::findOrFail($id)->subscriptions()->get();
-            foreach ($subscriptors as $user) {
+            $subscribers = Channel::findOrFail($id)->subscriptions()->get();
+            foreach ($subscribers as $user) {
                 $users[] = User::getUser($user->user_id);
             }
         } catch (ModelNotFoundException $e) {

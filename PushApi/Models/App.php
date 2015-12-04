@@ -36,7 +36,7 @@ class App extends Eloquent
 
     /**
      * Generates a random secret for the app
-     * @return [string] A unique secret generated randomly
+     * @return string A unique secret generated randomly
      */
     private static function generateSecret() {
         return substr(md5("fakers__" . rand()), 0, 16);

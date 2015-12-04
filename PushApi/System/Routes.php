@@ -13,7 +13,7 @@ use \PushApi\Controllers\PreferenceController;
 use \PushApi\Controllers\SubjectController;
 use \PushApi\Controllers\TrackingController;
 
-// Retreiving the headers and the encoded params for each HTTP request.
+// Retreieving the headers and the encoded params for each HTTP request.
 $params = array();
 
 $method = $slim->request->getMethod();
@@ -45,7 +45,7 @@ $params['X-App-Id'] = $slim->request->headers->get('X-App-Id');
 $params['X-App-Auth'] = $slim->request->headers->get('X-App-Auth');
 
 /**
- * Middleware that gets the headers and checks if application has autorization
+ * Middleware that gets the headers and checks if application has authorization
  * @param  SlimRoute $route Routing params
  */
 $authChecker = function() use ($params) {
@@ -74,7 +74,7 @@ $slim->get('/tracking/px.gif', function() use ($params) {
 ////////////////////////////////////
 //          AUTH ROUTES           //
 ////////////////////////////////////
-// Creates a new app or retrives the app if it was created before
+// Creates a new app or retrieves the app if it was created before
 $slim->post('/app', function() use ($params) {
     (new AppController($params))->setApp();
 });
@@ -83,7 +83,7 @@ $slim->group('/app/:id', $authChecker, function() use ($slim, $params) {
     $slim->get('', function($id) {
         (new AppController())->getApp($id);
     });
-    // Updates app $id given put params or retrives a new app secret
+    // Updates app $id given put params or retrieves a new app secret
     $slim->put('', function($id) use ($params) {
         (new AppController($params))->updateApp($id);
     });
@@ -92,7 +92,7 @@ $slim->group('/app/:id', $authChecker, function() use ($slim, $params) {
         (new AppController())->deleteApp($id);
     });
 });
-// Geting all apps
+// Getting all apps
 $slim->get('/apps', $authChecker, function() {
     (new AppController())->getApps();
 });
@@ -101,7 +101,7 @@ $slim->get('/apps', $authChecker, function() {
 //         USER ROUTES           //
 ///////////////////////////////////
 $slim->group('/user', $authChecker, function() use ($slim, $params) {
-    // Creates user $id or retrives user if it was created before
+    // Creates user $id or retrieves user if it was created before
     $slim->post('', function() use ($params) {
         (new UserController($params))->setUser();
     });
@@ -190,11 +190,11 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
 });
 $slim->group('/users', $authChecker, function() use ($slim, $params) {
     // Creates users passed, separated by coma, and adds only the valid users
-    // (non repeated and valid email)
+    // (non repeated and valid email).
     $slim->post('', function() use ($params) {
         (new UserController($params))->setUsers();
     });
-    // Geting all users
+    // Getting all users
     $slim->get('', function() use ($params) {
         (new UserController($params))->getUsers();
     });
@@ -204,7 +204,7 @@ $slim->group('/users', $authChecker, function() use ($slim, $params) {
 //         CHANNEL ROUTES           //
 //////////////////////////////////////
 $slim->group('/channel', $authChecker, function() use ($slim, $params) {
-    // Creates channel $id or retrives channel if it was created before
+    // Creates channel $id or retrieves channel if it was created before
     $slim->post('', function() use ($params) {
         (new ChannelController($params))->setChannel();
     });
@@ -222,7 +222,7 @@ $slim->group('/channel', $authChecker, function() use ($slim, $params) {
     });
 });
 $slim->group('/channels', $authChecker, function() use ($slim, $params) {
-    // Geting all channels
+    // Getting all channels
     $slim->get('', function() use ($params) {
         (new ChannelController($params))->getChannels();
     });
@@ -236,7 +236,7 @@ $slim->get('/channel_name', function() use ($params) {
 //         THEME ROUTES           //
 ////////////////////////////////////
 $slim->group('/theme', $authChecker, function() use ($slim, $params) {
-    // Creates theme $id or retrives theme if it was created before
+    // Creates theme $id or retrieves theme if it was created before
     $slim->post('', function() use ($params) {
         (new ThemeController($params))->setTheme();
     });
@@ -254,7 +254,7 @@ $slim->group('/theme', $authChecker, function() use ($slim, $params) {
     });
 });
 $slim->group('/themes', $authChecker, function() use ($slim, $params) {
-    // Geting all themes
+    // Getting all themes
     $slim->get('', function() use ($params) {
         (new ThemeController($params))->getThemes();
     });
@@ -272,7 +272,7 @@ $slim->get('/theme_name', function() use ($params) {
 //         SUBJECT ROUTES           //
 //////////////////////////////////////
 $slim->group('/subject', $authChecker, function() use ($slim, $params) {
-    // Creates subject retrives it if it was created before
+    // Creates subject retrieves it if it was created before
     $slim->post('', function() use ($params) {
         (new SubjectController($params))->setSubject();
     });
@@ -290,7 +290,7 @@ $slim->group('/subject', $authChecker, function() use ($slim, $params) {
     });
 });
 $slim->group('/subjects', $authChecker, function() use ($slim, $params) {
-    // Geting all subjects
+    // Getting all subjects
     $slim->get('', function() use ($params) {
         (new SubjectController($params))->getSubjects();
     });
@@ -307,7 +307,7 @@ $slim->post('/send', $authChecker, function() use ($slim, $params) {
 //         LOG ROUTES           //
 //////////////////////////////////
 // $slim->group('/log', $authChecker, function() use ($slim, $params) {
-//     // // Creates log retrives it if it was created before
+//     // // Creates log retrieves it if it was created before
 //     // $slim->post('', function() use ($params) {
 //     //     (new LogController($params))->setSubject();
 //     // });
@@ -325,7 +325,7 @@ $slim->post('/send', $authChecker, function() use ($slim, $params) {
 //     });
 // });
 // $slim->group('/logs', $authChecker, function() use ($slim, $params) {
-//     // Geting all logs
+//     // Getting all logs
 //     $slim->get('', function() use ($params) {
 //         (new LogController($params))->getSubjects();
 //     });
