@@ -30,7 +30,7 @@ class ThemeController extends Controller
      */
     public function setTheme()
     {
-        if (!isset($this->requestParams['name']) && !isset($this->requestParams['range'])) {
+        if (!isset($this->requestParams['name']) || !isset($this->requestParams['range'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
