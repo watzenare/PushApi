@@ -104,7 +104,7 @@ class ChannelController extends Controller
         $limit = (isset($this->requestParams['limit']) ? $this->requestParams['limit'] : 10);
         $page = (isset($this->requestParams['page']) ? $this->requestParams['page'] : 1);
 
-        if ($limit < 0) {
+        if ($limit <= 0) {
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid limit value");
         }
 
