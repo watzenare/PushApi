@@ -156,6 +156,10 @@ class UserController extends Controller
      */
     public function removeUserDeviceByType($id, $type)
     {
+        if (!in_array($type, Device::$validStringTypes)) {
+            throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid type value");
+        }
+
         $this->send(Device::deleteDevicesByType($id, $type));
     }
 
