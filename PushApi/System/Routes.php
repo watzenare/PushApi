@@ -134,6 +134,10 @@ $slim->group('/user', $authChecker, function() use ($slim, $params) {
         $slim->delete('/device/:iddevice', function($id, $iddevice) {
             (new UserController())->removeUserDevice($id, $iddevice);
         });
+        // Removes all user devices of the given type
+        $slim->delete('/device/type/:type', function($id, $type) {
+            (new UserController())->removeUserDeviceByType($id, $type);
+        });
         ////////////////////////////////////////
         //         SUBSCRIBE ROUTES           //
         ////////////////////////////////////////

@@ -298,6 +298,29 @@ class Device extends Eloquent implements IModel
         return false;
     }
 
+    /**
+     * Deletes all devices of the target user id.
+     * @param  int $idUser User identification.
+     * @return boolean
+     * @throws PushApiException
+     */
+    public static function deleteDevicesByType($idUser, $type)
+    {
+        if ($type == self::TYPE_EMAIL) {
+            throw new PushApiException(PushApiException::INVALID_ACTION, "Cannot remove all emails");
+        }
+
+        $devices = Device::where('user_id', $idUser)->get();
+
+        foreach ($devices as $device) {
+            if ($device->type == $type) {
+                $device->delete();
+            }
+        }
+
+        return true;
+    }
+
      /**
      * Deletes all devices of the target user id.
      * @param  int $idUser User identification.

@@ -149,6 +149,17 @@ class UserController extends Controller
     }
 
     /**
+     * Removes all user devices given its type.
+     * @param  int $id  User identification
+     * @param  string $type Device type
+     * @throws PushApiException
+     */
+    public function removeUserDeviceByType($id, $type)
+    {
+        $this->send(Device::deleteDevicesByType($id, $type));
+    }
+
+    /**
      * Retrieves all users registered.
      * @var "limit" optional
      * @var "page" optional
