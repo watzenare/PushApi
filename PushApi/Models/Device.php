@@ -23,16 +23,26 @@ class Device extends Eloquent implements IModel
     const TYPE_ANDROID = 2;
     const TYPE_IOS = 3;
 
+    const STRING_TYPE_EMAIL = 'email';
+    const STRING_TYPE_ANDROID = 'android';
+    const STRING_TYPE_IOS = 'ios';
+
+    public static $validStringTypes = [
+        self::STRING_TYPE_EMAIL,
+        self::STRING_TYPE_ANDROID,
+        self::STRING_TYPE_IOS,
+    ];
+
     public static $typeToString = [
-        self::TYPE_EMAIL => 'email',
-        self::TYPE_ANDROID => 'android',
-        self::TYPE_IOS => 'ios',
+        self::TYPE_EMAIL => self::STRING_TYPE_EMAIL,
+        self::TYPE_ANDROID => self::STRING_TYPE_ANDROID,
+        self::TYPE_IOS => self::STRING_TYPE_IOS,
     ];
 
     public static $stringToType = [
-        'email' => self::TYPE_EMAIL,
-        'android' => self::TYPE_ANDROID,
-        'ios' => self::TYPE_IOS,
+        self::STRING_TYPE_EMAIL => self::TYPE_EMAIL,
+        self::STRING_TYPE_ANDROID => self::TYPE_ANDROID,
+        self::STRING_TYPE_IOS => self::TYPE_IOS,
     ];
 
     public $timestamps = false;
@@ -301,20 +311,23 @@ class Device extends Eloquent implements IModel
     /**
      * Deletes all devices of the target user id.
      * @param  int $idUser User identification.
+     * @param  string $type Device type.
      * @return boolean
      * @throws PushApiException
      */
     public static function deleteDevicesByType($idUser, $type)
     {
-        if ($type == self::TYPE_EMAIL) {
+        if ($type == self::STRING_TYPE_EMAIL) {
             throw new PushApiException(PushApiException::INVALID_ACTION, "Cannot remove all emails");
         }
 
         $devices = Device::where('user_id', $idUser)->get();
 
+        // Deleting only the devices of the same type and decrementing the user device counter
         foreach ($devices as $device) {
-            if ($device->type == $type) {
+            if (self::$typeToString[$device->type] == $type) {
                 $device->delete();
+                User::decrementDevice($idUser, $device->type);
             }
         }
 
