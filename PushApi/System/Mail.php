@@ -67,11 +67,15 @@ class Mail implements INotification
             ->setTo(array(
                 $to => $to
             ))
-            ->setSubject($subject)
-            ->setBody($text);
+            ->setSubject($subject);
 
+        // If there is an HTML template set, it is edited to get the plain text
         if (isset($this->template)) {
-            $this->message->addPart($this->template, 'text/html');
+            $this->message
+                ->addPart($this->template, 'text/html')
+                ->setBody($this->__makePlainText($text), 'text/plain');
+        } else {
+            $this->message->setBody($text, 'text/plain');
         }
 
         if (isset($this->message)) {
@@ -105,7 +109,16 @@ class Mail implements INotification
             throw new PushApiException(PushApiException::NO_DATA, "Can't send without mail message");
         }
 
-        $numSent = $this->mailer->send($this->message);
+        try {
+            $numSent = $this->mailer->send($this->message);
+        } catch (\Exception $e) {
+            // If something happens, restart the connection
+            $this->mailer->getTransport()->stop();
+            // Cooldown time
+            sleep(5);
+            return false;
+        }
+
         return $numSent;
     }
 
@@ -137,5 +150,33 @@ class Mail implements INotification
                 return $this->subjects[$name];
             }
         }
+    }
+
+    /**
+     * Removes generates a plain text from an HTML template.
+     * @param $text
+     * @return mixed|string
+     */
+    private function __makePlainText($text)
+    {
+        // Converts all separator chars to a single space
+        $text = preg_replace('/\s+/', " ", $text);
+
+        // Removes style tag
+        $text = preg_replace('/<style (.*?)<\/style>/', '', $text);
+
+        // Adds new lines for block elements
+        $text = preg_replace('/<(td|tr|div|p|table)/', "\n<$1", $text);
+
+        // Removes HTML tags except links
+        $text = trim(strip_tags($text, "<a>"));
+
+        // Process links to obtain URL
+        $text = preg_replace('/<a .*?href="(.+?)".*?>(.+?)<\/a>/', '$2 ($1)', $text);
+
+        // Removes empty lines
+        $text = preg_replace('/^\s+$/m', '', $text);
+
+        return  $text;
     }
 }

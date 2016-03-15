@@ -130,6 +130,7 @@ CREATE TABLE `trackings` (
   `email` varchar(100) NOT NULL DEFAULT 0,
   `theme` varchar(100) NOT NULL DEFAULT 0,
   `agent` varchar(255) NOT NULL DEFAULT 0,
+  `date_sent` date NOT NULL DEFAULT 0,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
