@@ -31,12 +31,15 @@ define('REDIS_PORT', 0);
 /**
  * Defining log routes
  */
-define('PROD_LOG', "/var/log/pushapi/production-errors.log");
-define('DEV_LOG', "/var/log/pushapi/development-errors.log");
-define('PROD_SEND_LOG', "/var/log/pushapi/production-send-messages.log");
-define('DEV_SEND_LOG', "/var/log/pushapi/development-send-messages.log");
-define('ANDROID_SEND_LOG', "/var/log/pushapi/android-send-messages.log");
-define('IOS_SEND_LOG', "/var/log/pushapi/ios-send-messages.log");
+define('LOG_DIR', "/var/log/pushapi/");
+define('PROD_LOG', LOG_DIR . "production-errors.log");
+define('DEV_LOG', LOG_DIR . "development-errors.log");
+define('MAIL_SENT', LOG_DIR . "mails-sent.log");
+define('MAIL_REQUEUED', LOG_DIR . "mails-requeued.log");
+define('ANDROID_SENT', LOG_DIR . "android-sent.log");
+define('ANDROID_REQUEUED', LOG_DIR . "android-requeued.log");
+define('IOS_SENT', LOG_DIR . "ios-sent.log");
+define('IOS_REQUEUED', LOG_DIR . "ios-requeued.log");
 
 
 /**

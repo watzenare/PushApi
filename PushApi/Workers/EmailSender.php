@@ -54,7 +54,7 @@ while ($data != null) {
     if (isset($template)) {
         // Replacing the template text content with the notification message and adding it into the message
         $mailTemplate = str_replace("<textNotificationMessage>", $data->message, $template);
-        $trackingParams = '<img src="http://pushapi.com:90/tracking/px.gif?receiver=' . urlencode($data->to) . '&amp;theme=' . $data->theme . '">';
+        $trackingParams = '<img src="http://pushapi.com:90/tracking/px.gif?receiver=' . urlencode($data->to) . '&amp;theme=' . $data->theme . '&amp;date_sent=' . Date("Y-m-d") . '">';
         $mailTemplate = str_replace("<trackingParams>", $trackingParams, $mailTemplate);
         $mail->setTemplate($mailTemplate);
     }
@@ -68,7 +68,13 @@ while ($data != null) {
 
     if ($mail->setMessage($data->to, $subject, $data->theme, $data->message)) {
         $result = $mail->send();
-        error_log("Redis_mail_queue: " . json_encode($data) . " Send_result: " . $result . PHP_EOL, 3, PROD_SEND_LOG);
+        if ($result == 1) {
+            Util::sentCounter(MAIL_SENT);
+        } else {
+            // Add the notification to the queue again
+            error_log(json_encode($data) . PHP_EOL, 3, MAIL_REQUEUED);
+            $queue->addToQueue($data, QueueController::EMAIL);
+        }
     }
 
     $data = $queue->getFromQueue(QueueController::EMAIL);

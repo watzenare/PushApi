@@ -62,7 +62,7 @@ while ($data != null) {
             }
 
             $result = $android->send();
-            error_log("Redis_android_queue: " . json_encode($data) . " GCM_result: " . $result . PHP_EOL, 3, ANDROID_SEND_LOG);
+            Util::sentCounter(ANDROID_SENT);
 
             $result = json_decode($result);
             if ($result->failure != 0 || $result->canonical_ids != 0) {
@@ -70,7 +70,7 @@ while ($data != null) {
             }
         }
     } catch (PushApiException $e) {
-        error_log("Redis_android_queue: " . json_encode($data) . "Error: " . $e->getMessage() . PHP_EOL, 3, ANDROID_SEND_LOG);
+        error_log("Android data: " . json_encode($data) . "Error: " . $e->getMessage() . PHP_EOL, 3, ANDROID_REQUEUED);
     }
 
     $data = $queue->getFromQueue(QueueController::ANDROID);

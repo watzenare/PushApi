@@ -58,14 +58,14 @@ while ($data != null) {
                 $ios->addRedirect($data->redirect);
             }
             $result = $ios->send();
-            error_log("Redis_ios_queue: " . json_encode($data) . " APNS_result: " . json_encode($result) . PHP_EOL, 3, IOS_SEND_LOG);
+            Util::sentCounter(IOS_SENT);
 
             if ($result['code'] != 0) {
                 $ios->checkResults($result);
             }
         }
     } catch (PushApiException $e) {
-        error_log("Redis_ios_queue: " . json_encode($data) . "Error: " . $e->getMessage() . PHP_EOL, 3, IOS_SEND_LOG);
+        error_log("Ios data: " . json_encode($data) . "Error: " . $e->getMessage() . PHP_EOL, 3, IOS_REQUEUED);
     }
 
     $data = $queue->getFromQueue(QueueController::IOS);
