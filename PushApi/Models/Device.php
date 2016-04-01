@@ -2,6 +2,8 @@
 
 namespace PushApi\Models;
 
+use \Slim\Log;
+use \PushApi\PushApi;
 use \PushApi\System\IModel;
 use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
@@ -79,6 +81,7 @@ class Device extends Eloquent implements IModel
         try {
             $device = Device::findOrFail($id);
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
 
@@ -90,6 +93,7 @@ class Device extends Eloquent implements IModel
         try {
             $device = Device::where('id', $idDevice)->where('user_id', $idUser)->first();
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
 
@@ -104,12 +108,13 @@ class Device extends Eloquent implements IModel
     {
         $result = self::getEmptyDataModel();
         try {
-            $result['id'] = $device->id;
+            $result['id'] = (int) $device->id;
             $result['type'] = $device->type;
-            $result['user_id'] = $device->user_id;
+            $result['user_id'] = (int) $device->user_id;
             $result['reference'] = $device->reference;
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;
@@ -127,8 +132,9 @@ class Device extends Eloquent implements IModel
         $device = Device::where('user_id', $idUser)->where('reference', $reference)->first();
 
         if ($device) {
-            $model['id'] = $device->id;
+            $model['id'] = (int) $device->id;
             $model['type'] = self::$typeToString[$device->type];
+            $model['user_id'] = $idUser;
             $model['reference'] = $reference;
             return $model;
         }
@@ -147,9 +153,9 @@ class Device extends Eloquent implements IModel
         $device = Device::where('reference', $reference)->first();
 
         if ($device) {
-            $model['id'] = $device->id;
+            $model['id'] = (int) $device->id;
             $model['type'] = self::$typeToString[$device->type];
-            $model['user_id'] = $device->user_id;
+            $model['user_id'] = (int) $device->user_id;
             $model['reference'] = $reference;
             return $model;
         }
@@ -160,18 +166,18 @@ class Device extends Eloquent implements IModel
     /**
      * Basic get device. Given its id and user id obtains device data if exists.
      * @param  int $idUser  User identification.
-     * @param  string $reference
+     * @param  string $idDevice
      * @return int/boolean  If user is found returns id, if not, returns false.
      */
     public static function getDevice($idUser, $idDevice)
     {
         $model = self::getEmptyDataModel();
-
         $device = self::checkDeviceOwnership($idUser, $idDevice);
 
         if ($device) {
-            $model['id'] = $device->id;
+            $model['id'] = (int) $device->id;
             $model['type'] = self::$typeToString[$device->type];
+            $model['user_id'] = $idUser;
             $model['reference'] = $device->reference;
             return $model;
         }
@@ -187,7 +193,6 @@ class Device extends Eloquent implements IModel
      * @param  int/string $deviceType
      * @param  string $reference
      * @return boolean
-     * @throws PushApiException
      */
     public static function addDevice($idUser, $deviceType, $reference)
     {
@@ -196,7 +201,8 @@ class Device extends Eloquent implements IModel
         }
 
         if (!User::checkExists($idUser)) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         /*
@@ -220,6 +226,7 @@ class Device extends Eloquent implements IModel
         try {
             $device->save();
         } catch (QueryException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::DUPLICATED_VALUE, Log::DEBUG);
             return false;
         }
 
@@ -237,7 +244,6 @@ class Device extends Eloquent implements IModel
      * @param  int/string $deviceType
      * @param  string $reference
      * @return boolean
-     * @throws PushApiException
      */
     public static function removeDeviceByParams($idUser, $deviceType, $reference)
     {
@@ -246,12 +252,14 @@ class Device extends Eloquent implements IModel
         }
 
         if (!$user = User::checkExists($idUser)) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::DUPLICATED_VALUE, Log::DEBUG);
+            return false;
         }
 
         // Preventing to delete the last email
         if ($deviceType == self::TYPE_EMAIL) {
             if ($user->email == 1) {
+                PushApi::log(__METHOD__ . " - Cannot be removed the last email from user $idUser", Log::INFO);
                 return false;
             }
         }
@@ -275,25 +283,28 @@ class Device extends Eloquent implements IModel
      * @param  int $idUser
      * @param  int $idDevice
      * @return boolean
-     * @throws PushApiException
      */
     public static function removeDeviceById($idUser, $idDevice)
     {
         if (!$user = User::checkExists($idUser)) {
-            throw new PushApiException(PushApiException::NOT_FOUND, "User not found.");
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND . " - User not found", Log::DEBUG);
+            return false;
         }
 
         if (!$device = Device::checkExists($idDevice)) {
-            throw new PushApiException(PushApiException::NOT_FOUND, "Device not found.");
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND . " - Device not found", Log::DEBUG);
+            return false;
         }
 
         if (!self::checkDeviceOwnership($idUser, $idDevice)) {
-            throw new PushApiException(PushApiException::INVALID_ACTION, "Cannot use device of another user.");
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND . " - User does not own the device", Log::DEBUG);
+            return false;
         }
 
         // Preventing to delete the last email
         if ($device->type == self::TYPE_EMAIL) {
             if ($user->email == 1) {
+                PushApi::log(__METHOD__ . " - Cannot be removed the last email from user $idUser", Log::INFO);
                 return false;
             }
         }
@@ -313,12 +324,12 @@ class Device extends Eloquent implements IModel
      * @param  int $idUser User identification.
      * @param  string $type Device type.
      * @return boolean
-     * @throws PushApiException
      */
     public static function deleteDevicesByType($idUser, $type)
     {
         if ($type == self::STRING_TYPE_EMAIL) {
-            throw new PushApiException(PushApiException::INVALID_ACTION, "Cannot remove all emails");
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::INVALID_ACTION . " - Cannot remove all emails", Log::DEBUG);
+            return false;
         }
 
         $devices = Device::where('user_id', $idUser)->get();
@@ -338,7 +349,6 @@ class Device extends Eloquent implements IModel
      * Deletes all devices of the target user id.
      * @param  int $idUser User identification.
      * @return boolean
-     * @throws PushApiException
      */
     public static function deleteAllDevices($idUser)
     {

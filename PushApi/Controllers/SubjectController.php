@@ -2,8 +2,9 @@
 
 namespace PushApi\Controllers;
 
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
-use \PushApi\Controllers\Controller;
+use \PushApi\Models\Theme;
 use \PushApi\Models\Subject;
 
 /**
@@ -34,7 +35,19 @@ class SubjectController extends Controller
         $themeName = $this->requestParams['theme_name'];
         $description = $this->requestParams['description'];
 
-        $this->send(Subject::createSubject($themeName, $description));
+        if (empty($themeName) || empty($description)) {
+            throw new PushApiException(PushApiException::EMPTY_PARAMS);
+        }
+
+        if (!$theme = Theme::getInfoByName($themeName)) {
+            throw new PushApiException(PushApiException::NOT_FOUND, "Theme not found");
+        }
+
+        if (!$subject = Subject::createSubject($theme['id'], $description)) {
+            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+        }
+
+        $this->send($subject);
     }
 
     /**
@@ -43,7 +56,11 @@ class SubjectController extends Controller
      */
     public function getSubject($idSubject)
     {
-        $this->send(Subject::getSubject($idSubject));
+        if (!$subject = Subject::getSubject($idSubject)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($subject);
     }
 
     /**
@@ -58,13 +75,23 @@ class SubjectController extends Controller
     {
         $update = array();
 
-        if (!isset($this->requestParams['description'])) {
+        if (!isset($this->requestParams['description']) || empty($this->requestParams['description'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
         $update['description'] = $this->requestParams['description'];
 
-        $this->send(Subject::updateSubject($idSubject, $update));
+        $update = $this->cleanParams($update);
+
+        if (empty($update)) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
+
+        if (!$subject = Subject::updateSubject($idSubject, $update)) {
+            throw new PushApiException(PushApiException::ACTION_FAILED);
+        }
+
+        $this->send($subject);
     }
 
     /**
@@ -73,7 +100,11 @@ class SubjectController extends Controller
      */
     public function deleteSubject($idSubject)
     {
-        $this->send(Subject::remove($idSubject));
+        if (!$subject = Subject::remove($idSubject)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($subject);
     }
 
     /**
@@ -97,6 +128,10 @@ class SubjectController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
         }
 
-        $this->send(Subject::getSubjects($limit, $page));
+        if (!$subjects = Subject::getSubjects($limit, $page)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($subjects);
     }
 }

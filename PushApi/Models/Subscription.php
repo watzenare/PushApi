@@ -2,6 +2,8 @@
 
 namespace PushApi\Models;
 
+use \Slim\Log;
+use \PushApi\PushApi;
 use \PushApi\System\IModel;
 use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
@@ -30,8 +32,8 @@ class Subscription extends Eloquent implements IModel
     {
         return [
             "id" => 0,
-            "user_id" => "",
-            "channel_id" => "",
+            "user_id" => 0,
+            "channel_id" => 0,
         ];
     }
 
@@ -63,6 +65,7 @@ class Subscription extends Eloquent implements IModel
         try {
             $subscription = Subscription::findOrFail($id);
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
 
@@ -80,6 +83,7 @@ class Subscription extends Eloquent implements IModel
         try {
             $subscription = User::findOrFail($idUser)->subscriptions()->where('channel_id', $idChannel)->first();
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
 
@@ -93,12 +97,14 @@ class Subscription extends Eloquent implements IModel
     public static function generateFromModel($subscription)
     {
         $result = self::getEmptyDataModel();
+
         try {
-            $result['id'] = $subscription->id;
-            $result['user_id'] = $subscription->user_id;
-            $result['channel_id'] = $subscription->channel_id;
+            $result['id'] = (int) $subscription->id;
+            $result['user_id'] = (int) $subscription->user_id;
+            $result['channel_id'] = (int) $subscription->channel_id;
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;
@@ -109,14 +115,14 @@ class Subscription extends Eloquent implements IModel
      * @param  int $idUser
      * @param  int $idChannel
      * @return array
-     * @throws PushApiException
      */
     public static function getSubscription($idUser, $idChannel)
     {
         $subscription = self::checkExistsUserSubscription($idUser, $idChannel);
 
         if (!$subscription) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return self::generateFromModel($subscription);
@@ -127,13 +133,13 @@ class Subscription extends Eloquent implements IModel
      * @param  int $idUser
      * @param  int $idChannel
      * @return array
-     * @throws PushApiException
      */
     public static function createSubscription($idUser, $idChannel)
     {
         // Checking if subscription is already set
         if (self::checkExistsUserSubscription($idUser, $idChannel)) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::DUPLICATED_VALUE, Log::DEBUG);
+            return false;
         }
 
         if (User::checkExists($idUser) && Channel::checkExists($idChannel)) {
@@ -143,7 +149,8 @@ class Subscription extends Eloquent implements IModel
             $subscription->save();
             return $subscription;
         } else {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
     }
 
@@ -152,20 +159,21 @@ class Subscription extends Eloquent implements IModel
      * @param  int $idUser
      * @param  int $idChannel
      * @return boolean
-     * @throws PushApiException
      */
     public static function remove($idUser, $idChannel)
     {
         $subscription = self::checkExistsUserSubscription($idUser, $idChannel);
 
         if (!$subscription) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         try {
             $subscription->delete();
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return true;
@@ -175,7 +183,6 @@ class Subscription extends Eloquent implements IModel
      * Obtains all user subscriptions set by the user.
      * @param  int  $idUser
      * @return array
-     * @throws PushApiException
      */
     public static function getSubscriptions($idUser)
     {
@@ -187,7 +194,8 @@ class Subscription extends Eloquent implements IModel
                 $result[] = self::generateFromModel($subscription);
             }
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;

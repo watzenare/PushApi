@@ -2,8 +2,6 @@
 
 namespace PushApi\System;
 
-use \PushApi\PushApiException;
-
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>
@@ -29,7 +27,7 @@ interface IModel
     public static function checkExists($id);
 
     /**
-     * Generates an ClasModel given a data object.
+     * Generates an ClassModel given a data object.
      * @param  User $object User object model
      * @return array
      */

@@ -2,8 +2,9 @@
 
 namespace PushApi\System;
 
+use \Slim\Log;
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
-use \PushApi\System\INotification;
 use \PushApi\Models\Device;
 
 /**
@@ -107,10 +108,12 @@ class Ios implements INotification
     public function addRedirect($redirect)
     {
         if (!isset($redirect) || empty($redirect)) {
+            PushApi::log(__METHOD__ . " - Redirect is not set", Log::DEBUG);
             throw new PushApiException(PushApiException::NO_DATA, "Redirect is not set");
         }
 
         if (!isset($this->message)) {
+            PushApi::log(__METHOD__ . " - Message must be created before adding redirect", Log::DEBUG);
             throw new PushApiException(PushApiException::NO_DATA, "Message must be created before adding redirect");
         }
 
@@ -204,13 +207,14 @@ class Ios implements INotification
      * Building the binary notification (see the structure) and sending to its receiver/s.
      * @link https://developer.apple.com/library/ios/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/Chapters/CommunicatingWIthAPS.html#//apple_ref/doc/uid/TP40008194-CH101-SW6
      * DeviceToken(32bytes) - Payload(<=2kilobytes) - NotificationIdentifier(4bytes) - ExpirationDate(4bytes) - Priority(1byte)
-     * @param  stirng $deviceToken The target device token that will receive the message.
+     * @param  string $deviceToken The target device token that will receive the message.
      * @param  string $payload  A json with the message that will be send to APNS.
      * @return string  The apple message constructed.
      */
     private function generateBinaryMessage($deviceToken, $payload)
     {
         if (!isset($deviceToken) || !isset($payload)) {
+            PushApi::log(__METHOD__ . " - Cannot generate binary message", Log::INFO);
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
@@ -238,6 +242,7 @@ class Ios implements INotification
     public function send()
     {
         if (!isset($this->message)) {
+            PushApi::log(__METHOD__ . " - Can't send without push message created", Log::DEBUG);
             throw new PushApiException(PushApiException::NO_DATA, "Can't send without push message created");
         }
         /**
@@ -262,6 +267,7 @@ class Ios implements INotification
         stream_set_blocking($apns, 0);
 
         if (!$apns) {
+            PushApi::log(__METHOD__ . " - iOs SSL connection failed: $error $errorString", Log::ERROR);
             throw new PushApiException(PushApiException::CONNECTION_FAILED, "iOs SSL connection failed: $error $errorString");
         }
         // Checking receiver/s && sending the message && check the response

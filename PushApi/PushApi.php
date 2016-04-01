@@ -2,9 +2,9 @@
 
 namespace PushApi;
 
+use \Slim\Log;
 use \Slim\Slim;
 use \Pimple\Container;
-use \PushApi\PushApiException;
 use \PushApi\System\Mail;
 use \PushApi\System\Android;
 use \PushApi\System\Ios;
@@ -48,11 +48,11 @@ class PushApi
     public function __construct($app) {
         $this->app = $app;
 
+        self::$container = $this->fillContainer();
+
         if (isset($app)) {
             $this->startErrorHandling();
         }
-
-        self::$container = $this->fillContainer();
     }
 
     /**
@@ -60,9 +60,16 @@ class PushApi
      * API generates some kind of exception while running.
      */
     private function startErrorHandling() {
+        // Log sample: POST - pushapi.com/user/1
+        $routeInfoLog = $this->app->request->getMethod() . " - " .  $this->app->request->getHost() . $this->app->request->getPath();
+        self::log($routeInfoLog, Log::ALERT);
+
         $this->app->error(function (PushApiException $e) {
+            $logMessage = "Code: " . $e->getCode() . " - " . $e->getMessage();
+
             switch ($e->getCode()) {
                 case PushApiException::NOT_FOUND:
+                    self::log($logMessage, Log::WARN);
                     $this->app->response()->status(self::HTTP_NOT_FOUND);
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
@@ -72,6 +79,8 @@ class PushApi
                 case PushApiException::INVALID_OPTION:
                 case PushApiException::LIMIT_EXCEEDED:
                 case PushApiException::DUPLICATED_VALUE:
+                case PushApiException::ACTION_FAILED:
+                    self::log($logMessage, Log::WARN);
                     $this->app->response()->status(self::HTTP_CONFLICT);
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
@@ -79,24 +88,33 @@ class PushApi
                 case PushApiException::NO_DATA:
                 case PushApiException::INVALID_CALL:
                 case PushApiException::INVALID_ACTION:
+                    self::log($logMessage, Log::WARN);
                     $this->app->response()->status(self::HTTP_METHOD_NOT_ALLOWED);
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
 
                 case PushApiException::NOT_AUTHORIZED:
+                    self::log($logMessage, Log::ERROR);
                     $this->app->response()->status(self::HTTP_UNAUTHORIZED);
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
 
                 default:
+                    self::log($logMessage, Log::ERROR);
                     $this->app->response()->status(self::HTTP_INTERNAL_SERVER_ERROR);
                     $this->app->response()->header('X-Status-Reason', $e->getMessage());
                     break;
             }
+
+            // Returns a json result for apps that does not handle HTTP responses
+            $this->app->response()->header('Content-Type', 'application/json');
+            $this->app->response()->body(json_encode(['result' => false]));
         });
+
         // If a call doesn't exist it is customized the not found
         // (default not found HTTP header) result message.
         $this->app->notFound(function () {
+            self::log("Call doesn't exist on PushApi", Log::WARN);
             $this->app->response()->header('X-Status-Reason', "Call doesn't exist on PushApi");
         });
     }
@@ -159,5 +177,37 @@ class PushApi
     public static function getContainer()
     {
         return self::$container;
+    }
+
+    /**
+     * Writes the log message obtained by params in the desired level
+     * @param $message  Descriptive message of the desired log
+     * @param $level    Level of the log to be written (to make it more visible as higher is the level)
+     */
+    public static function log($message, $level = Log::EMERGENCY)
+    {
+        $date = date('c');
+        $app = self::getContainerService(PushApi::SLIM);
+
+        switch ($level) {
+            case Log::ALERT:
+                $app->log->alert("$date|\e[7;49;36mALERT\e[0m|: \e[0;49;36m$message\e[0m");
+                break;
+            case Log::WARN:
+                $app->log->warn("$date|\e[7;49;93mWARNG\e[0m|: \e[0;49;93m$message\e[0m");
+                break;
+            case Log::ERROR:
+                $app->log->error("$date|\e[7;49;91mERROR\e[0m|: \e[0;49;91m$message\e[0m");
+                break;
+            case Log::INFO:
+                $app->log->debug("$date|\e[7;49;96mINFOR\e[0m|: \e[0;49;96m$message\e[0m");
+                break;
+            case Log::DEBUG:
+                $app->log->debug("$date|\e[7;49;95mDEBUG\e[0m|: \e[0;49;95m$message\e[0m");
+                break;
+            default:
+                $app->log->emergency("$date|\e[7;49;92mEMERG\e[0m|: \e[0;49;92m$message\e[0m");
+                break;
+        }
     }
 }

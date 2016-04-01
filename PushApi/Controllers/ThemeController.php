@@ -2,10 +2,9 @@
 
 namespace PushApi\Controllers;
 
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
 use \PushApi\Models\Theme;
-use \PushApi\Controllers\Controller;
-use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -37,11 +36,19 @@ class ThemeController extends Controller
         $name = $this->requestParams['name'];
         $range = $this->requestParams['range'];
 
-        if (!in_array($range, Theme::getValidValues(), true)) {
-            throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range themes: " . Theme::UNICAST . ", " . Theme::MULTICAST . ", " . Theme::BROADCAST);
+        if (empty($name) || empty($range)) {
+            throw new PushApiException(PushApiException::EMPTY_PARAMS);
         }
 
-        $this->send(Theme::createTheme($name, $range));
+        if (!in_array($range, Theme::getValidRanges(), true)) {
+            throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range themes: " . Theme::RANGE_UNICAST . ", " . Theme::RANGE_MULTICAST . ", " . Theme::RANGE_BROADCAST);
+        }
+
+        if (!$theme = Theme::createTheme($name, $range)) {
+            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+        }
+
+        $this->send($theme);
     }
 
     /**
@@ -50,7 +57,11 @@ class ThemeController extends Controller
      */
     public function getTheme($id)
     {
-        $this->send(Theme::getTheme($id));
+        if (!$theme = Theme::getTheme($id)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($theme);
     }
 
     /**
@@ -65,16 +76,14 @@ class ThemeController extends Controller
     {
         $update = array();
 
-        if (isset($this->requestParams['range']) && !in_array($this->requestParams['range'], Theme::getValidValues(), true)) {
-            throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range themes: " . Theme::UNICAST . ", " . Theme::MULTICAST . ", " . Theme::BROADCAST);
+        if (isset($this->requestParams['range']) && !in_array($this->requestParams['range'], Theme::getValidRanges(), true)) {
+            throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range themes: " . Theme::RANGE_UNICAST . ", " . Theme::RANGE_MULTICAST . ", " . Theme::RANGE_BROADCAST);
+        } else {
+            $update['range'] = $this->requestParams['range'];
         }
 
         if (isset($this->requestParams['name'])) {
             $update['name'] = $this->requestParams['name'];
-        }
-
-        if (isset($this->requestParams['range'])) {
-            $update['range'] = $this->requestParams['range'];
         }
 
         $update = $this->cleanParams($update);
@@ -83,7 +92,11 @@ class ThemeController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        $this->send(Theme::updateTheme($id, $update));
+        if (!$theme = Theme::updateTheme($id, $update)) {
+            throw new PushApiException(PushApiException::ACTION_FAILED);
+        }
+
+        $this->send($theme);
     }
 
     /**
@@ -92,7 +105,11 @@ class ThemeController extends Controller
      */
     public function deleteTheme($id)
     {
-        $this->send(Theme::remove($id));
+        if (!$theme = Theme::remove($id)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($theme);
     }
 
     /**
@@ -116,7 +133,11 @@ class ThemeController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
         }
 
-        $this->send(Theme::getThemes($limit, $page));
+        if (!$theme = Theme::getThemes($limit, $page)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($theme);
     }
 
     /**
@@ -132,7 +153,11 @@ class ThemeController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        $this->send(Theme::getInfoByName($this->requestParams['name']));
+        if (!$theme = Theme::getInfoByName($this->requestParams['name'])) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($theme);
     }
 
     /**
@@ -157,10 +182,14 @@ class ThemeController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
         }
 
-        if (!in_array($range, Theme::getValidValues(), true)) {
-            throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range themes: " . Theme::UNICAST . ", " . Theme::MULTICAST . ", " . Theme::BROADCAST);
+        if (!in_array($range, Theme::getValidRanges(), true)) {
+            throw new PushApiException(PushApiException::INVALID_RANGE, "Valid range themes: " . Theme::RANGE_UNICAST . ", " . Theme::RANGE_MULTICAST . ", " . Theme::RANGE_BROADCAST);
         }
 
-        $this->send(Theme::getThemes($limit, $page, $range));
+        if (!$themes = Theme::getThemes($limit, $page, $range)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($themes);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace PushApi\Models;
 
+use \Slim\Log;
+use \PushApi\PushApi;
 use \PushApi\System\IModel;
 use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
@@ -54,13 +56,13 @@ class Subject extends Eloquent implements IModel
      * Checks if subject exists and returns it if true.
      * @param  int $id
      * @return Subject/false
-     * @throws PushApiExceptions
      */
     public static function checkExists($id)
     {
         try {
             $subject = Subject::findOrFail($id);
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
 
@@ -75,7 +77,8 @@ class Subject extends Eloquent implements IModel
             $result['theme_id'] = $subject->theme_id;
             $result['description'] = $subject->description;
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;
@@ -106,46 +109,45 @@ class Subject extends Eloquent implements IModel
     {
         $theme = Theme::getInfoByName($themeName);
 
-        if ($theme) {
-            return self::getSubjectByThemeId($theme['id']);
+        if (!$theme) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND . " - Theme not found", Log::DEBUG);
+            return false;
         }
 
-        return false;
+        return self::getSubjectByThemeId($theme['id']);
     }
 
     /**
      * Obtains all information about target subject given its id.
      * @param  int $id
      * @return array
-     * @throws PushApiException
      */
     public static function getSubject($id)
     {
         try {
             $subject = Subject::findOrFail($id);
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return self::generateFromModel($subject);
     }
     /**
      * Creates a new subject if it does not exist yet.
-     * @param  string $themeName
+     * @param  string $themeId
      * @param  string $description
      * @return array
-     * @throws PushApiException
      */
-    public static function createSubject($themeName, $description)
+    public static function createSubject($themeId, $description)
     {
-        $subjectExists = self::checkExists($themeName);
-
-        if ($subjectExists) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+        if ($subjectExists = self::getSubjectByThemeId($themeId)) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::DUPLICATED_VALUE, Log::DEBUG);
+            return false;
         }
 
         $subject = new Subject;
-        $subject->name = $themeName;
+        $subject->theme_id = $themeId;
         $subject->description = $description;
         $subject->save();
 
@@ -157,12 +159,12 @@ class Subject extends Eloquent implements IModel
      * @param  int $id
      * @param  array $update
      * @return boolean
-     * @throws PushApiException
      */
     public static function updateSubject($id, $update)
     {
         if (!$subject = self::checkExists($id)) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         foreach ($update as $key => $value) {
@@ -172,7 +174,8 @@ class Subject extends Eloquent implements IModel
         try {
             $subject->update();
         } catch (QueryException $e) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::DUPLICATED_VALUE, Log::DEBUG);
+            return false;
         }
 
         return true;
@@ -182,7 +185,6 @@ class Subject extends Eloquent implements IModel
      * Deletes the target subject given its id.
      * @param  int $id
      * @return boolean
-     * @throws PushApiException
      */
     public static function remove($id)
     {
@@ -190,17 +192,33 @@ class Subject extends Eloquent implements IModel
             $subject = Subject::findOrFail($id);
             $subject->delete();
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return true;
     }
+
+    /**
+     * Deletes the target subject given its theme id.
+     * @param  int $id
+     * @return boolean
+     */
+    public static function removeByThemeId($themeId)
+    {
+        if (!$subject = self::getSubjectByThemeId($themeId)) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
+        }
+
+        return self::remove($subject['id']);
+    }
+
     /**
      * Obtains all subjects registered. It can be searched giving limit and page values.
      * @param  int $limit
      * @param  int $page
      * @return array
-     * @throws PushApiException
      */
     public static function getSubjects($limit = 10, $page = 1)
     {
@@ -213,8 +231,8 @@ class Subject extends Eloquent implements IModel
             $skip = ($page - 1) * $limit;
         }
 
-        $result['limit'] = $limit;
-        $result['page'] = $page;
+        $result['limit'] = (int) $limit;
+        $result['page'] = (int) $page;
         try {
             $subjects = Subject::orderBy('id', 'asc')->take($limit)->offset($skip)->get();
 
@@ -224,7 +242,8 @@ class Subject extends Eloquent implements IModel
                 $result['subjects'][] = self::generateFromModel($subjects);
             }
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;

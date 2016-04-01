@@ -2,6 +2,8 @@
 
 namespace PushApi\Models;
 
+use \Slim\Log;
+use \PushApi\PushApi;
 use \PushApi\System\IModel;
 use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
@@ -83,6 +85,7 @@ class User extends Eloquent implements IModel
         try {
             $user = User::findOrFail($id);
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
 
@@ -93,14 +96,13 @@ class User extends Eloquent implements IModel
      * Generates an user given its object data merging it with the devices that its owning.
      * @param  User $user User object model.
      * @return array
-     * @throws PushApiException
      */
     public static function generateFromModel($user)
     {
         $result = self::getEmptyDataModel();
         try {
             $result['id'] = $user->id;
-            $devices = $user->devices->each(function($device) use (&$result) {
+            $user->devices->each(function($device) use (&$result) {
                 switch ($device->type) {
                     case Device::TYPE_EMAIL:
                         $result['email'][$device->id] = $device->reference;
@@ -117,7 +119,8 @@ class User extends Eloquent implements IModel
                 }
             });
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;
@@ -143,14 +146,14 @@ class User extends Eloquent implements IModel
      * Obtains all information about target user given its id.
      * @param  int $id User identification.
      * @return array
-     * @throws PushApiException
      */
     public static function getUser($id)
     {
         try {
             $user = User::findOrFail($id);
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         // Getting user devices info
@@ -200,6 +203,7 @@ class User extends Eloquent implements IModel
             return $model;
         }
 
+        PushApi::log(__METHOD__ . " - Error: " . PushApiException::ACTION_FAILED, Log::DEBUG);
         return false;
     }
 
@@ -215,6 +219,7 @@ class User extends Eloquent implements IModel
         try {
             $user = User::findOrFail($userId);
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
         $user->increment(Device::$typeToString[$deviceType]);
@@ -228,7 +233,6 @@ class User extends Eloquent implements IModel
      * @param  int $userId
      * @param  int $deviceType
      * @return boolean
-     * @throws PushApiException
      */
     public static function decrementDevice($userId, $deviceType)
     {
@@ -236,6 +240,7 @@ class User extends Eloquent implements IModel
         try {
             $user = User::findOrFail($userId);
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
         $user->decrement(Device::$typeToString[$deviceType]);
@@ -248,22 +253,24 @@ class User extends Eloquent implements IModel
      * Deletes the target user given its id and all DB relationships that it has (devices owning, preferences...).
      * @param  int $id
      * @return boolean
-     * @throws PushApiException
      */
     public static function remove($id)
     {
         // It must be deleted all devices first in order to destroy the DB relationship
         if (!Device::deleteAllDevices($id)) {
+            PushApi::log(__METHOD__ . " - User can not be removed, some of the devices can not be removed", Log::WARN);
             return false;
         }
 
         // It must be deleted all preferences related with target user
         if (!Preference::deleteAllUserPreferences($id)) {
+            PushApi::log(__METHOD__ . " - User can not be removed, some of the preferences can not be removed", Log::WARN);
             return false;
         }
 
         // It must be deleted all subscriptions related with target user
         if (!Subscription::deleteAllUserSubscriptions($id)) {
+            PushApi::log(__METHOD__ . " - User can not be removed, some of the subscriptions can not be removed", Log::WARN);
             return false;
         }
 
@@ -271,7 +278,8 @@ class User extends Eloquent implements IModel
             $user = User::findOrFail($id);
             $user->delete();
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return true;
@@ -283,7 +291,6 @@ class User extends Eloquent implements IModel
      * @param  int $limit Max results per page.
      * @param  int $page  Page to display.
      * @return array
-     * @throws PushApiException
      */
     public static function getUsers($limit = 10, $page = 1)
     {
@@ -291,6 +298,7 @@ class User extends Eloquent implements IModel
             'users' => []
         ];
         $skip = 0;
+
         // Updating the page offset
         if ($page != 1) {
             $skip = ($page - 1) * $limit;
@@ -308,7 +316,8 @@ class User extends Eloquent implements IModel
                 $result['users'][] = self::generateFromModel($user);
             }
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;

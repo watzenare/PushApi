@@ -2,6 +2,8 @@
 
 namespace PushApi\Models;
 
+use \Slim\Log;
+use \PushApi\PushApi;
 use \PushApi\System\IModel;
 use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
@@ -48,13 +50,13 @@ class Channel extends Eloquent implements IModel
      * Checks if channel exists and returns it if true.
      * @param  int $id
      * @return Channel/false
-     * @throws PushApiExceptions
      */
     public static function checkExists($id)
     {
         try {
             $channel = Channel::findOrFail($id);
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
 
@@ -68,7 +70,8 @@ class Channel extends Eloquent implements IModel
             $result['id'] = $channel->id;
             $result['name'] = $channel->name;
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;
@@ -78,14 +81,14 @@ class Channel extends Eloquent implements IModel
      * Retrieves the channel information given its name.
      * @param  string $name
      * @return array
-     * @throws PushApiException
      */
     public static function getInfoByName($name)
     {
         $channel = Channel::where('name', $name)->first();
 
         if ($channel == null) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return self::generateFromModel($channel);
@@ -111,14 +114,14 @@ class Channel extends Eloquent implements IModel
      * Obtains all information about target theme given its id.
      * @param  int $id
      * @return array
-     * @throws PushApiException
      */
     public static function getChannel($id)
     {
         try {
             $channel = Channel::findOrFail($id);
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return self::generateFromModel($channel);
@@ -128,14 +131,14 @@ class Channel extends Eloquent implements IModel
      * Creates a new channel if it does not exist yet.
      * @param  string $name
      * @return array
-     * @throws PushApiException
      */
     public static function createChannel($name)
     {
         $channelExists = self::getIdByName($name);
 
         if ($channelExists) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::DUPLICATED_VALUE, Log::DEBUG);
+            return false;
         }
 
         $channel = new Channel;
@@ -150,12 +153,12 @@ class Channel extends Eloquent implements IModel
      * @param  int $id
      * @param  string $name
      * @return boolean
-     * @throws PushApiException
      */
     public static function updateChannel($id, $update)
     {
         if (!$channel = self::checkExists($id)) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         foreach ($update as $key => $value) {
@@ -165,7 +168,8 @@ class Channel extends Eloquent implements IModel
         try {
             $channel->update();
         } catch (QueryException $e) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::DUPLICATED_VALUE, Log::DEBUG);
+            return false;
         }
 
         return true;
@@ -175,12 +179,12 @@ class Channel extends Eloquent implements IModel
      * Deletes the target channel given its id.
      * @param  int $id
      * @return boolean
-     * @throws PushApiException
      */
     public static function remove($id)
     {
         // It must be deleted all subscriptions first in order to destroy the DB relationship
         if (!Subscription::deleteAllChannelSubscriptions($id)) {
+            PushApi::log(__METHOD__ . " - Channel subscriptions deleted unsuccessfully, channel $id has not been deleted", Log::WARN);
             return false;
         }
 
@@ -188,7 +192,8 @@ class Channel extends Eloquent implements IModel
             $channel = Channel::findOrFail($id);
             $channel->delete();
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return true;
@@ -199,7 +204,6 @@ class Channel extends Eloquent implements IModel
      * @param  int $limit
      * @param  int $page
      * @return array
-     * @throws PushApiException
      */
     public static function getChannels($limit = 10, $page = 1)
     {
@@ -207,13 +211,14 @@ class Channel extends Eloquent implements IModel
             'channels' => []
         ];
         $skip = 0;
+
         // Updating the page offset
         if ($page != 1) {
             $skip = ($page - 1) * $limit;
         }
 
-        $result['limit'] = $limit;
-        $result['page'] = $page;
+        $result['limit'] = (int) $limit;
+        $result['page'] = (int) $page;
 
         try {
             $channels = Channel::orderBy('id', 'asc')->take($limit)->offset($skip)->get();
@@ -224,13 +229,14 @@ class Channel extends Eloquent implements IModel
                 $result['channels'][] = self::generateFromModel($channel);
             }
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;
     }
 
-    public static function getSubscriptors($name)
+    public static function getSubscribers($name)
     {
         $users = [];
 
@@ -246,7 +252,8 @@ class Channel extends Eloquent implements IModel
                 $users[] = User::getUser($user->user_id);
             }
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $users;

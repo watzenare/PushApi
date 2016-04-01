@@ -1,8 +1,8 @@
 <?php
 
+use \Slim\Log;
 use \Slim\Route;
-use \PushApi\PushApiException;
-use \PushApi\Controllers\Controller;
+use \PushApi\PushApi;
 use \PushApi\Controllers\AppController;
 use \PushApi\Controllers\LogController;
 use \PushApi\Controllers\UserController;
@@ -43,6 +43,18 @@ switch ($method) {
 // Customized HTTP headers
 $params['X-App-Id'] = $slim->request->headers->get('X-App-Id');
 $params['X-App-Auth'] = $slim->request->headers->get('X-App-Auth');
+
+// Log sample: POST - pushapi.com/user/1
+$authInfoLog = "Auth-params: " . $slim->request->headers->get('X-App-Id') . " - " .  $slim->request->headers->get('X-App-Auth');
+PushApi::log($authInfoLog, Log::DEBUG);
+
+// Log sample: POST - pushapi.com/user/1
+$routeInfoLog = $slim->request->getMethod() . " - " .  $slim->request->getHost() . $slim->request->getPath();
+PushApi::log($routeInfoLog, Log::DEBUG);
+
+// Log sample: {"name": "tester"}
+$paramsLog = "Params: " . json_encode($params);
+PushApi::log($paramsLog, Log::DEBUG);
 
 /**
  * Middleware that gets the headers and checks if application has authorization

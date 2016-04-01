@@ -2,9 +2,9 @@
 
 namespace PushApi\Controllers;
 
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
 use \PushApi\Models\App;
-use \PushApi\Controllers\Controller;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -111,7 +111,7 @@ class AppController extends Controller
         } catch (ModelNotFoundException $e) {
             throw new PushApiException(PushApiException::NOT_FOUND);
         }
-        // Inverse of the exitsts value, if it doesn't exists result should true
+        // Inverse of the exists value, if it doesn't exists result should true
         $this->send(!$app->exists);
     }
 
