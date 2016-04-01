@@ -2,6 +2,8 @@
 
 namespace PushApi\Models;
 
+use \Slim\Log;
+use \PushApi\PushApi;
 use \PushApi\System\IModel;
 use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
@@ -20,18 +22,18 @@ use \Illuminate\Database\Eloquent\ModelNotFoundException;
 class Theme extends Eloquent implements IModel
 {
     // Range values
-    const UNICAST = 'unicast';
-    const MULTICAST = 'multicast';
-    const BROADCAST = 'broadcast';
+    const RANGE_UNICAST = 'unicast';
+    const RANGE_MULTICAST = 'multicast';
+    const RANGE_BROADCAST = 'broadcast';
 
     public $timestamps = false;
 	public $fillable = array('name', 'range');
     protected $hidden = array('created');
 
-    private static $validValues = array(
-        self::UNICAST,
-        self::MULTICAST,
-        self::BROADCAST
+    private static $validRanges = array(
+        self::RANGE_UNICAST,
+        self::RANGE_MULTICAST,
+        self::RANGE_BROADCAST
     );
 
     /**
@@ -78,22 +80,22 @@ class Theme extends Eloquent implements IModel
      * Returns the valid values that accepts Theme model.
      * @return array Array with the accepted constants.
      */
-    public static function getValidValues()
+    public static function getValidRanges()
     {
-        return self::$validValues;
+        return self::$validRanges;
     }
 
     /**
      * Checks if theme exists and returns it if true.
      * @param  int $id
      * @return Theme/false
-     * @throws PushApiException
      */
     public static function checkExists($id)
     {
         try {
             $theme = Theme::findOrFail($id);
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
 
@@ -108,7 +110,8 @@ class Theme extends Eloquent implements IModel
             $result['name'] = $theme->name;
             $result['range'] = $theme->range;
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;
@@ -118,14 +121,14 @@ class Theme extends Eloquent implements IModel
      * Retrieves the theme information given its name.
      * @param  string $name
      * @return int/boolean
-     * @throws PushApiException
      */
     public static function getInfoByName($name)
     {
         $theme = Theme::where('name', $name)->first();
 
         if ($theme == null) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return self::generateFromModel($theme);
@@ -151,14 +154,14 @@ class Theme extends Eloquent implements IModel
      * Obtains all information about target theme given its id.
      * @param  int $id Theme identification.
      * @return array
-     * @throws PushApiException
      */
     public static function getTheme($id)
     {
         try {
             $theme = Theme::findOrFail($id);
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return self::generateFromModel($theme);
@@ -169,14 +172,14 @@ class Theme extends Eloquent implements IModel
      * @param  string $name  Name of the new theme.
      * @param  string $range Range of the notifications.
      * @return array
-     * @throws PushApiException
      */
     public static function createTheme($name, $range)
     {
         $themeExists = self::getIdByName($name);
 
         if ($themeExists) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::DUPLICATED_VALUE, Log::DEBUG);
+            return false;
         }
 
         $theme = new Theme;
@@ -192,12 +195,12 @@ class Theme extends Eloquent implements IModel
      * @param  string $id
      * @param  array $update
      * @return array
-     * @throws PushApiException
      */
     public static function updateTheme($id, $update)
     {
         if (!$theme = self::checkExists($id)) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         foreach ($update as $key => $value) {
@@ -207,7 +210,8 @@ class Theme extends Eloquent implements IModel
         try {
             $theme->update();
         } catch (QueryException $e) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::DUPLICATED_VALUE, Log::DEBUG);
+            return false;
         }
 
         return true;
@@ -217,25 +221,25 @@ class Theme extends Eloquent implements IModel
      * Deletes the target theme given its id.
      * @param  int $id
      * @return boolean
-     * @throws PushApiException
      */
     public static function remove($id)
     {
         // It must be deleted all preferences first in order to destroy the DB relationship
         if (!Preference::deleteAllThemePreferences($id)) {
+            PushApi::log(__METHOD__ . " - Theme preferences deleted unsuccessfully, theme $id has not been deleted", Log::WARN);
             return false;
         }
 
-        // It must be deleted all subjects first in order to destroy the DB relationship
-        if (!Subject::deleteAllThemeSubjects($id)) {
-            return false;
-        }
+        // It must be deleted the theme subject first in order to destroy the DB relationship, it does not matter the result of this action
+        $result = Subject::removeByThemeId($id);
+        PushApi::log(__METHOD__ . " - Theme subject deleted ($result)", Log::INFO);
 
         try {
             $theme = Theme::findOrFail($id);
             $theme->delete();
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return true;
@@ -248,7 +252,6 @@ class Theme extends Eloquent implements IModel
      * @param  int $page  Page to display.
      * @param  string $range Theme range value.
      * @return array
-     * @throws PushApiException
      */
     public static function getThemes($limit = 10, $page = 1, $range = false)
     {
@@ -256,6 +259,7 @@ class Theme extends Eloquent implements IModel
             'themes' => []
         ];
         $skip = 0;
+
         // Updating the page offset
         if ($page != 1) {
             $skip = ($page - 1) * $limit;
@@ -277,7 +281,8 @@ class Theme extends Eloquent implements IModel
                 $result['themes'][] = self::generateFromModel($theme);
             }
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;

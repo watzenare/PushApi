@@ -2,9 +2,10 @@
 
 namespace PushApi\System;
 
+use \Slim\Log;
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
-use \PushApi\System\INotification;
-use \PushApi\Models\User;
+use \PushApi\Models\Device;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -94,11 +95,13 @@ class Android implements INotification
     public function addRedirect($redirect)
     {
         if (!isset($redirect) || empty($redirect)) {
-            throw new PushApiException(PushApiException::NO_DATA, "Redirect is not set");
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NO_DATA, Log::DEBUG);
+            throw new PushApiException(PushApiException::NO_DATA, " Redirect is not set");
         }
 
         if (!isset($this->message)) {
-            throw new PushApiException(PushApiException::NO_DATA, "Message must be created before adding redirect");
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NO_DATA, Log::DEBUG);
+            throw new PushApiException(PushApiException::NO_DATA, " Message must be created before adding redirect");
         }
 
         $this->message["data"]["url"] = $redirect;
@@ -108,6 +111,7 @@ class Android implements INotification
     public function send()
     {
         if (!isset($this->message)) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NO_DATA, Log::DEBUG);
             throw new PushApiException(PushApiException::NO_DATA, "Can't send without push message created");
         }
 
@@ -136,6 +140,7 @@ class Android implements INotification
 
         // Fetching results or failing if doesn't work
         if ($result === false) {
+            PushApi::log(__METHOD__ . " - Android Curl connection failed", Log::ERROR);
             throw new PushApiException(PushApiException::CONNECTION_FAILED, "Android Curl connection failed" . curl_error($ch));
         }
 

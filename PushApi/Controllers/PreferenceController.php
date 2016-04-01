@@ -2,6 +2,7 @@
 
 namespace PushApi\Controllers;
 
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
 use \PushApi\Controllers\Controller;
 use \PushApi\Models\Preference;
@@ -40,7 +41,11 @@ class PreferenceController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE);
         }
 
-        $this->send(Preference::createPreference($idUser, $idTheme, $option));
+        if (!$preference = Preference::createPreference($idUser, $idTheme, $option)) {
+            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+        }
+
+        $this->send($preference);
     }
 
     /**
@@ -53,7 +58,11 @@ class PreferenceController extends Controller
      */
     public function getPreference($idUser, $idTheme)
     {
-        $this->send(Preference::getPreference($idUser, $idTheme));
+        if (!$preference = Preference::getPreference($idUser, $idTheme)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($preference);
     }
 
     /**
@@ -79,7 +88,11 @@ class PreferenceController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE);
         }
 
-        $this->send(Preference::updatePreference($idUser, $idTheme, $update));
+        if (!$preference = Preference::updatePreference($idUser, $idTheme, $update)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($preference);
     }
 
     /**
@@ -90,7 +103,11 @@ class PreferenceController extends Controller
      */
     public function deletePreference($idUser, $idTheme)
     {
-        $this->send(Preference::remove($idUser, $idTheme));
+        if (!$preference = Preference::remove($idUser, $idTheme)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($preference);
     }
 
     /**
@@ -101,7 +118,11 @@ class PreferenceController extends Controller
      */
     public function getPreferences($idUser)
     {
-        $this->send(Preference::getAllPreferences($idUser));
+        if (!$preferences = Preference::getAllPreferences($idUser)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($preferences);
     }
 
     /**
@@ -126,6 +147,10 @@ class PreferenceController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE);
         }
 
-        $this->send(Preference::updateAllPreferences($idUser, $update));
+        if (!$preferences = Preference::updateAllPreferences($idUser, $update)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($preferences);
     }
 }

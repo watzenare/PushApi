@@ -2,8 +2,6 @@
 
 namespace PushApi\System;
 
-use \PushApi\PushApiException;
-
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
  * @copyright 2015 Eloi Ballarà Madrid <eloi@tviso.com>

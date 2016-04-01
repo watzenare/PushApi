@@ -2,8 +2,8 @@
 
 namespace PushApi\Controllers;
 
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
-use \PushApi\Controllers\Controller;
 use \PushApi\Models\Subscription;
 
 /**
@@ -26,7 +26,11 @@ class SubscriptionController extends Controller
      */
     public function setSubscribed($idUser, $idChannel)
     {
-        $this->send(Subscription::createSubscription($idUser, $idChannel));
+        if (!$subscription = Subscription::createSubscription($idUser, $idChannel)) {
+            throw new PushApiException(PushApiException::ACTION_FAILED);
+        }
+
+        $this->send($subscription);
     }
 
     /**
@@ -39,7 +43,11 @@ class SubscriptionController extends Controller
      */
     public function getSubscription($idUser, $idChannel)
     {
-        $this->send(Subscription::getSubscription($idUser, $idChannel));
+        if (!$subscription = Subscription::getSubscription($idUser, $idChannel)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($subscription);
     }
 
     /**
@@ -50,7 +58,11 @@ class SubscriptionController extends Controller
      */
     public function deleteSubscription($idUser, $idChannel)
     {
-        $this->send(Subscription::remove($idUser, $idChannel));
+        if (!$subscription = Subscription::remove($idUser, $idChannel)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($subscription);
     }
 
     /**
@@ -61,6 +73,10 @@ class SubscriptionController extends Controller
      */
     public function getSubscriptions($idUser)
     {
-        $this->send(Subscription::getSubscriptions($idUser));
+        if (!$subscriptions = Subscription::getSubscriptions($idUser)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($subscriptions);
     }
 }

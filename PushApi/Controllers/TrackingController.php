@@ -2,10 +2,7 @@
 
 namespace PushApi\Controllers;
 
-use \PushApi\PushApiException;
 use \PushApi\Models\Tracking;
-use \PushApi\Controllers\Controller;
-use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -40,6 +37,11 @@ class TrackingController extends Controller
         $tracking->email = $this->requestParams['receiver'];
         $tracking->theme = $this->requestParams['theme'];
         $tracking->agent = $this->slim->request->getUserAgent();
+
+        if (isset($this->requestParams['date_sent']) && !empty($this->requestParams['date_sent'])) {
+            $tracking->date_sent = $this->requestParams['date_sent'];
+        }
+
         $tracking->save();
 
         echo self::PIXEL_IMAGE;
