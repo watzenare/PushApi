@@ -2,6 +2,8 @@
 
 namespace PushApi\Models;
 
+use \PushApi\PushApi;
+use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
 
 /**
@@ -10,16 +12,17 @@ use \Illuminate\Database\Eloquent\Model as Eloquent;
  * @license http://www.opensource.org/licenses/mit-license.php The MIT License
  * Documentation @link https://push-api.readme.io/
  *
- * Model of the logs table, manages all the relationships and dependencies
- * that can be done on these table
+ * Model of the logs table, manages all the relationships and dependencies that can be done on these table.
+ * It is responsible to log all notifications sent storing the main data of each notification.
  */
 class Log extends Eloquent
 {
     public $timestamps = false;
     public $fillable = array('theme_id', 'channel_id', 'user_id', 'message');
+
     /**
      * Array of theme ids that will be prevented to be stored into the Log database.
-     * @var array
+     * @var array   Array of integers
      */
     private static $blackList = [];
 
@@ -34,6 +37,7 @@ class Log extends Eloquent
     {
         // Preventing to store notification if theme is into the blacklist
         if (in_array($attributes['theme_id'], self::$blackList)) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::INVALID_ACTION, \Slim\Log::WARN);
             return false;
         }
 

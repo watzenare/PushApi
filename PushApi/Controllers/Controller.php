@@ -27,7 +27,7 @@ class Controller
     /**
      * Prepares an HTML response, it modifies some response headers and prepares the
      * resulting data encoding it into json and sends it to the client.
-     * @param  [array] $result Array with resulting values
+     * @param  array $result Array with resulting values
      */
     protected function send($result)
     {

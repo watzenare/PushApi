@@ -33,6 +33,7 @@ class PushApiException extends Exception
     const DB_NOT_UPDATED = 13;
     const INVALID_PARAMS = 14;
     const DUPLICATED_VALUE = 15;
+    const ACTION_FAILED = 16;
 
     /**
      * Generates the exception given a code and an extra message if is passed.
@@ -98,6 +99,9 @@ class PushApiException extends Exception
 
             case self::DUPLICATED_VALUE:
                 return "This content is already added";
+
+            case self::ACTION_FAILED:
+                return "Something has gone wrong and the action could not be finished";
 
             default:
                 return "Exception not found";

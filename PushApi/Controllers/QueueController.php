@@ -2,9 +2,10 @@
 
 namespace PushApi\Controllers;
 
+use \Slim\Log;
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
 use \PushApi\Models\Preference;
-use \PushApi\Controllers\Controller;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -50,6 +51,7 @@ class QueueController extends Controller
         if ($key && isset($this->params[$key])) {
             return $this->params[$key];
         } else if ($key && !isset($this->params[$key])) {
+            Pushapi::log(__METHOD__ . " - Data cannot be obtained, key $key not found", Log::WARN);
             return false;
         } else {
             return $this->params;
@@ -78,8 +80,8 @@ class QueueController extends Controller
                 break;
 
             default:
+                Pushapi::log(__METHOD__ . " - Data cannot be added to the sending queue, invalid target $target", Log::WARN);
                 return false;
-                break;
         }
 
         return true;
@@ -106,6 +108,7 @@ class QueueController extends Controller
                 return json_decode($element[1]);
 
             default:
+                Pushapi::log(__METHOD__ . " - Data cannot be obtained to the sending queue, invalid target $target", Log::WARN);
                 return false;
         }
     }

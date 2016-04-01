@@ -2,14 +2,13 @@
 
 namespace PushApi\Controllers;
 
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
 use \PushApi\Models\Log;
 use \PushApi\Models\User;
 use \PushApi\Models\Theme;
 use \PushApi\Models\Channel;
 use \PushApi\Models\Preference;
-use \PushApi\Controllers\Controller;
-use \PushApi\Controllers\QueueController;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -26,8 +25,6 @@ class LogController extends Controller
     const MAX_DELAY = 3600; // 1 hour in seconds
     const TIME_TO_LIVE = 86400; // 1 day in seconds
 
-    private $message = '';
-    private $theme;
     private $queueController;
 
     public function __construct($params = null)
@@ -119,7 +116,7 @@ class LogController extends Controller
 
         switch ($theme['range']) {
             // If theme has this range, checks if the user has set its preferences and prepares the message.
-            case Theme::UNICAST:
+            case Theme::RANGE_UNICAST:
                 $result = $this->unicastChecker($theme);
                 break;
 
@@ -127,7 +124,7 @@ class LogController extends Controller
              * If theme has this range, checks all users subscribed and its preferences. Prepare the
              * log and the messages to be queued
              */
-            case Theme::MULTICAST:
+            case Theme::RANGE_MULTICAST:
                 $result = $this->multicastChecker($theme);
                 break;
 
@@ -135,7 +132,7 @@ class LogController extends Controller
              * If theme has this range, checks the preferences for the target theme and send to
              * all users who haven't set option none.
              */
-            case Theme::BROADCAST:
+            case Theme::RANGE_BROADCAST:
                 $result = $this->broadcastChecker($theme);
                 break;
 
@@ -164,7 +161,8 @@ class LogController extends Controller
          * If theme is added into the blacklist, this functionality is pointless.
          */
         if (SENDING_LIMITATION && $this->messageHasBeenSentBefore($theme, $userId)) {
-            return true;
+            PushApi::log(__METHOD__ . " - Unicast not send, message has been already sent today", \Slim\Log::INFO);
+            return false;
          }
 
         // Searching if the user has set preferences for that theme in order to get the option
@@ -172,15 +170,23 @@ class LogController extends Controller
 
         // If we don't find the user, the default preference is to send through all devices
         if (!$userPreference) {
-            try {
-                $user = User::getUser($userId);
-            } catch (ModelNotFoundException $e) {
-                throw new PushApiException(PushApiException::NOT_FOUND);
+            $user = User::getUser($userId);
+
+            // Checking if user exists
+            if (!$user) {
+                PushApi::log(__METHOD__ . " - Unicast not sent due to not found values (user $userId not found)", \Slim\Log::WARN);
+                return false;
             }
+
             $preference = Preference::ALL_RANGES;
         } else {
-            $preference = $userPreference['option'];
-            $user = User::getUser($userId);
+            if ($userPreference['option'] == Preference::NOTHING) {
+                PushApi::log(__METHOD__ . " - Unicast preference set as do not want to receive anything, message not sent", \Slim\Log::INFO);
+                return false;
+            } else {
+                $preference = $userPreference['option'];
+                $user = User::getUser($userId);
+            }
         }
 
         $this->queueController->preQueuingDecider(
@@ -218,25 +224,32 @@ class LogController extends Controller
 
         $channelName = $this->requestParams['channel'];
 
-        try {
-            $channel = Channel::getInfoByName($channelName);
-            $subscriptions = Channel::getSubscriptors($channel['name']);
-        } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+        $channel = Channel::getInfoByName($channelName);
+
+        if (!$channel) {
+            PushApi::log(__METHOD__ . " - Multicast not sent due to not found values (channelName $channelName)", \Slim\Log::WARN);
+            return false;
         }
 
-        if (!isset($subscriptions)) {
-            throw new PushApiException(PushApiException::NOT_FOUND, "Channel doesn't have users subscribed");
+        $subscriptions = Channel::getSubscribers($channel['name']);
+
+        if (!$subscriptions) {
+            PushApi::log(__METHOD__ . " - Multicast not sent due to not found values (no subscribers to channel)", \Slim\Log::WARN);
+            return false;
         }
 
         // Checking user preferences and add the notification to the right queue
         foreach ($subscriptions as $user) {
-            try {
-                $userPreference = Preference::getPreference($user['id'], $theme['id']);
-                $preference = $userPreference['option'];
-            } catch (PushApiException $e) {
+            $userPreference = Preference::getPreference($user['id'], $theme['id']);
+            if (!$userPreference) {
                 // User hasn't set preferences for that theme, by default receive all devices
                 $preference = Preference::ALL_RANGES;
+            } else {
+                if ($userPreference['option'] == Preference::NOTHING) {
+                    continue;
+                } else {
+                    $preference = $userPreference['option'];
+                }
             }
 
             $this->queueController->preQueuingDecider(
@@ -272,28 +285,39 @@ class LogController extends Controller
      */
     private function broadcastChecker($theme)
     {
-        // Checking user preferences and add the notification to the right queue
-        $users = User::orderBy('id', 'asc')->get()->toArray();
-        foreach ($users as $key => $user) {
-            $user = User::getUser($user['id']);
-            // Search if the user has set broadcast preferences
-            $preference = Preference::checkExistsUserPreference($user['id'], $theme['id']);
-            // If user has set, it is used that option but if not set, default is all devices
-            if ($preference) {
-                $preference = $preference->option;
-            } else {
-                $preference = Preference::ALL_RANGES;
-            }
+        $skip = 0;
+        $offset = 25;
 
-            $this->queueController->preQueuingDecider(
-                decbin($preference),
-                [
-                    QueueController::EMAIL => $user['email'],
-                    QueueController::ANDROID => $user['android'],
-                    QueueController::IOS => $user['ios'],
-                ],
-                true
-            );
+        // Checking user preferences and add the notification to the right queue
+        while ($users = User::orderBy('id', 'asc')->take($offset)->offset($skip * $offset)->get()) {
+            $users = User::orderBy('id', 'asc')->get()->toArray();
+            foreach ($users as $key => $user) {
+                $user = User::getUser($user['id']);
+                // Search if the user has set broadcast preferences
+                $preference = Preference::checkExistsUserPreference($user['id'], $theme['id']);
+                // If user has set, it is used that option but if not set, default is all devices
+                if ($preference) {
+                    if ($preference->option == Preference::NOTHING) {
+                        PushApi::log(__METHOD__ . " - Broadcast preference set as do not want to receive anything, message not sent", \Slim\Log::INFO);
+                        continue;
+                    } else {
+                        $preference = $preference->option;
+                    }
+                } else {
+                    $preference = Preference::ALL_RANGES;
+                }
+
+                $this->queueController->preQueuingDecider(
+                    decbin($preference),
+                    [
+                        QueueController::EMAIL => $user['email'],
+                        QueueController::ANDROID => $user['android'],
+                        QueueController::IOS => $user['ios'],
+                    ],
+                    true
+                );
+            }
+            $skip++;
         }
 
         // Storing pre-queuing results to each queue

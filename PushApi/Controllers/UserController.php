@@ -2,10 +2,10 @@
 
 namespace PushApi\Controllers;
 
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
 use \PushApi\Models\User;
 use \PushApi\Models\Device;
-use \PushApi\Controllers\Controller;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -39,7 +39,11 @@ class UserController extends Controller
             throw new PushApiException(PushApiException::INVALID_DATA);
         }
 
-        $this->send(User::createUser($email));
+        if (!$user = User::createUser($email)) {
+            throw new PushApiException(PushApiException::ACTION_FAILED);
+        }
+
+        $this->send($user);
     }
 
     /**
@@ -49,7 +53,11 @@ class UserController extends Controller
      */
     public function getUser($id)
     {
-        $this->send(User::getUser($id));
+        if (!$user = User::getUser($id)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($user);
     }
 
     /**
@@ -59,7 +67,9 @@ class UserController extends Controller
      */
     public function deleteUser($id)
     {
-        $deleted = User::remove($id);
+        if (!$deleted = User::remove($id)) {
+            throw new PushApiException(PushApiException::ACTION_FAILED);
+        }
 
         $this->send($deleted);
     }
@@ -104,7 +114,11 @@ class UserController extends Controller
             Device::addDevice($id, $type, $reference);
         }
 
-        $this->send(User::getUser($id));
+        if (!$user = User::getUser($id)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($user);
     }
 
     /**
@@ -115,7 +129,11 @@ class UserController extends Controller
      */
     public function getUserDeviceInfo($id, $idDevice)
     {
-        $this->send(Device::getDevice($id, $idDevice));
+        if (!$device = Device::getDevice($id, $idDevice)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($device);
     }
 
     /**
@@ -134,7 +152,11 @@ class UserController extends Controller
 
         $reference = $this->requestParams['reference'];
 
-        $this->send(Device::getIdByReference($id, $reference));
+        if (!$device = Device::getIdByReference($id, $reference)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($device);
     }
 
     /**
@@ -145,7 +167,11 @@ class UserController extends Controller
      */
     public function removeUserDevice($id, $idDevice)
     {
-        $this->send(Device::removeDeviceById($id, $idDevice));
+        if (!$result = Device::removeDeviceById($id, $idDevice)) {
+            throw new PushApiException(PushApiException::INVALID_ACTION);
+        }
+
+        $this->send($result);
     }
 
     /**
@@ -160,7 +186,11 @@ class UserController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid type value");
         }
 
-        $this->send(Device::deleteDevicesByType($id, $type));
+        if (!$result = Device::deleteDevicesByType($id, $type)) {
+            throw new PushApiException(PushApiException::INVALID_ACTION);
+        }
+
+        $this->send($result);
     }
 
     /**
@@ -182,7 +212,12 @@ class UserController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
         }
 
-        $this->send(User::getUsers($limit, $page));
+        if (!$users = User::getUsers($limit, $page)) {
+            throw new PushApiException(PushApiException::INVALID_ACTION);
+        }
+
+        $this->send($users);
+
     }
 
     /**

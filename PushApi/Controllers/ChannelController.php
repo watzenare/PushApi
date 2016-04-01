@@ -2,9 +2,9 @@
 
 namespace PushApi\Controllers;
 
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
 use \PushApi\Models\Channel;
-use \PushApi\Controllers\Controller;
 
 /**
  * @author Eloi Ballarà Madrid <eloi@tviso.com>
@@ -29,11 +29,15 @@ class ChannelController extends Controller
      */
     public function setChannel()
     {
-        if (!isset($this->requestParams['name'])) {
+        if (!isset($this->requestParams['name']) || empty($this->requestParams['name'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        $this->send(Channel::createChannel($this->requestParams['name']));
+        if (!$channel = Channel::createChannel($this->requestParams['name'])) {
+            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+        }
+
+        $this->send($channel);
     }
 
     /**
@@ -43,7 +47,11 @@ class ChannelController extends Controller
      */
     public function getChannel($id)
     {
-        $this->send(Channel::getChannel($id));
+        if (!$channel = Channel::getChannel($id)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($channel);
     }
 
     /**
@@ -57,7 +65,11 @@ class ChannelController extends Controller
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
-        $this->send(Channel::getInfoByName($this->requestParams['name']));
+        if (!$channel = Channel::getInfoByName($this->requestParams['name'])) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($channel);
     }
 
     /**
@@ -72,13 +84,23 @@ class ChannelController extends Controller
     {
         $update = array();
 
-        if (!isset($this->requestParams['name'])) {
+        if (!isset($this->requestParams['name']) || empty($this->requestParams['name'])) {
             throw new PushApiException(PushApiException::NO_DATA);
         }
 
         $update['name'] = $this->requestParams['name'];
 
-        $this->send(Channel::updateChannel($id, $update));
+        $update = $this->cleanParams($update);
+
+        if (empty($update)) {
+            throw new PushApiException(PushApiException::NO_DATA);
+        }
+
+        if (!$result = Channel::updateChannel($id, $update)) {
+            throw new PushApiException(PushApiException::ACTION_FAILED);
+        }
+
+        $this->send($result);
     }
 
     /**
@@ -88,7 +110,11 @@ class ChannelController extends Controller
      */
     public function deleteChannel($id)
     {
-        $this->send(Channel::remove($id));
+        if (!$channel = Channel::remove($id)) {
+            throw new PushApiException(PushApiException::ACTION_FAILED);
+        }
+
+        $this->send($channel);
     }
 
     /**
@@ -112,6 +138,10 @@ class ChannelController extends Controller
             throw new PushApiException(PushApiException::INVALID_RANGE, "Invalid page value");
         }
 
-        $this->send(Channel::getChannels($limit, $page));
+        if (!$channels = Channel::getChannels($limit, $page)) {
+            throw new PushApiException(PushApiException::NOT_FOUND);
+        }
+
+        $this->send($channels);
     }
 }

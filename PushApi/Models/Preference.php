@@ -2,6 +2,8 @@
 
 namespace PushApi\Models;
 
+use \Slim\Log;
+use \PushApi\PushApi;
 use \PushApi\System\IModel;
 use \PushApi\PushApiException;
 use \Illuminate\Database\Eloquent\Model as Eloquent;
@@ -37,8 +39,8 @@ class Preference extends Eloquent implements IModel
         return [
             "id" => 0,
             "option" => "",
-            "user_id" => "",
-            "theme_id" => "",
+            "user_id" => 0,
+            "theme_id" => 0,
         ];
     }
 
@@ -70,6 +72,7 @@ class Preference extends Eloquent implements IModel
         try {
             $preference = Preference::findOrFail($id);
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
 
@@ -87,6 +90,7 @@ class Preference extends Eloquent implements IModel
         try {
             $preference = User::findOrFail($idUser)->preferences()->where('theme_id', $idTheme)->first();
         } catch (ModelNotFoundException $e) {
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
             return false;
         }
 
@@ -101,12 +105,13 @@ class Preference extends Eloquent implements IModel
     {
         $result = self::getEmptyDataModel();
         try {
-            $result['id'] = $preference->id;
+            $result['id'] = (int) $preference->id;
             $result['option'] = $preference->option;
-            $result['user_id'] = $preference->user_id;
-            $result['theme_id'] = $preference->theme_id;
+            $result['user_id'] = (int) $preference->user_id;
+            $result['theme_id'] = (int) $preference->theme_id;
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;
@@ -118,13 +123,13 @@ class Preference extends Eloquent implements IModel
      * @param  int $idTheme
      * @param  int $option
      * @return array
-     * @throws PushApiException
      */
     public static function createPreference($idUser, $idTheme, $option)
     {
         // Checking if preference is already set
         if (self::checkExistsUserPreference($idUser, $idTheme)) {
-            throw new PushApiException(PushApiException::DUPLICATED_VALUE);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::DUPLICATED_VALUE, Log::DEBUG);
+            return false;
         }
 
         if (User::checkExists($idUser) && Theme::checkExists($idTheme)) {
@@ -135,7 +140,8 @@ class Preference extends Eloquent implements IModel
             $preference->save();
             return $preference;
         } else {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
     }
 
@@ -144,14 +150,14 @@ class Preference extends Eloquent implements IModel
      * @param  int $idUser
      * @param  int $idTheme
      * @return array
-     * @throws PushApiException
      */
     public static function getPreference($idUser, $idTheme)
     {
         $preference = self::checkExistsUserPreference($idUser, $idTheme);
 
         if (!$preference) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return self::generateFromModel($preference);
@@ -163,20 +169,21 @@ class Preference extends Eloquent implements IModel
      * @param  int $idTheme
      * @param  array $update
      * @return boolean
-     * @throws PushApiException
      */
     public static function updatePreference($idUser, $idTheme, $update)
     {
         $preference = self::checkExistsUserPreference($idUser, $idTheme);
 
         if (!$preference) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         try {
             $preference->update($update);
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return true;
@@ -187,20 +194,21 @@ class Preference extends Eloquent implements IModel
      * @param  int $idUser
      * @param  int $idTheme
      * @return boolean
-     * @throws PushApiException
      */
     public static function remove($idUser, $idTheme)
     {
         $preference = self::checkExistsUserPreference($idUser, $idTheme);
 
         if (!$preference) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         try {
             $preference->delete();
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return true;
@@ -210,7 +218,6 @@ class Preference extends Eloquent implements IModel
      * Obtains all user preferences set by the user.
      * @param  int $idUser
      * @return array
-     * @throws PushApiException
      */
     public static function getAllPreferences($idUser)
     {
@@ -222,7 +229,8 @@ class Preference extends Eloquent implements IModel
                 $result[] = self::generateFromModel($preference);
             }
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         return $result;
@@ -233,12 +241,9 @@ class Preference extends Eloquent implements IModel
      * @param  int $idUser
      * @param  int $update
      * @return boolean
-     * @throws PushApiException
      */
     public static function updateAllPreferences($idUser, $update)
     {
-        $totalThemes = 0;
-
         try {
             // Obtaining all themes
             $themes = Theme::get()->toArray();
@@ -260,15 +265,17 @@ class Preference extends Eloquent implements IModel
                         $count++;
                     }
                 } catch (ModelNotFoundException $e) {
-                    throw new PushApiException(PushApiException::NOT_FOUND);
+                    PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+                    return false;
                 }
             }
         } catch (ModelNotFoundException $e) {
-            throw new PushApiException(PushApiException::NOT_FOUND);
+            PushApi::log(__METHOD__ . " - Error: " . PushApiException::NOT_FOUND, Log::DEBUG);
+            return false;
         }
 
         // Checking if all preferences have been set correctly
-        if ($totalThemes == $count) {
+        if (isset($totalThemes) && $totalThemes == $count) {
             return true;
         }
 

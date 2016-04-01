@@ -1,6 +1,7 @@
 <?php
 
 define('DEBUG', true);
+define('LOG', true);
 define('ROOT_DIR', dirname(__FILE__));
 
 /**

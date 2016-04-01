@@ -2,8 +2,9 @@
 
 namespace PushApi\System;
 
+use \Slim\Log;
+use \PushApi\PushApi;
 use \PushApi\PushApiException;
-use \PushApi\System\INotification;
 use \PushApi\Models\Subject;
 
 /**
@@ -106,6 +107,7 @@ class Mail implements INotification
     public function send()
     {
         if (!isset($this->message)) {
+            PushApi::log(__METHOD__ . " - Can't send without mail message", Log::INFO);
             throw new PushApiException(PushApiException::NO_DATA, "Can't send without mail message");
         }
 
@@ -116,6 +118,7 @@ class Mail implements INotification
             $this->mailer->getTransport()->stop();
             // Cooldown time
             sleep(5);
+            PushApi::log(__METHOD__ . " - Something has happened, restarting the mail connection", Log::INFO);
             return false;
         }
 
@@ -138,6 +141,7 @@ class Mail implements INotification
             try {
                 $subject = Subject::getSubjectByThemeName($name);
             } catch (PushApiException $e) {
+                PushApi::log(__METHOD__ . " - Subject not found, cannot be translated", Log::DEBUG);
                 return false;
             }
 
