@@ -118,7 +118,7 @@ class Mail implements INotification
             $this->mailer->getTransport()->stop();
             // Cooldown time
             sleep(5);
-            PushApi::log(__METHOD__ . " - Something has happened, restarting the mail connection", Log::INFO);
+            PushApi::log(__METHOD__ . " - " . $e->getMessage() . ", restarting the mail connection", Log::INFO);
             return false;
         }
 
